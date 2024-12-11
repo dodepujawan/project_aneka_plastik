@@ -89,7 +89,7 @@
                     </div>
                     <button type="submit" class="btn btn-primary btn-block" id="but_edit_list_register"><i class="fa fa-user"></i> Update</button>
                     <hr>
-                    <p class="text-center">Kembali ke <a href="javascript:void(0);">Dashboard</a></p>
+                    <p class="text-center">Kembali ke <a href="javascript:void(0);">Dashboard !</a></p>
                 </form>
             </div>
         </div>
