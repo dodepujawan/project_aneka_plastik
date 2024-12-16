@@ -15,22 +15,38 @@ class TransaksiController extends Controller
         return view('transaksi.index_transaksi');
     }
 
+    // public function get_barangs(Request $request){
+    //     $search = $request->input('q'); // Ambil query pencarian
+    //     $query = DB::table('mbarang as a')
+    //                 ->select(
+    //                     'a.id',
+    //                     'a.KD_STOK as kd_barang',
+    //                     'a.NAMA_BRG as nama_barang',
+    //                     'a.SATUAN as satuan',
+    //                     'a.HJ1 as harga',
+    //                     DB::raw("CAST(SUBSTRING_INDEX(b.isi, ',', 1) AS UNSIGNED) as q_unit"),
+    //                     DB::raw("CAST(SUBSTRING_INDEX(a.STOKUNIT, ',', 1) AS UNSIGNED) as stok")
+    //                 )
+    //                 ->leftJoin('mharga as b', 'a.KD_STOK', '=', 'b.kd_stok');
+    //     if ($search) {
+    //         $query->where('a.KD_STOK', 'LIKE', "%{$search}%")
+    //             ->orWhere('a.NAMA_BRG', 'LIKE', "%{$search}%");
+    //     }
+    //     $barangs = $query->get(); // Eksekusi query
+    //     return response()->json($barangs);
+    // }
+
     public function get_barangs(Request $request){
         $search = $request->input('q'); // Ambil query pencarian
         $query = DB::table('mbarang as a')
                     ->select(
-                        'a.id',
-                        'a.KD_STOK as kd_barang',
-                        'a.NAMA_BRG as nama_barang',
-                        'a.SATUAN as satuan',
-                        'a.HJ1 as harga',
-                        DB::raw("CAST(SUBSTRING_INDEX(b.isi, ',', 1) AS UNSIGNED) as q_unit"),
-                        DB::raw("CAST(SUBSTRING_INDEX(a.STOKUNIT, ',', 1) AS UNSIGNED) as stok")
-                    )
-                    ->leftJoin('mharga as b', 'a.KD_STOK', '=', 'b.kd_stok');
+                        'id',
+                        'KD_STOK as kd_barang',
+                        'NAMA_BRG as nama_barang',
+                    );
         if ($search) {
-            $query->where('a.KD_STOK', 'LIKE', "%{$search}%")
-                ->orWhere('a.NAMA_BRG', 'LIKE', "%{$search}%");
+            $query->where('KD_STOK', 'LIKE', "%{$search}%")
+                ->orWhere('NAMA_BRG', 'LIKE', "%{$search}%");
         }
         $barangs = $query->get(); // Eksekusi query
         return response()->json($barangs);
@@ -100,6 +116,22 @@ class TransaksiController extends Controller
             // Kembalikan pesan error
             return response()->json(['error' => 'Failed to save products: ' . $e->getMessage()], 500);
         }
+    }
+
+    public function get_barang_satuan(Request $request)
+    {
+        $kd_barang = $request->input('kd_barang');
+
+        // Query data sesuai kebutuhan
+        $data = DB::table('mharga as a')
+            ->leftJoin('mbarang as b', 'b.KD_STOK', '=', 'a.kd_stok')
+            ->select('a.kd_stok', 'a.satuan', 'a.hj1', 'a.isi', 'b.NAMA_BRG')
+            ->where('a.kd_stok', $kd_barang)
+            ->orderBy('a.isi', 'ASC')
+            ->get();
+
+        // Return data sebagai JSON
+        return response()->json($data);
     }
 
     // ### Membuka Halaman Edit Transaksi

@@ -101,21 +101,23 @@ h5 {
     <h1>Halaman Input PO</h1>
     <div class="product-info">
         <input type="hidden" value="" id="kd_barang" readonly>
-
         <!-- Informasi Barang -->
         <div class="row">
             <div class="col-md-4 info-item">
-                <h5>Nama Barang: <span id="nama_barang">-</span></h5>
+                <h5>Nama: <span id="nama_barang">-</span></h5>
             </div>
             <div class="col-md-4 info-item">
-                <h5>Unit Qty: <span id="unit_barang">-</span></h5>
+                <h5>Harga: <span id="harga_barang">-</span></h5>
             </div>
             <div class="col-md-4 info-item">
-                <h5>Satuan Barang: <span id="satuan_barang">-</span></h5>
+                <h5>Qty: <span id="unit_barang">-</span></h5>
             </div>
+            {{-- <div class="col-md-3 info-item">
+                <h5>Satuan: <span id="satuan_barang">-</span></h5>
+            </div> --}}
         </div>
 
-        <!-- Garis Pembatas -->
+        {{-- <!-- Garis Pembatas -->
         <div class="underline"></div>
 
         <!-- Informasi Harga dan Stok -->
@@ -126,11 +128,12 @@ h5 {
             <div class="col-md-6 info-item">
                 <h5>Stok Barang: <span id="stok_barang">-</span></h5>
             </div>
-        </div>
+        </div> --}}
     </div>
 </div>
+{{-- ### Form Inputan ### --}}
 <form action="" class="row mt-3">
-    <div class="col-lg-5 col-md-12 mb-3">
+    <div class="col-lg-4 col-md-12 col-sm-12 mb-3">
         <div class="d-flex align-items-center">
         <button type="button" id="clear_select" class="btn btn-secondary btn-sm me-2 mr-2">
             <i class="fa fa-eraser" aria-hidden="true"></i>
@@ -142,22 +145,28 @@ h5 {
         </div>
     </div>
     <div class="col-lg-3 col-md-6 col-sm-12 mb-3">
+        <select name="select_barang_satuan" id="select_barang_satuan" class="form-control">
+            <option value="">Pilih Satuan</option>
+        </select>
+    </div>
+    <div class="col-lg-3 col-md-6 col-sm-12 mb-3">
         <input type="number" id="jumlah_trans" class="form-control" placeholder="Jumlah barang">
     </div>
-    <div class="col-lg-4 col-md-6 col-sm-12 mb-3">
+    <div class="col-lg-2 col-md-6 col-sm-12 mb-3">
         <div class="d-flex align-items-center">
             @php
                 $user = Auth::user();
                 $allowed_roles = ['customer'];
                 $is_customer = in_array($user->roles, $allowed_roles);
             @endphp
-        <input type="number" id="diskon_barang" class="form-control" placeholder="Diskon barang dalam %" {{ $is_customer ? 'readonly' : '' }}>
+        <input type="number" id="diskon_barang" class="form-control" placeholder="Diskon %" {{ $is_customer ? 'readonly' : '' }}>
         <button type="submit" class="btn btn-success btn-sm ms-2 ml-2">
             <i class="fa fa-check" aria-hidden="true"></i>
         </button>
         </div>
     </div>
 </form>
+{{-- ### Table ###  --}}
 <div class="mt-3 table-container table-responsive">
     <table id="transaksi_table" class="display table table-bordered mb-2">
         <thead>
@@ -193,6 +202,8 @@ $(document).ready(function(){
 // ================================= Select Barang ===========================================
     $('#select_barang').select2({
         // tags: true,
+        theme: 'bootstrap4',
+        width: '100%',
         ajax: {
             url: '{{ route('get_barangs') }}',
             dataType: 'json',
@@ -207,13 +218,9 @@ $(document).ready(function(){
                     results: data.map(function(barang) {
                         return {
                             id: barang.id,
-                            text: barang.kd_barang + ' / ' + barang.nama_barang + ' / ' + barang.satuan,
+                            text: barang.kd_barang + ' / ' + barang.nama_barang,
                             kd_barang: barang.kd_barang,
                             nama: barang.nama_barang,
-                            kemasan: barang.satuan,
-                            harga: barang.harga,
-                            unit:barang.q_unit,
-                            stok: barang.stok
                         };
                     })
                 };
@@ -234,7 +241,7 @@ $(document).ready(function(){
                 '<div class="select2-result-barang__kode"><strong>' + barang.kd_barang + '</strong></div>' +
                 '<div class="select2-result-barang__info">' +
                     (barang.nama ? barang.nama : '') +
-                    (barang.kemasan ? ' / ' + barang.kemasan : '') +
+                    // (barang.kemasan ? ' / ' + barang.kemasan : '') +
                 '</div>' +
             '</div>'
         );
@@ -245,11 +252,7 @@ $(document).ready(function(){
     $('#select_barang').on('select2:select', function(e) {
         var data = e.params.data; // Data yang dipilih
         $('#kd_barang').val(data.kd_barang);
-        $('#nama_barang').text(data.nama);
-        $('#unit_barang').text(data.unit);
-        $('#satuan_barang').text(data.kemasan);
-        $('#harga_barang').text(format_ribuan(data.harga));
-        $('#stok_barang').text(format_ribuan(data.stok));
+        get_barang_satuan(data.kd_barang);
     });
 
     // ### Clear Selected Barangs
@@ -258,9 +261,9 @@ $(document).ready(function(){
         $('#kd_barang').val("").trigger('change');
         $('#nama_barang').text('-').trigger('change');
         $('#unit_barang').text('-').trigger('change');
-        $('#satuan_barang').text('-').trigger('change');
+        $('#select_barang_satuan').empty().trigger('change');
+        $('#select_barang_satuan').append('<option value="">Pilih Satuan</option>').trigger('change');
         $('#harga_barang').text('-').trigger('change');
-        $('#stok_barang').text('-').trigger('change');
     });
 
     $(document).on('select2:open', () => {
@@ -302,6 +305,45 @@ $(document).ready(function(){
     });
      // === end of fungsi enter next di form ===
 // ================================= End Of Select Barang ===========================================
+// ======================= Trigger Select Satuan Barang When kd_barang change =============================
+    function get_barang_satuan(kd_barang){
+        // console.log('test :' + kd_barang)
+        if (kd_barang) {
+            $.ajax({
+                url: '{{ route("get_barang_satuan") }}',
+                type: 'GET',
+                data: { kd_barang: kd_barang },
+                success: function (response) {
+                    // alert(response[0].satuan);
+                    $('#select_barang_satuan').empty();
+                    response.forEach(function (item) {
+                        console.log('Satuan:', item.satuan);
+                        $('#select_barang_satuan').append(
+                            `<option value="${item.satuan}">${item.satuan}</option>`
+                        );
+                    });
+                    $('#nama_barang').text(response[0].NAMA_BRG);
+                    // format_ribuan(data.harga)
+
+                    const data_harga = response[0].hj1;
+                    $('#harga_barang').text(format_ribuan(data_harga));
+                    // menghapus nilani decimal dari dbase
+                    let isi = response[0].isi.replace(/,/g, '');
+                    let formatted_value = isi.replace(/\./g, ''); // Menghapus titik
+                    let final_value = parseInt(formatted_value / 1000);
+                    $('#unit_barang').text(final_value);
+                },
+                error: function (xhr) {
+                    console.error('Error:', xhr.responseText);
+                }
+            });
+        } else {
+            // Kosongkan opsi jika input kosong
+            $('#select_barang_satuan').empty();
+            $('#select_barang_satuan').append('<option value="">Pilih Satuan</option>');
+        }
+    };
+// =================== End of Trigger Select Satuan Barang When kd_barang change ==========================
 // ================================= Input Barang To Table ===========================================
     let grandTotal = 0;
     $('form').on('submit', function(event) {
@@ -312,7 +354,7 @@ $(document).ready(function(){
         let hargaBarangText = $('#harga_barang').text();
         let hargaBarang = parseFloat(hapus_format(hargaBarangText)) || 0;
         let unitBarang = $('#unit_barang').text();
-        let satuanBarang = $('#satuan_barang').text();
+        let satuanBarang = $('#select_barang_satuan').val();
         let jumlahTrans = parseFloat($('#jumlah_trans').val()) || 0;
         let diskonBarang = parseFloat($('#diskon_barang').val()) || 0;
             // Pengecekan untuk nilai kosong
