@@ -430,7 +430,7 @@ $(document).ready(function(){
         $('#select_barang').val(null).trigger('change');
         $('#nama_barang').text('-');
         $('#harga_barang').text('-');
-        $('#satuan_barang').text('-');
+        $('#unit_barang').text('-');
         $('#select_barang_satuan').empty();
         $('#select_barang_satuan').append('<option value="">Pilih Satuan</option>');
 
