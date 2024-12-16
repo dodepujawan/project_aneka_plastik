@@ -544,6 +544,10 @@ $(document).ready(function(){
 
         // Kirim data ke server jika ada produk
         if (products.length > 0) {
+            $('#loading_modal').modal({
+                backdrop: 'static',
+                keyboard: false
+            }).modal('show');
             save_to_database(products);
         } else {
             Swal.fire({
@@ -565,6 +569,7 @@ $(document).ready(function(){
                 products: products
             },
             success: function (response) {
+                $('#loading_modal').modal('hide');
                 Swal.fire({
                     icon: 'success',
                     title: 'Save Successul',
@@ -577,6 +582,7 @@ $(document).ready(function(){
                 grandTotal = 0;
             },
             error: function (xhr, status, error) {
+                $('#loading_modal').modal('hide');
                 console.log("Status: " + status);  // Menampilkan status HTTP
                 console.log("Error: " + error);  // Menampilkan error message
                 console.log(xhr.responseText);

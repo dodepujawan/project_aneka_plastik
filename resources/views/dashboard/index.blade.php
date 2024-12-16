@@ -69,13 +69,28 @@
     </a>
 
     {{-- Download Loading Modal --}}
-    <div class="modal fade" id="loadingModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal fade" id="loading_modal" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content text-center">
                 <div class="modal-body">
+                    <!-- Menambahkan CSS di sini -->
+                    <style>
+                        .modal-content {
+                            background: transparent; /* Hilangkan background */
+                            border: none; /* Hilangkan border */
+                            box-shadow: none; /* Hilangkan bayangan */
+                        }
+                        .modal-body {
+                            background: transparent; /* Pastikan body juga transparan */
+                            color: #fff; /* Ubah warna teks jika diperlukan */
+                        }
+                        .modal-body p {
+                            color: #fff; /* Warna teks */
+                        }
+                    </style>
                     <!-- Gambar loading -->
-                    <img src="{{ asset('images/loading.gif') }}" alt="Loading..." class="img-fluid">
-                    <p class="mt-3">Processing your request...</p>
+                    <img src="{{ asset('assets/gambar/loading3.gif') }}" alt="Loading..." class="img-fluid">
+                    <p class="mt-3">Memproses PO...</p>
                 </div>
             </div>
         </div>
