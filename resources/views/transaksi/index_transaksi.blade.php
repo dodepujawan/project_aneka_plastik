@@ -346,9 +346,9 @@ $(document).ready(function(){
 // =================== End of Trigger Select Satuan Barang When kd_barang change ==========================
 // ==================== Trigger Select Satuan Barang When Select Barang change ============================
 $('#select_barang_satuan').on('change', function() {
-    const selectedValue = $(this).val();  // Ambil nilai dari option yang dipilih
+    const selected_value = $(this).val();  // Ambil nilai dari option yang dipilih
 
-    if (selectedValue) {  // Pastikan ada nilai yang dipilih (bukan kosong)
+    if (selected_value) {  // Pastikan ada nilai yang dipilih (bukan kosong)
         // Trigger AJAX berdasarkan pilihan yang dipilih
         $.ajax({
             url: '{{ route("get_barang_satuan") }}',  // Ganti dengan URL yang sesuai
