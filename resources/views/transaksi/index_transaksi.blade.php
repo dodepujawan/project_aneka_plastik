@@ -344,6 +344,30 @@ $(document).ready(function(){
         }
     };
 // =================== End of Trigger Select Satuan Barang When kd_barang change ==========================
+// ==================== Trigger Select Satuan Barang When Select Barang change ============================
+$('#select_barang_satuan').on('change', function() {
+    const selectedValue = $(this).val();  // Ambil nilai dari option yang dipilih
+
+    if (selectedValue) {  // Pastikan ada nilai yang dipilih (bukan kosong)
+        // Trigger AJAX berdasarkan pilihan yang dipilih
+        $.ajax({
+            url: '{{ route("get_barang_satuan") }}',  // Ganti dengan URL yang sesuai
+            type: 'GET',
+            data: { kd_barang_satuan: selectedValue },  // Kirim data ke server
+            success: function(response) {
+                console.log('Data berhasil diambil:', response);
+                // Proses responsenya, misalnya mengupdate elemen lain atau melakukan hal lain
+            },
+            error: function(xhr) {
+                console.error('Error:', xhr.responseText);
+            }
+        });
+    } else {
+        console.log('Tidak ada pilihan yang dipilih.');
+    }
+});
+
+// =================== End of Trigger Select Satuan Barang When Select Barang change ==========================
 // ================================= Input Barang To Table ===========================================
     let grandTotal = 0;
     $('form').on('submit', function(event) {
