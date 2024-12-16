@@ -94,7 +94,6 @@ h5 {
         font-size: 0.85rem; /* Font lebih kecil untuk layar kecil */
     }
 }
-
 /* End of Product Info */
 </style>
 <div class="container master_transaksi">
@@ -216,9 +215,14 @@ $(document).ready(function(){
             processResults: function(data) {
                 return {
                     results: data.map(function(barang) {
+                        // Potong nama barang jika terlalu panjang
+                        let nama_barang_cut = barang.nama_barang || '';
+                        if (nama_barang_cut.length > 15) {
+                            nama_barang_cut = nama_barang_cut.substring(0, 15) + '...'; // Potong teks
+                        }
                         return {
                             id: barang.id,
-                            text: barang.kd_barang + ' / ' + barang.nama_barang,
+                            text: barang.kd_barang + ' / ' + nama_barang_cut,
                             kd_barang: barang.kd_barang,
                             nama: barang.nama_barang,
                         };
@@ -323,9 +327,7 @@ $(document).ready(function(){
                         );
                     });
                     $('#nama_barang').text(response[0].NAMA_BRG);
-                    // format_ribuan(data.harga)
-
-                    const data_harga = response[0].hj1;
+                    let data_harga = response[0].hj1;
                     $('#harga_barang').text(format_ribuan(data_harga));
                     // menghapus nilani decimal dari dbase
                     let isi = response[0].isi.replace(/,/g, '');
@@ -344,30 +346,33 @@ $(document).ready(function(){
         }
     };
 // =================== End of Trigger Select Satuan Barang When kd_barang change ==========================
-// ==================== Trigger Select Satuan Barang When Select Barang change ============================
-$('#select_barang_satuan').on('change', function() {
-    const selected_value = $(this).val();  // Ambil nilai dari option yang dipilih
+// ==================== Trigger Select Satuan Barang When select_barang_satuan change ============================
+    $('#select_barang_satuan').on('change', function() {
+        const satuan_barang = $(this).val();
+        const kd_barang = $('#kd_barang').val();
+        if (satuan_barang) {
+            $.ajax({
+                url: '{{ route("get_barang_selected") }}',
+                type: 'GET',
+                data: { satuan_barang: satuan_barang, kd_barang: kd_barang },
+                success: function(response) {
+                    let data_harga = response.hj1;
+                    $('#harga_barang').text(format_ribuan(data_harga));
+                    let isi = response.isi.replace(/,/g, '');
+                    let formatted_value = isi.replace(/\./g, ''); // Menghapus titik
+                    let final_value = parseInt(formatted_value / 1000);
+                    $('#unit_barang').text(final_value);
+                },
+                error: function(xhr) {
+                    console.error('Error:', xhr.responseText);
+                }
+            });
+        } else {
+            console.log('Tidak ada pilihan yang dipilih.');
+        }
+    });
 
-    if (selected_value) {  // Pastikan ada nilai yang dipilih (bukan kosong)
-        // Trigger AJAX berdasarkan pilihan yang dipilih
-        $.ajax({
-            url: '{{ route("get_barang_satuan") }}',  // Ganti dengan URL yang sesuai
-            type: 'GET',
-            data: { kd_barang_satuan: selectedValue },  // Kirim data ke server
-            success: function(response) {
-                console.log('Data berhasil diambil:', response);
-                // Proses responsenya, misalnya mengupdate elemen lain atau melakukan hal lain
-            },
-            error: function(xhr) {
-                console.error('Error:', xhr.responseText);
-            }
-        });
-    } else {
-        console.log('Tidak ada pilihan yang dipilih.');
-    }
-});
-
-// =================== End of Trigger Select Satuan Barang When Select Barang change ==========================
+// =================== End of Trigger Select Satuan Barang When select_barang_satuan change ==========================
 // ================================= Input Barang To Table ===========================================
     let grandTotal = 0;
     $('form').on('submit', function(event) {
@@ -425,9 +430,9 @@ $('#select_barang_satuan').on('change', function() {
         $('#select_barang').val(null).trigger('change');
         $('#nama_barang').text('-');
         $('#harga_barang').text('-');
-        $('#stok_barang').text('-');
-        $('#unit_barang').text('-');
         $('#satuan_barang').text('-');
+        $('#select_barang_satuan').empty();
+        $('#select_barang_satuan').append('<option value="">Pilih Satuan</option>');
 
         setTimeout(function() {
             $('#select_barang').select2('open');

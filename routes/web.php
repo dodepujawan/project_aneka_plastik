@@ -46,6 +46,7 @@ Route::prefix('transaksi')->middleware('auth')->group(function () {
     Route::get('/api/barangs', [TransaksiController::class, 'get_barangs'])->name('get_barangs');
     Route::post('save/products', [TransaksiController::class, 'save_products'])->name('save_products');
     Route::get('/api/barangs/satuan', [TransaksiController::class, 'get_barang_satuan'])->name('get_barang_satuan');
+    Route::get('/api/barangs/selected', [TransaksiController::class, 'get_barang_selected'])->name('get_barang_selected');
     // Show Edit Transaksi
     Route::get('/edit/show', [TransaksiController::class, 'index_edit'])->name('index_edit_transaksi');
     Route::get('/api/edit_transaksi', [TransaksiController::class, 'get_edit_transaksi_data'])->name('get_edit_transaksi_data');

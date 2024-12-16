@@ -122,7 +122,6 @@ class TransaksiController extends Controller
     {
         $kd_barang = $request->input('kd_barang');
 
-        // Query data sesuai kebutuhan
         $data = DB::table('mharga as a')
             ->leftJoin('mbarang as b', 'b.KD_STOK', '=', 'a.kd_stok')
             ->select('a.kd_stok', 'a.satuan', 'a.hj1', 'a.isi', 'b.NAMA_BRG')
@@ -130,7 +129,20 @@ class TransaksiController extends Controller
             ->orderBy('a.isi', 'ASC')
             ->get();
 
-        // Return data sebagai JSON
+        return response()->json($data);
+    }
+
+    public function get_barang_selected(Request $request){
+        $kd_barang = $request->input('kd_barang');
+        $satuan_barang = $request->input('satuan_barang');
+
+        $data = DB::table('mharga as a')
+            ->leftJoin('mbarang as b', 'b.KD_STOK', '=', 'a.kd_stok')
+            ->select('a.kd_stok', 'a.satuan', 'a.hj1', 'a.isi', 'b.NAMA_BRG')
+            ->where('a.kd_stok', $kd_barang)
+            ->where('a.satuan', $satuan_barang)
+            ->first();
+
         return response()->json($data);
     }
 

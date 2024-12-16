@@ -68,6 +68,20 @@
         <i class="fas fa-angle-up"></i>
     </a>
 
+    {{-- Download Loading Modal --}}
+    <div class="modal fade" id="loadingModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content text-center">
+                <div class="modal-body">
+                    <!-- Gambar loading -->
+                    <img src="{{ asset('images/loading.gif') }}" alt="Loading..." class="img-fluid">
+                    <p class="mt-3">Processing your request...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{-- End Of Download Loading Modal --}}
+
     {{-- <!-- Logout Modal-->
     <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
         aria-hidden="true">
