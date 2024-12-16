@@ -544,10 +544,6 @@ $(document).ready(function(){
 
         // Kirim data ke server jika ada produk
         if (products.length > 0) {
-            $('#loading_modal').modal({
-                backdrop: 'static',
-                keyboard: false
-            }).modal('show');
             save_to_database(products);
         } else {
             Swal.fire({
@@ -561,6 +557,10 @@ $(document).ready(function(){
     });
 
     function save_to_database(products) {
+        $('#loading_modal').modal({
+            backdrop: 'static',
+            keyboard: false
+        }).modal('show');
         $.ajax({
             url: '{{ route('save_products') }}', // Endpoint Laravel
             type: 'POST',
