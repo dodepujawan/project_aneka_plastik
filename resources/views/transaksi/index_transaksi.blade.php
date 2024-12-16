@@ -557,56 +557,32 @@ $(document).ready(function(){
     });
 
     function save_to_database(products) {
-        $('#loading_modal').modal({
-            backdrop: 'static',
-            keyboard: false
-        }).modal('show');
-
-        // Ensure modal is fully visible before AJAX
-        setTimeout(function() {
-            $.ajax({
-                url: '{{ route('save_products') }}',
-                type: 'POST',
-                data: {
-                    _token: $('meta[name="csrf-token"]').attr('content'),
-                    products: products
-                },
-                complete: function() {
-                    // This ensures modal is hidden regardless of success/failure
-                    $('#loading_modal').modal('hide');
-                },
-                success: function (response) {
-                    // Slight delay to ensure modal is hidden first
-                    setTimeout(function() {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Save Successful',
-                            text: 'Data Berhasil Disimpan',
-                            showConfirmButton: false,
-                            timer: 2000
-                        });
-
-                        $('#transaksi_table tbody').empty();
-                        $('#grand_total').text(0);
-                        grandTotal = 0;
-                    }, 100);
-                },
-                error: function (xhr, status, error) {
-                    console.log("Status: " + status);
-                    console.log("Error: " + error);
-                    console.log(xhr.responseText);
-
-                    // Slight delay to ensure modal is hidden first
-                    setTimeout(function() {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: 'Failed to save data'
-                        });
-                    }, 100);
-                }
-            });
-        }, 100);
+        $.ajax({
+            url: '{{ route('save_products') }}', // Endpoint Laravel
+            type: 'POST',
+            data: {
+                _token: $('meta[name="csrf-token"]').attr('content'), // CSRF Token
+                products: products
+            },
+            success: function (response) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Save Successul',
+                    text: 'Data Berhasil Disimpan',
+                    showConfirmButton: false,
+                    timer: 2000 // Durasi tampil dalam milidetik
+                });
+                $('#transaksi_table tbody').empty();
+                $('#grand_total').text(0);
+                grandTotal = 0;
+            },
+            error: function (xhr, status, error) {
+                console.log("Status: " + status);  // Menampilkan status HTTP
+                console.log("Error: " + error);  // Menampilkan error message
+                console.log(xhr.responseText);
+                alert('Failed to save data.');
+            }
+        });
     }
 
 // ================================= End Of Submit Barang To DB =========================================
