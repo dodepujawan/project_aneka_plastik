@@ -51,6 +51,10 @@
                     <select name="cabang_list_reg_new" id="cabang_list_reg_new" class="form-control">
                     </select>
                 </div>
+                <div class="form-group">
+                    <label><i class="fa fa-user"></i> Kode User</label>
+                    <input type="text" name="kode_user" id="kode_user" class="form-control" placeholder="Kode User" required="">
+                </div>
                 <button type="submit" class="btn btn-primary btn-block"><i class="fa fa-user"></i> Register</button>
                 <hr>
                 <p class="text-center">Kembali Ke Dashboard <a href="{{ route('login') }}">Klik Disini</a></p>
@@ -136,7 +140,8 @@ $(document).ready(function() {
                 name: $('#name').val(),
                 email: $('#email').val(),
                 password: $('#password').val(),
-                role: $('#role').val()
+                role: $('#role').val(),
+                kode_user: $('#kode_user').val()
             },
             success: function(response) {
                 $('#message').html('<p>' + response.pesan + '</p>');

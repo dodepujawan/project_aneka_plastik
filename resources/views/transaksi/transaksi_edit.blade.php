@@ -104,7 +104,7 @@ h5 {
             <thead>
                 <tr>
                     <th>No</th>
-                    <th>Invoice</th>
+                    <th>No PO</th>
                     <th>Tgl PO</th>
                     <th>Total PO</th>
                     <th>Aksi</th>

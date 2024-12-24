@@ -13,5 +13,6 @@ class Transusers extends Model
         'no_invoice',
         'user_id',
         'nama_cust',
+        'user_kode',
     ];
 }

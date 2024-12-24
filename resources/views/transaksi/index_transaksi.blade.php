@@ -96,6 +96,22 @@ h5 {
 }
 /* End of Product Info */
 </style>
+<div class="container master_customer_select">
+    <div class="row">
+        <div class="form-group col-lg-4 col-md-12 col-sm-12 mb-3">
+            <input type="text" name="kode_user_trans" id="kode_user_trans" class="form-control" placeholder="Kode User" required="" readonly>
+        </div>
+        <div class="form-group col-lg-4 col-md-12 col-sm-12 mb-3">
+            <input type="text" name="nama_user_trans" id="nama_user_trans" class="form-control" placeholder="Nama User" required="" readonly>
+        </div>
+        <div class="form-group col-lg-4 col-md-12 col-sm-12 mb-3">
+            <select name="select_user_trans" id="select_user_trans" class="form-control">
+                <option value="">Pilih User</option>
+            </select>
+        </div>
+    </div>
+</div>
+
 <div class="container master_transaksi">
     <h1>Halaman Input PO</h1>
     <div class="product-info">
@@ -160,7 +176,7 @@ h5 {
             @endphp
         <input type="number" id="diskon_barang" class="form-control" placeholder="Diskon %" {{ $is_customer ? 'readonly' : '' }}>
         <button type="submit" class="btn btn-success btn-sm ms-2 ml-2">
-            <i class="fa fa-check" aria-hidden="true"></i>
+            {{-- <i class="fa fa-check" aria-hidden="true"></i> --}}Simpan
         </button>
         </div>
     </div>
@@ -193,11 +209,88 @@ h5 {
         </tbody>
     </table>
 </div>
-<button type="submit" class="btn btn-primary mt-2" id="save_table_transaksi" style="float: right;">Simpan</button>
+<button type="submit" class="btn btn-primary mt-2" id="save_table_transaksi" style="float: right;"><i class="fas fa-save"> Proses</i></button>
 {{-- <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/js/select2.min.js"></script> --}}
 
 <script>
 $(document).ready(function(){
+// ================================= Select User ===========================================
+    let user_role_select = @json(Auth::user()->roles);
+    let user_kode_select = @json(Auth::user()->user_kode);
+    let user_nama_select = @json(Auth::user()->name);
+    // console.log('kode:' + user_role_select);
+    // console.log('nama:' + user_nama_select);
+    if(user_role_select == 'customer'){
+
+        $("#kode_user_trans").val(user_kode_select);
+        $("#nama_user_trans").val(user_nama_select);
+        $(".master_customer_select").hide();
+    }else{
+        select_user_list();
+    }
+    // select_user_list();
+    function select_user_list(){
+        $('#select_user_trans').select2({
+            // tags: true,
+            theme: 'bootstrap4',
+            width: '100%',
+            ajax: {
+                url: '{{ route('get_users') }}',
+                dataType: 'json',
+                delay: 250,
+                data: function(params) {
+                    return {
+                        q: params.term // Kirim parameter pencarian ke server
+                    };
+                },
+                processResults: function(data) {
+                    return {
+                        results: data.map(function(user) {
+                            // Potong nama barang jika terlalu panjang
+                            let nama_user_cut = user.kd_customer + ' / ' + user.nama_cust || '';
+                            if (nama_user_cut.length > 15) {
+                                nama_user_cut = nama_user_cut.substring(0, 20) + '...'; // Potong teks
+                            }
+                            return {
+                                id: user.id,
+                                text: nama_user_cut,
+                                kd_customer: user.kd_customer,
+                                nama: user.nama_cust,
+                            };
+                        })
+                    };
+                },
+                cache: true
+            },
+            placeholder: 'Pilih User',
+            minimumInputLength: 1,
+            templateResult: formatUser
+        });
+        // ### fungsi untuk format text select2
+        function formatUser(user) {
+            if (!user.id) {
+                return user.text;
+            }
+            var $user = $(
+                '<div class="select2-result-user">' +
+                    '<div class="select2-result-user__kode"><strong>' + user.kd_customer + '</strong></div>' +
+                    '<div class="select2-result-user__info">' +
+                        (user.nama ? user.nama : '') +
+                        // (barang.kemasan ? ' / ' + barang.kemasan : '') +
+                    '</div>' +
+                '</div>'
+            );
+            return $user;
+        }
+
+        // ### Event listener saat item dipilih
+        $('#select_user_trans').on('select2:select', function(e) {
+            var data = e.params.data; // Data yang dipilih
+            $('#kode_user_trans').val(data.kd_customer);
+            $('#nama_user_trans').val(data.nama);
+        });
+    };
+// ================================= End Of Select User ===========================================
 // ================================= Select Barang ===========================================
     $('#select_barang').select2({
         // tags: true,
@@ -216,13 +309,13 @@ $(document).ready(function(){
                 return {
                     results: data.map(function(barang) {
                         // Potong nama barang jika terlalu panjang
-                        let nama_barang_cut = barang.nama_barang || '';
+                        let nama_barang_cut = barang.kd_barang + ' / ' + barang.nama_barang || '';
                         if (nama_barang_cut.length > 15) {
-                            nama_barang_cut = nama_barang_cut.substring(0, 15) + '...'; // Potong teks
+                            nama_barang_cut = nama_barang_cut.substring(0, 20) + '...'; // Potong teks
                         }
                         return {
                             id: barang.id,
-                            text: barang.kd_barang + ' / ' + nama_barang_cut,
+                            text: nama_barang_cut,
                             kd_barang: barang.kd_barang,
                             nama: barang.nama_barang,
                         };
@@ -482,6 +575,7 @@ $(document).ready(function(){
 // =============================== End Of Input Barang To Table =========================================
 // =================================== Submit Barang To DB ==============================================
     $('#save_table_transaksi').on('click', function () {
+        const kode_user = $("#kode_user_trans").val();
         const products = [];
         let is_valid = true; // Untuk memeriksa validasi secara keseluruhan
 
@@ -522,6 +616,18 @@ $(document).ready(function(){
                 return false; // Hentikan loop jika tidak valid
             }
 
+            if (kode_user === "") {
+                is_valid = false;
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Kode User Tidak Valid',
+                    text: 'Kode User tidak boleh kosong!',
+                    showConfirmButton: false,
+                    timer: 2000 // Durasi tampil dalam milidetik
+                });
+                return false; // Hentikan loop jika tidak valid
+            }
+
             // Masukkan ke array hanya jika KD Barang ada
             if (kd_barang) {
                 products.push({
@@ -544,7 +650,7 @@ $(document).ready(function(){
 
         // Kirim data ke server jika ada produk
         if (products.length > 0) {
-            save_to_database(products);
+            save_to_database(products,kode_user);
         } else {
             Swal.fire({
                 icon: 'warning',
@@ -556,33 +662,41 @@ $(document).ready(function(){
         }
     });
 
-    function save_to_database(products) {
-        $.ajax({
-            url: '{{ route('save_products') }}', // Endpoint Laravel
-            type: 'POST',
-            data: {
-                _token: $('meta[name="csrf-token"]').attr('content'), // CSRF Token
-                products: products
-            },
-            success: function (response) {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Save Successul',
-                    text: 'Data Berhasil Disimpan',
-                    showConfirmButton: false,
-                    timer: 2000 // Durasi tampil dalam milidetik
-                });
-                $('#transaksi_table tbody').empty();
-                $('#grand_total').text(0);
-                grandTotal = 0;
-            },
-            error: function (xhr, status, error) {
-                console.log("Status: " + status);  // Menampilkan status HTTP
-                console.log("Error: " + error);  // Menampilkan error message
-                console.log(xhr.responseText);
-                alert('Failed to save data.');
-            }
-        });
+    function save_to_database(products,kode_user) {
+        $('#loading_modal').modal('show');
+        setTimeout(function () {
+            $.ajax({
+                url: '{{ route('save_products') }}',
+                type: 'POST',
+                data: {
+                    _token: $('meta[name="csrf-token"]').attr('content'),
+                    products: products,
+                    kode_user:kode_user
+                },
+                success: function (response) {
+                    $('#loading_modal').modal('hide');
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Save Successful',
+                        text: 'Data Berhasil Disimpan dengan Nomor Invoice: ' + response.invoice_number,
+                        showConfirmButton: true, // Tampilkan tombol OK
+                        confirmButtonText: 'OK', // Ubah teks tombol jika diperlukan
+                    }).then(() => {
+                        // Callback setelah tombol OK ditekan
+                        $('#transaksi_table tbody').empty();
+                        $('#grand_total').text(0);
+                        grandTotal = 0;
+                    });
+                },
+                error: function (xhr, status, error) {
+                    console.log("Status: " + status);  // Menampilkan status HTTP
+                    console.log("Error: " + error);  // Menampilkan error message
+                    console.log(xhr.responseText);
+                    $('#loading_modal').modal('hide');
+                    alert('Failed to save data.');
+                }
+            });
+        }, 2000);
     }
 
 // ================================= End Of Submit Barang To DB =========================================

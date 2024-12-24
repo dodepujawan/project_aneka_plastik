@@ -70,7 +70,7 @@
                     </div>
                     <div class="form-group">
                         <label><i class="fa fa-key"></i> Password</label>
-                        <input type="password" name="password" id="password" class="form-control" placeholder="Leave blank to keep current password">
+                        <input type="password" name="password" id="password" class="form-control" placeholder="Kosongkan Jika Tidak Ingin Ubah Password !.">
                     </div>
                     <div class="form-group">
                         <label><i class="fa fa-address-book"></i> Role</label>
@@ -86,6 +86,10 @@
                         <input type="hidden" name="cabang_flag" id="cabang_flag" class="form-control" value="" readonly>
                         <select name="cabang_list_reg" id="cabang_list_reg" class="form-control">
                         </select>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fa fa-user"></i> Kode User</label>
+                        <input type="text" name="kode_user_list" id="kode_user_list" class="form-control" placeholder="Kode User" required="">
                     </div>
                     <button type="submit" class="btn btn-primary btn-block" id="but_edit_list_register"><i class="fa fa-user"></i> Update</button>
                     <hr>
@@ -162,6 +166,7 @@ $(document).ready(function() {
                 $('#name').val(data.name);
                 $('#roles_flag').val(data.roles);
                 $('#cabang_flag').val(data.rcabang);
+                $('#kode_user_list').val(data.user_kode);
                 calling_roles_first();
                 select_cabang();
 

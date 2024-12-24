@@ -31,18 +31,19 @@ class RegisterController extends Controller
                 'name' => 'required|string|max:255',
                 'password' => 'required|string|min:8',
                 'role' => 'required|string|max:255',
+                'kode_user' => 'required|string|max:255',
             ]);
 
             $roleMapping = [
                 'AD' => 'admin',
                 'ST' => 'staff',
-                'GS' => 'guest',
+                'CS' => 'customer',
             ];
 
             $role = $request->role;
 
             // Konversi nilai role menggunakan mapping, apabila tidak ada ubah nilai jadi guest
-            $roleName = $roleMapping[$role] ?? 'guest';
+            $roleName = $roleMapping[$role] ?? 'customer';
 
             // Buat request untuk generate_user_id
             $generateRequest = new Request(['role' => $role]);
@@ -57,6 +58,7 @@ class RegisterController extends Controller
                 'name' => $request->name,
                 'password' => Hash::make($request->password),
                 'roles' => $roleName,
+                'user_kode' => $request->kode_user,
             ]);
 
             DB::commit();
@@ -188,6 +190,7 @@ class RegisterController extends Controller
                 'name' => 'required|string|max:255',
                 'password' => 'nullable|string|min:8',
                 'roles_list_reg' => 'required|string|max:255',
+                'kode_user_list' => 'required|string|max:255',
             ]);
 
             $user = User::where('user_id', $request->input('id'))->first();
@@ -228,6 +231,7 @@ class RegisterController extends Controller
             }
 
             $user->rcabang = $request->cabang_list_reg;
+            $user->user_kode = $request->kode_user_list;
             $user->save();
 
             DB::commit();

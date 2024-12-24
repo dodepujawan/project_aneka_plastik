@@ -36,6 +36,22 @@ class TransaksiController extends Controller
     //     return response()->json($barangs);
     // }
 
+    public function get_users(Request $request){
+        $search = $request->input('q'); // Ambil query pencarian
+        $query = DB::table('mcustomer as a')
+                    ->select(
+                        'id',
+                        'CUSTOMER as kd_customer',
+                        'NAMACUST as nama_cust',
+                    );
+        if ($search) {
+            $query->where('CUSTOMER', 'LIKE', "%{$search}%")
+                ->orWhere('NAMACUST', 'LIKE', "%{$search}%");
+        }
+        $users = $query->get(); // Eksekusi query
+        return response()->json($users);
+    }
+
     public function get_barangs(Request $request){
         $search = $request->input('q'); // Ambil query pencarian
         $query = DB::table('mbarang as a')
@@ -55,6 +71,7 @@ class TransaksiController extends Controller
     public function save_products(Request $request){
         // Ambil data produk dari request
         $products = $request->input('products');
+        $kode_user = $request->input('kode_user');
 
         // Ambil bulan dan tahun saat ini, format 'mY' misalnya '0225' untuk Februari 2025
         $currentMonthYear = Carbon::now()->format('m') . substr(Carbon::now()->format('Y'), 2, 2);
@@ -103,12 +120,13 @@ class TransaksiController extends Controller
                 'no_invoice' => $invoiceNumber,
                 'user_id' => $user_id,
                 'nama_cust' => $user_name,
+                'user_kode' => $kode_user,
             ]);
 
             // Commit transaksi jika berhasil
             DB::commit();
 
-            return response()->json(['message' => 'Products saved successfully!'], 200);
+            return response()->json(['message' => 'Products saved successfully!','invoice_number' => $invoiceNumber,], 200);
         } catch (\Exception $e) {
             // Rollback transaksi jika ada error
             DB::rollBack();

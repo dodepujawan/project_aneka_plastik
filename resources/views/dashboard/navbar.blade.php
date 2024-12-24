@@ -70,8 +70,8 @@
                     <i class="fas fa-address-book fa-sm fa-fw mr-2 text-gray-400"></i>
                     List Register
                 </a>
-                @endif
                 <div class="dropdown-divider"></div>
+                @endif
                 {{-- Cabang --}}
                 @php
                 $user = Auth::user();
@@ -95,6 +95,7 @@
                     <i class="fas fa-address-book fa-sm fa-fw mr-2 text-gray-400"></i>
                     List Cabang
                 </a>
+                <div class="dropdown-divider"></div>
                 @endif
                 {{-- End Of Cabang --}}
                 {{-- <div class="dropdown-divider"></div>
@@ -106,7 +107,6 @@
                     <i class="fas fa-list fa-sm fa-fw mr-2 text-gray-400"></i>
                     Activity Log
                 </a> --}}
-                <div class="dropdown-divider"></div>
                 <a class="dropdown-item" href="{{route('actionlogout')}}">
                     <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
                     Logout
