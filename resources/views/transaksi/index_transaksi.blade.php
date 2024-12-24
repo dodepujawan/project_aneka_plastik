@@ -125,7 +125,7 @@ h5 {
                 <h5>Harga: <span id="harga_barang">-</span></h5>
             </div>
             <div class="col-md-4 info-item">
-                <h5>Qty: <span id="unit_barang">-</span></h5>
+                <h5>Isi: <span id="unit_barang">-</span></h5>
             </div>
             {{-- <div class="col-md-3 info-item">
                 <h5>Satuan: <span id="satuan_barang">-</span></h5>
@@ -221,7 +221,6 @@ $(document).ready(function(){
     // console.log('kode:' + user_role_select);
     // console.log('nama:' + user_nama_select);
     if(user_role_select == 'customer'){
-
         $("#kode_user_trans").val(user_kode_select);
         $("#nama_user_trans").val(user_nama_select);
         $(".master_customer_select").hide();
@@ -684,6 +683,11 @@ $(document).ready(function(){
                     }).then(() => {
                         // Callback setelah tombol OK ditekan
                         $('#transaksi_table tbody').empty();
+                        if(user_role_select != 'customer'){
+                            $('#select_user_trans').val(null).trigger('change');
+                            $("#kode_user_trans").val('');
+                            $("#nama_user_trans").val('');
+                        }
                         $('#grand_total').text(0);
                         grandTotal = 0;
                     });
