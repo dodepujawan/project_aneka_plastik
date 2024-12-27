@@ -53,7 +53,8 @@ Route::prefix('transaksi')->middleware('auth')->group(function () {
     Route::get('/api/edit_transaksi', [TransaksiController::class, 'get_edit_transaksi_data'])->name('get_edit_transaksi_data');
     Route::get('/api/edit_transaksi/admin', [TransaksiController::class, 'get_edit_transaksi_data_admin'])->middleware('role:admin,staff')->name('get_edit_transaksi_data_admin');
     Route::get('/api/edit_transaksi/to_table', [TransaksiController::class, 'get_edit_transaksi_to_table'])->name('get_edit_transaksi_to_table');
-    Route::post('update/products', [TransaksiController::class, 'update_products'])->name('update_products');Route::post('delete/products', [TransaksiController::class, 'delete_products'])->name('delete_products');
+    Route::post('update/products', [TransaksiController::class, 'update_products'])->name('update_products');
+    Route::post('delete/products', [TransaksiController::class, 'delete_products'])->name('delete_products');
 });
 
 Route::prefix('home')->group(function () {

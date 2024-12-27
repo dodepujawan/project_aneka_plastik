@@ -174,7 +174,7 @@ h5 {
                 $allowed_roles = ['customer'];
                 $is_customer = in_array($user->roles, $allowed_roles);
             @endphp
-        <input type="number" id="diskon_barang" class="form-control" placeholder="Diskon %" {{ $is_customer ? 'readonly' : '' }}>
+        <input type="number" id="diskon_barang" class="form-control" placeholder="Disc %" {{ $is_customer ? 'readonly' : '' }}>
         <button type="submit" class="btn btn-success btn-sm ms-2 ml-2">
             {{-- <i class="fa fa-check" aria-hidden="true"></i> --}}Simpan
         </button>
@@ -690,6 +690,17 @@ $(document).ready(function(){
                         }
                         $('#grand_total').text(0);
                         grandTotal = 0;
+                        // ### Redirect Hal Edit
+                        $.ajax({
+                            url: '{{ route('index_edit_transaksi') }}',
+                            type: 'GET',
+                            success: function(response) {
+                                $('.master-page').html(response);
+                            },
+                            error: function() {
+                                $('.master-page').html('<p>Error loading form.</p>');
+                            }
+                        });
                     });
                 },
                 error: function (xhr, status, error) {

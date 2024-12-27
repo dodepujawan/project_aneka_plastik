@@ -226,11 +226,14 @@ class TransaksiController extends Controller
 
         $data = DB::table('po_userby as a')
         ->leftJoin('po_online as b', 'a.no_invoice', '=', 'b.no_invoice')
+        ->leftJoin('mcustomer as c', 'a.user_kode', '=', 'c.CUSTOMER')
         ->select(
             'a.no_invoice',
             'a.created_at',
+            'a.user_kode',
             'b.kd_brg',
             'b.nama_brg',
+            'c.NAMACUST as nama_cust',
             DB::raw('CAST(b.qty_order AS UNSIGNED) AS qty_order'),
             DB::raw('CAST(b.qty_unit AS UNSIGNED) AS qty_unit'),
             'b.satuan',
@@ -248,16 +251,33 @@ class TransaksiController extends Controller
     }
 
     // ###  Update Transaksi
-    public function update_products(Request $request)
-    {
+    public function update_products(Request $request){
         // Ambil data dari request
         $products = $request->input('products');
         $noInvoice = $request->input('value_invo'); // Ambil no_invoice dari request
+        $kodeUser = $request->input('kode_user');
 
         // Ambil rcabang dari pengguna yang sedang login
         $rcabang = Auth::user()->rcabang;
+        // jika ingin mengisi Transusers dengan data sesuai yang login
         $user_id = Auth::user()->user_id;
         $user_name = Auth::user()->name;
+
+        // Memastikan Semua Nilai status_po = 0
+        $statusPoCheck = Transactions::where('no_invoice', $noInvoice)
+                                  ->where('status_po', '!=', 0)
+                                  ->exists();
+        if ($statusPoCheck) {
+            return response()->json(['error' => 'Tidak dapat melanjutkan, terdapat transaksi dengan status_po selain 0'], 400);
+        }
+
+        // Untuk Mengambil data user_id dan nama_cust dari Transusers berdasarkan no_invoice sebelumnya
+        $previousUserData = Transusers::where('no_invoice', $noInvoice)->first();
+
+        if ($previousUserData) {
+            $user_id_prev = $previousUserData->user_id;
+            $user_name_prev = $previousUserData->nama_cust;
+        }
 
         // Mulai transaksi
         DB::beginTransaction();
@@ -289,8 +309,9 @@ class TransaksiController extends Controller
             // Simpan data baru ke tabel Transusers
             Transusers::create([
                 'no_invoice' => $noInvoice,
-                'user_id' => $user_id,
-                'nama_cust' => $user_name,
+                'user_id' => $user_id_prev,
+                'nama_cust' => $user_name_prev,
+                'user_kode' => $kodeUser,
             ]);
 
             // Commit transaksi jika berhasil
@@ -314,6 +335,14 @@ class TransaksiController extends Controller
         ]);
 
         $noInvoice = $request->input('value_invo'); // Ambil no_invoice dari request
+
+        // Memastikan Semua Nilai status_po = 0
+        $statusPoCheck = Transactions::where('no_invoice', $noInvoice)
+                                  ->where('status_po', '!=', 0)
+                                  ->exists();
+        if ($statusPoCheck) {
+            return response()->json(['error' => 'Tidak dapat melanjutkan, terdapat transaksi dengan status_po selain 0'], 400);
+        }
 
         // Mulai transaksi
         DB::beginTransaction();

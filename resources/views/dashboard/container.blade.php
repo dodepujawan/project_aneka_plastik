@@ -11,9 +11,9 @@
 @section('footer')
 <script>
 $(document).ready(function() {
-
+// ####################### NAVBAR ROOM ###########################################
 // ========================= Edit Register ======================================
-    $(document).on('click', '.dropdown-item.edit-register', function(e) {
+$(document).on('click', '.dropdown-item.edit-register', function(e) {
         e.preventDefault();
         loadEditRegisterForm();
     });
@@ -50,45 +50,6 @@ $(document).ready(function() {
         });
     };
 // ========================= End Of List Register ======================================
-
-// ========================= Main Transaksi ======================================
-    $(document).on('click', '.main-sidebar #main_transaksi_link', function(e) {
-            e.preventDefault();
-            loadMainTransaksilink();
-        });
-
-    function loadMainTransaksilink() {
-        $.ajax({
-            url: '{{ route('index_transaksi') }}',
-            type: 'GET',
-            success: function(response) {
-                $('.master-page').html(response);
-            },
-            error: function() {
-                $('.master-page').html('<p>Error loading form.</p>');
-            }
-        });
-    }
-// ========================= End Of Main Transaksi ======================================
-// ========================= Edit Transaksi ======================================
-$(document).on('click', '.main-sidebar #edit_transaksi_link', function(e) {
-            e.preventDefault();
-            load_edit_transaksilink();
-        });
-
-    function load_edit_transaksilink() {
-        $.ajax({
-            url: '{{ route('index_edit_transaksi') }}',
-            type: 'GET',
-            success: function(response) {
-                $('.master-page').html(response);
-            },
-            error: function() {
-                $('.master-page').html('<p>Error loading form.</p>');
-            }
-        });
-    }
-// ========================= End Of Edit Transaksi ======================================
 // ========================= Create Cabang ======================================
 $(document).on('click', '.dropdown-item.cabang-create', function(e) {
         e.preventDefault();
@@ -127,6 +88,47 @@ $(document).on('click', '.dropdown-item.cabang-list', function(e) {
         });
     }
 // ========================= End Of List Cabang ======================================
+// ########################### End Of NAVBAR ROOM #####################################
+// ########################### SIDEBAR ROOM #####################################
+// ========================= Main Transaksi ======================================
+    $(document).on('click', '.main-sidebar #main_transaksi_link', function(e) {
+            e.preventDefault();
+            loadMainTransaksilink();
+        });
+
+    function loadMainTransaksilink() {
+        $.ajax({
+            url: '{{ route('index_transaksi') }}',
+            type: 'GET',
+            success: function(response) {
+                $('.master-page').html(response);
+            },
+            error: function() {
+                $('.master-page').html('<p>Error loading form.</p>');
+            }
+        });
+    }
+// ========================= End Of Main Transaksi ======================================
+// ========================= Edit Transaksi ======================================
+$(document).on('click', '.main-sidebar #edit_transaksi_link', function(e) {
+            e.preventDefault();
+            load_edit_transaksilink();
+        });
+
+    function load_edit_transaksilink() {
+        $.ajax({
+            url: '{{ route('index_edit_transaksi') }}',
+            type: 'GET',
+            success: function(response) {
+                $('.master-page').html(response);
+            },
+            error: function() {
+                $('.master-page').html('<p>Error loading form.</p>');
+            }
+        });
+    }
+// ========================= End Of Edit Transaksi ======================================
+// ########################### End Of SIDEBAR ROOM #####################################
 
 });
 </script>

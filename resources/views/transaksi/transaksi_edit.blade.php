@@ -103,6 +103,7 @@ h5 {
 
 /* End of Product Info */
 </style>
+{{-- ### Tabel List Transaksi ### --}}
 <div id="master_table_edit_field">
     <h1>Halaman Edit PO</h1>
     <div class="mt-3 table-container table-responsive">
@@ -137,6 +138,21 @@ h5 {
     </div>
 </div>
 <div class="master_transaksi_field" style="display: none">
+    <div class="container master_customer_select_edit">
+        <div class="row">
+            <div class="form-group col-lg-4 col-md-12 col-sm-12 mb-3">
+                <input type="text" name="kode_user_trans_edit" id="kode_user_trans_edit" class="form-control" placeholder="Kode User" required="" readonly>
+            </div>
+            <div class="form-group col-lg-4 col-md-12 col-sm-12 mb-3">
+                <input type="text" name="nama_user_trans_edit" id="nama_user_trans_edit" class="form-control" placeholder="Nama User" required="" readonly>
+            </div>
+            <div class="form-group col-lg-4 col-md-12 col-sm-12 mb-3">
+                <select name="select_user_trans_edit" id="select_user_trans_edit" class="form-control">
+                    <option value="">Pilih User</option>
+                </select>
+            </div>
+        </div>
+    </div>
     <div class="col-lg-12 alert alert-warning" id="mssakit_warning" role="alert" style="margin-top: 10px; opacity: 0.8;">
         <h5 style="font-weight: bold;">Mode Edit Data PO</h5>
     </div>
@@ -147,17 +163,17 @@ h5 {
             <!-- Informasi Barang -->
             <div class="row">
                 <div class="col-md-4 info-item">
-                    <h5>Nama Barang: <span id="nama_barang_edit">-</span></h5>
+                    <h5>Nama: <span id="nama_barang_edit">-</span></h5>
                 </div>
                 <div class="col-md-4 info-item">
-                    <h5>Unit Qty: <span id="unit_barang_edit">-</span></h5>
+                    <h5>Harga: <span id="harga_barang_edit">-</span></h5>
                 </div>
                 <div class="col-md-4 info-item">
-                    <h5>Satuan Barang: <span id="satuan_barang_edit">-</span></h5>
+                    <h5>Isi: <span id="unit_barang_edit">-</span></h5>
                 </div>
             </div>
 
-            <!-- Garis Pembatas -->
+            {{-- <!-- Garis Pembatas -->
             <div class="underline"></div>
 
             <!-- Informasi Harga dan Stok -->
@@ -168,11 +184,16 @@ h5 {
                 <div class="col-md-6 info-item">
                     <h5>Stok Barang: <span id="stok_barang_edit">-</span></h5>
                 </div>
-            </div>
+            </div> --}}
         </div>
     </div>
+    {{-- Inputan No PO --}}
+    <div class="container">
+        <input type="text" class="form-control mt-3 col-lg-3" name="no_po_edit" id="no_po_edit" readonly>
+    </div>
+    {{-- End Of Inputan No PO --}}
     <form action="" class="row mt-3">
-        <div class="col-lg-5 col-md-12 mb-3">
+        <div class="col-lg-4 col-md-12 mb-3">
             <div class="d-flex align-items-center">
             <button type="button" id="clear_select_edit" class="btn btn-secondary btn-sm me-2 mr-2">
                 <i class="fa fa-eraser" aria-hidden="true"></i>
@@ -184,18 +205,23 @@ h5 {
             </div>
         </div>
         <div class="col-lg-3 col-md-6 col-sm-12 mb-3">
+            <select name="select_barang_satuan_edit" id="select_barang_satuan_edit" class="form-control">
+                <option value="">Pilih Satuan</option>
+            </select>
+        </div>
+        <div class="col-lg-3 col-md-6 col-sm-12 mb-3">
             <input type="number" id="jumlah_trans_edit" class="form-control" placeholder="Jumlah barang">
         </div>
-        <div class="col-lg-4 col-md-6 col-sm-12 mb-3">
+        <div class="col-lg-2 col-md-6 col-sm-12 mb-3">
             <div class="d-flex align-items-center">
                 @php
                     $user = Auth::user();
                     $allowed_roles = ['customer'];
                     $is_customer = in_array($user->roles, $allowed_roles);
                 @endphp
-            <input type="number" id="diskon_barang_edit" class="form-control" placeholder="Diskon barang dalam %" {{ $is_customer ? 'readonly' : '' }}>
+            <input type="number" id="diskon_barang_edit" class="form-control" placeholder="Disc %" {{ $is_customer ? 'readonly' : '' }}>
             <button type="submit" class="btn btn-success btn-sm ms-2 ml-2">
-                <i class="fa fa-check" aria-hidden="true"></i>
+                {{-- <i class="fa fa-check" aria-hidden="true"></i> --}}Simpan
             </button>
             </div>
         </div>
@@ -231,7 +257,7 @@ h5 {
     <div class="button-container" style="display: flex; justify-content: flex-end; gap: 10px;">
         <button type="submit" class="btn btn-primary mt-2 mb-2" id="save_table_transaksi_edit"><i class="fas fa-save"> Proses</i></button>
         <button type="submit" class="btn btn-info mt-2 mb-2" id="reset_table_transaksi_edit"><i class="fas fa-sync-alt"> Reset</i></button>
-        <button type="submit" class="btn btn-warning mt-2 mb-2" id="return_table_transaksi_edit"><i class="fas fa-undo"> Kembali</i></button>
+        <button type="submit" class="btn btn-warning mt-2 mb-2" id="return_table_transaksi_edit"><i class="fas fa-undo"> List Menu</i></button>
     </div>
 </div>
 {{-- <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/js/select2.min.js"></script> --}}
@@ -248,10 +274,12 @@ $(document).ready(function(){
         $("#transaksi_table_edit_field").show();
         $("#transaksi_table_edit_field_admin").hide();
         show_table_po();
+        $(".master_customer_select_edit").hide();
     }else{
         $("#transaksi_table_edit_field").hide();
         $("#transaksi_table_edit_field_admin").show();
         show_table_po_admin();
+        select_user_list_edit();
     }
     function show_table_po(){
         if ($.fn.dataTable.isDataTable('#transaksi_table_edit_field')) {
@@ -385,8 +413,11 @@ $(document).ready(function(){
             success: function (response) {
                 $('#transaksi_table_edit tbody').empty();
                 const get_no_nvoice = response.data[0].no_invoice;
+                $('#no_po_edit').val('Invoice No : '+get_no_nvoice);
                 $('#save_table_transaksi_edit').val(get_no_nvoice);
                 $('#reset_table_transaksi_edit').val(get_no_nvoice);
+                $("#kode_user_trans_edit").val(response.data[0].user_kode);
+                $("#nama_user_trans_edit").val(response.data[0].nama_cust);
                 let user_role_diskon = @json(Auth::user()->roles);
                 // let grandTotal = 0;
 
@@ -425,7 +456,18 @@ $(document).ready(function(){
 // ================================= Click Delete Button ===========================================
     $(document).on('click', '#transaksi_table_edit_field .delete-btn', function () {
         let no_invoice = $(this).data('no-invoice');
-        let row = $(this).closest('tr');  // Mendapatkan baris terdekat dari tombol delete
+        let row = $(this).closest('tr');
+        delete_table_edit(no_invoice, row);
+    });
+
+    $(document).on('click', '#transaksi_table_edit_field_admin .delete-btn', function () {
+        let no_invoice = $(this).data('no-invoice');
+        let row = $(this).closest('tr');
+        delete_table_edit(no_invoice, row);
+    });
+
+    function delete_table_edit(no_invoice, row){
+         // Mendapatkan baris terdekat dari tombol delete
         Swal.fire({
             title: 'Anda yakin?',
             text: `Hapus Data dengan No. Invoice ${no_invoice} ?`,
@@ -445,7 +487,11 @@ $(document).ready(function(){
                         _token: '{{ csrf_token() }}'
                     },
                     success: function (response) {
-                        $('#transaksi_table_edit_field').DataTable().row(row).remove().draw(false);
+                        if(user_role_select == 'customer'){
+                            $('#transaksi_table_edit_field').DataTable().row(row).remove().draw(false);
+                        }else{
+                            $('#transaksi_table_edit_field_admin').DataTable().row(row).remove().draw(false);
+                        }
                         Swal.fire({
                             icon: 'success',
                             title: 'Berhasil!',
@@ -464,12 +510,77 @@ $(document).ready(function(){
                 });
             }
         });
-    });
+    }
 // ================================= End Of Click Delete Button ===========================================
+// ==================================== Select User ==============================================
+    function select_user_list_edit(){
+        $('#select_user_trans_edit').select2({
+            // tags: true,
+            theme: 'bootstrap4',
+            width: '100%',
+            ajax: {
+                url: '{{ route('get_users') }}',
+                dataType: 'json',
+                delay: 250,
+                data: function(params) {
+                    return {
+                        q: params.term // Kirim parameter pencarian ke server
+                    };
+                },
+                processResults: function(data) {
+                    return {
+                        results: data.map(function(user) {
+                            // Potong nama barang jika terlalu panjang
+                            let nama_user_cut = user.kd_customer + ' / ' + user.nama_cust || '';
+                            if (nama_user_cut.length > 15) {
+                                nama_user_cut = nama_user_cut.substring(0, 20) + '...'; // Potong teks
+                            }
+                            return {
+                                id: user.id,
+                                text: nama_user_cut,
+                                kd_customer: user.kd_customer,
+                                nama: user.nama_cust,
+                            };
+                        })
+                    };
+                },
+                cache: true
+            },
+            placeholder: 'Pilih User',
+            minimumInputLength: 1,
+            templateResult: formatUser
+        });
+        // ### fungsi untuk format text select2
+        function formatUser(user) {
+            if (!user.id) {
+                return user.text;
+            }
+            var $user = $(
+                '<div class="select2-result-user">' +
+                    '<div class="select2-result-user__kode"><strong>' + user.kd_customer + '</strong></div>' +
+                    '<div class="select2-result-user__info">' +
+                        (user.nama ? user.nama : '') +
+                        // (barang.kemasan ? ' / ' + barang.kemasan : '') +
+                    '</div>' +
+                '</div>'
+            );
+            return $user;
+        }
+
+        // ### Event listener saat item dipilih
+        $('#select_user_trans_edit').on('select2:select', function(e) {
+            var data = e.params.data; // Data yang dipilih
+            $('#kode_user_trans_edit').val(data.kd_customer);
+            $('#nama_user_trans_edit').val(data.nama);
+        });
+    };
+// ================================= End Of Select User ===========================================
 // ================================= Select Barang ===========================================
     function select2_call(){
         $('#select_barang_edit').select2({
             // tags: true,
+            theme: 'bootstrap4',
+            width: '100%',
             ajax: {
                 url: '{{ route('get_barangs') }}',
                 dataType: 'json',
@@ -482,15 +593,15 @@ $(document).ready(function(){
                 processResults: function(data) {
                     return {
                         results: data.map(function(barang) {
+                            let nama_barang_cut = barang.kd_barang + ' / ' + barang.nama_barang || '';
+                            if (nama_barang_cut.length > 15) {
+                                nama_barang_cut = nama_barang_cut.substring(0, 20) + '...'; // Potong teks
+                            }
                             return {
                                 id: barang.id,
-                                text: barang.kd_barang + ' / ' + barang.nama_barang + ' / ' + barang.satuan,
+                                text: nama_barang_cut,
                                 kd_barang: barang.kd_barang,
                                 nama: barang.nama_barang,
-                                kemasan: barang.satuan,
-                                harga: barang.harga,
-                                unit:barang.q_unit,
-                                stok: barang.stok
                             };
                         })
                     };
@@ -512,7 +623,6 @@ $(document).ready(function(){
                 '<div class="select2-result-barang__kode"><strong>' + barang.kd_barang + '</strong></div>' +
                 '<div class="select2-result-barang__info">' +
                     (barang.nama ? barang.nama : '') +
-                    (barang.kemasan ? ' / ' + barang.kemasan : '') +
                 '</div>' +
             '</div>'
         );
@@ -523,11 +633,7 @@ $(document).ready(function(){
     $('#select_barang_edit').on('select2:select', function(e) {
         var data = e.params.data; // Data yang dipilih
         $('#kd_barang').val(data.kd_barang);
-        $('#nama_barang_edit').text(data.nama);
-        $('#unit_barang_edit').text(data.unit);
-        $('#satuan_barang_edit').text(data.kemasan);
-        $('#harga_barang_edit').text(format_ribuan(data.harga));
-        $('#stok_barang_edit').text(format_ribuan(data.stok));
+        get_barang_satuan_edit(data.kd_barang);
     });
 
     // ### Clear Selected Barangs
@@ -536,9 +642,9 @@ $(document).ready(function(){
         $('#kd_barang').val("").trigger('change');
         $('#nama_barang_edit').text('-').trigger('change');
         $('#unit_barang_edit').text('-').trigger('change');
-        $('#satuan_barang_edit').text('-').trigger('change');
+        $('#select_barang_satuan_edit').empty().trigger('change');
+        $('#select_barang_satuan_edit').append('<option value="">Pilih Satuan</option>').trigger('change');
         $('#harga_barang_edit').text('-').trigger('change');
-        $('#stok_barang_edit').text('-').trigger('change');
     });
 
     $(document).on('select2:open', () => {
@@ -580,6 +686,70 @@ $(document).ready(function(){
     });
         // === end of fungsi enter next di form ===
 // ================================= End Of Select Barang ===========================================
+// ======================= Trigger Select Satuan Barang When kd_barang change =============================
+function get_barang_satuan_edit(kd_barang){
+        // console.log('test :' + kd_barang)
+        if (kd_barang) {
+            $.ajax({
+                url: '{{ route("get_barang_satuan") }}',
+                type: 'GET',
+                data: { kd_barang: kd_barang },
+                success: function (response) {
+                    // alert(response[0].satuan);
+                    $('#select_barang_satuan_edit').empty();
+                    response.forEach(function (item) {
+                        console.log('Satuan:', item.satuan);
+                        $('#select_barang_satuan_edit').append(
+                            `<option value="${item.satuan}">${item.satuan}</option>`
+                        );
+                    });
+                    $('#nama_barang_edit').text(response[0].NAMA_BRG);
+                    let data_harga = response[0].hj1;
+                    $('#harga_barang_edit').text(format_ribuan(data_harga));
+                    // menghapus nilani decimal dari dbase
+                    let isi = response[0].isi.replace(/,/g, '');
+                    let formatted_value = isi.replace(/\./g, ''); // Menghapus titik
+                    let final_value = parseInt(formatted_value / 1000);
+                    $('#unit_barang_edit').text(final_value);
+                },
+                error: function (xhr) {
+                    console.error('Error:', xhr.responseText);
+                }
+            });
+        } else {
+            // Kosongkan opsi jika input kosong
+            $('#select_barang_satuan_edit').empty();
+            $('#select_barang_satuan_edit').append('<option value="">Pilih Satuan</option>');
+        }
+    };
+// =================== End of Trigger Select Satuan Barang When kd_barang change ==========================
+// ==================== Trigger Select Satuan Barang When select_barang_satuan change ============================
+    $('#select_barang_satuan_edit').on('change', function() {
+        const satuan_barang = $(this).val();
+        const kd_barang = $('#kd_barang').val();
+        if (satuan_barang) {
+            $.ajax({
+                url: '{{ route("get_barang_selected") }}',
+                type: 'GET',
+                data: { satuan_barang: satuan_barang, kd_barang: kd_barang },
+                success: function(response) {
+                    let data_harga = response.hj1;
+                    $('#harga_barang_edit').text(format_ribuan(data_harga));
+                    let isi = response.isi.replace(/,/g, '');
+                    let formatted_value = isi.replace(/\./g, ''); // Menghapus titik
+                    let final_value = parseInt(formatted_value / 1000);
+                    $('#unit_barang_edit').text(final_value);
+                },
+                error: function(xhr) {
+                    console.error('Error:', xhr.responseText);
+                }
+            });
+        } else {
+            console.log('Tidak ada pilihan yang dipilih.');
+        }
+    });
+
+// ================= End of Trigger Select Satuan Barang When select_barang_satuan change ========================
 // ================================= Input Barang To Table ===========================================
     // let grandTotal = 0;
     $('form').on('submit', function(event) {
@@ -590,7 +760,7 @@ $(document).ready(function(){
         let hargaBarangText = $('#harga_barang_edit').text();
         let hargaBarang = parseFloat(hapus_format(hargaBarangText)) || 0;
         let unitBarang = $('#unit_barang_edit').text();
-        let satuanBarang = $('#satuan_barang_edit').text();
+        let satuanBarang = $('#select_barang_satuan_edit').val();
         let jumlahTrans = parseFloat($('#jumlah_trans_edit').val()) || 0;
         let diskonBarang = parseFloat($('#diskon_barang_edit').val()) || 0;
             // Pengecekan untuk nilai kosong
@@ -637,9 +807,9 @@ $(document).ready(function(){
         $('#select_barang_edit').val(null).trigger('change');
         $('#nama_barang_edit').text('-');
         $('#harga_barang_edit').text('-');
-        $('#stok_barang_edit').text('-');
         $('#unit_barang_edit').text('-');
-        $('#satuan_barang_edit').text('-');
+        $('#select_barang_satuan_edit').empty();
+        $('#select_barang_satuan_edit').append('<option value="">Pilih Satuan</option>');
 
         setTimeout(function() {
             $('#select_barang_edit').select2('open');
@@ -689,6 +859,7 @@ $(document).ready(function(){
 // =============================== End Of Input Barang To Table =========================================
 // =================================== Update Barang To DB ==============================================
     $('#save_table_transaksi_edit').on('click', function () {
+        const kode_user = $("#kode_user_trans_edit").val();
         const products = [];
         let value_invo = $(this).val();
         let is_valid = true; // Untuk memeriksa validasi secara keseluruhan
@@ -731,6 +902,18 @@ $(document).ready(function(){
                 return false; // Hentikan loop jika tidak valid
             }
 
+            if (kode_user === "") {
+                is_valid = false;
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Kode User Tidak Valid',
+                    text: 'Kode User tidak boleh kosong!',
+                    showConfirmButton: false,
+                    timer: 2000 // Durasi tampil dalam milidetik
+                });
+                return false; // Hentikan loop jika tidak valid
+            }
+
             // Masukkan ke array hanya jika KD Barang ada
             if (kd_barang) {
                 products.push({
@@ -753,7 +936,7 @@ $(document).ready(function(){
 
         // Kirim data ke server jika ada produk
         if (products.length > 0) {
-            save_to_database_edit(products,value_invo);
+            save_to_database_edit(products,value_invo,kode_user);
         } else {
             Swal.fire({
                 icon: 'warning',
@@ -765,33 +948,49 @@ $(document).ready(function(){
         }
     });
 
-    function save_to_database_edit(products,value_invo) {
-        $.ajax({
-            url: '{{ route('update_products') }}', // Endpoint Laravel
-            type: 'POST',
-            data: {
-                _token: $('meta[name="csrf-token"]').attr('content'), // CSRF Token
-                products: products,
-                value_invo: value_invo
-            },
-            success: function (response) {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Update Successul',
-                    text: 'Data Berhasil Diupdate',
-                    showConfirmButton: false,
-                    timer: 2000 // Durasi tampil dalam milidetik
-                });
-                // $('#transaksi_table_edit tbody').empty();
-                // $('#grand_total_edit').text(0);
-            },
-            error: function (xhr, status, error) {
-                console.log("Status: " + status);  // Menampilkan status HTTP
-                console.log("Error: " + error);  // Menampilkan error message
-                console.log(xhr.responseText);
-                alert('Failed to save data.');
-            }
-        });
+    function save_to_database_edit(products,value_invo,kode_user) {
+        $('#loading_modal').modal('show');
+        setTimeout(function () {
+            $.ajax({
+                url: '{{ route('update_products') }}', // Endpoint Laravel
+                type: 'POST',
+                data: {
+                    _token: $('meta[name="csrf-token"]').attr('content'), // CSRF Token
+                    products: products,
+                    value_invo: value_invo,
+                    kode_user: kode_user
+                },
+                success: function (response) {
+                    $('#loading_modal').modal('hide');
+                    // Swal.fire({
+                    //     icon: 'success',
+                    //     title: 'Update Successul',
+                    //     text: 'Data Berhasil Diupdate',
+                    //     showConfirmButton: false,
+                    //     timer: 2000 // Durasi tampil dalam milidetik
+                    // });
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Update Successul',
+                        text: 'Data Berhasil Diupdate dengan Nomor Invoice: ' + value_invo,
+                        showConfirmButton: true,
+                        confirmButtonText: 'OK',
+                    }).then(() => {
+                        return_table_edit();
+                    });
+                    // $('#transaksi_table_edit tbody').empty();
+                    // $('#grand_total_edit').text(0);
+                },
+                error: function (xhr, status, error) {
+                    $('#loading_modal').modal('hide');
+                    console.log("Status: " + status);  // Menampilkan status HTTP
+                    console.log("Error: " + error);  // Menampilkan error message
+                    console.log(xhr.responseText);
+                    alert('Failed to save data.');
+                }
+            });
+        }, 2000);
     }
 
 // ================================= End Of Update Barang To DB =========================================
@@ -804,6 +1003,10 @@ $(document).ready(function(){
 // ================================= End Of Reset Tabel PO =========================================
 // ================================= Return Tabel PO =========================================
     $('#return_table_transaksi_edit').on('click', function(){
+        return_table_edit();
+    });
+
+    function return_table_edit(){
         grandTotal = 0;
         $('#transaksi_table_edit tbody').empty();
         $('.master_transaksi_field').hide();
@@ -819,7 +1022,7 @@ $(document).ready(function(){
             $("#transaksi_table_edit_field_admin").show();
             show_table_po_admin();
         }
-    });
+    }
 // ============================== End Of Return Tabel PO =====================================
 // ============================== Number Formating =====================================
     function hapus_format(angka) {
