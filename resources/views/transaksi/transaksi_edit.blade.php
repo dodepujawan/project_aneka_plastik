@@ -12,7 +12,7 @@ h5 {
 } */
 
 /* table scroll */
-.table-responsive {
+.table-responsive-set {
         overflow: visible;
     }
     .style-table {
@@ -106,7 +106,7 @@ h5 {
 {{-- ### Tabel List Transaksi ### --}}
 <div id="master_table_edit_field">
     <h1>Halaman Edit PO</h1>
-    <div class="mt-3 table-container table-responsive">
+    <div class="mt-3 table-container table-responsive table-responsive-set">
         <table id="transaksi_table_edit_field" class="display table table-bordered mb-2 style-table">
             <thead>
                 <tr>
