@@ -145,24 +145,24 @@ class RegisterController extends Controller
             'users.name',
             'users.roles',
             'users.rcabang',
-            'cabangs.nama as cabang_name', // Mengambil nama cabang dari tabel cabangs
-            DB::raw('DATE(users.created_at) as created_at') // Format created_at
+            'cabangs.nama as cabang_name',
+            DB::raw('DATE(users.created_at) as created_at')
         ])
         ->leftJoin('cabangs', 'users.rcabang', '=', 'cabangs.cabang_id');
 
         if ($request->has('startDate') && $request->startDate) {
-            $query->where('created_at', '>=', $request->startDate);
+            $query->where('users.created_at', '>=', $request->startDate);
         }
 
         if ($request->has('endDate') && $request->endDate) {
-            $query->where('created_at', '<=', $request->endDate);
+            $query->where('users.created_at', '<=', $request->endDate);
         }
 
         if ($request->has('searchText') && $request->searchText) {
             $query->where(function($q) use ($request) {
-                $q->where('email', 'like', '%' . $request->searchText . '%')
-                ->orWhere('name', 'like', '%' . $request->searchText . '%')
-                ->orWhere('roles', 'like', '%' . $request->searchText . '%');
+                $q->where('users.email', 'like', '%' . $request->searchText . '%')
+                ->orWhere('users.name', 'like', '%' . $request->searchText . '%')
+                ->orWhere('users.roles', 'like', '%' . $request->searchText . '%');
             });
         }
 

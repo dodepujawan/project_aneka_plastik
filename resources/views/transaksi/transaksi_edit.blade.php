@@ -13,7 +13,7 @@ h5 {
 
 /* table scroll */
 .table-container {
-    max-height: 300px; /* Sesuaikan tinggi maksimum sesuai kebutuhan */
+    max-height: 500px; /* Sesuaikan tinggi maksimum sesuai kebutuhan */
     overflow-y: auto;  /* Tambahkan scroll vertikal jika konten melebihi tinggi maksimum */
     width: 100%;       /* Pastikan lebar kontainer sesuai dengan tabel */
     border: 1px solid #ddd; /* Opsional: tambahkan border untuk kontainer tabel */
@@ -105,6 +105,21 @@ h5 {
                 <tr>
                     <th>No</th>
                     <th>No PO</th>
+                    <th>Tgl PO</th>
+                    <th>Total PO</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+        <table id="transaksi_table_edit_field_admin" class="display table table-bordered mb-2">
+            <thead>
+                <tr>
+                    <th>No</th>
+                    <th>No PO</th>
+                    <th>Customer Kode</th>
+                    <th>Customer</th>
                     <th>Tgl PO</th>
                     <th>Total PO</th>
                     <th>Aksi</th>
@@ -208,9 +223,9 @@ h5 {
         </table>
     </div>
     <div class="button-container" style="display: flex; justify-content: flex-end; gap: 10px;">
-        <button type="submit" class="btn btn-primary mt-2 mb-2" id="save_table_transaksi_edit">Simpan</button>
-        <button type="submit" class="btn btn-info mt-2 mb-2" id="reset_table_transaksi_edit">Reset</button>
-        <button type="submit" class="btn btn-warning mt-2 mb-2" id="return_table_transaksi_edit">Kembali</button>
+        <button type="submit" class="btn btn-primary mt-2 mb-2" id="save_table_transaksi_edit"><i class="fas fa-save"> Proses</i></button>
+        <button type="submit" class="btn btn-info mt-2 mb-2" id="reset_table_transaksi_edit"><i class="fas fa-sync-alt"> Reset</i></button>
+        <button type="submit" class="btn btn-warning mt-2 mb-2" id="return_table_transaksi_edit"><i class="fas fa-undo"> Kembali</i></button>
     </div>
 </div>
 {{-- <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/js/select2.min.js"></script> --}}
@@ -218,11 +233,27 @@ h5 {
 <script>
 $(document).ready(function(){
 // ===================================== Show Table PO ==============================================
-    show_table_po();
+    let user_role_select = @json(Auth::user()->roles);
+    let user_kode_select = @json(Auth::user()->user_kode);
+    let user_nama_select = @json(Auth::user()->name);
+    // console.log('kode:' + user_role_select);
+    // console.log('nama:' + user_nama_select);
+    if(user_role_select == 'customer'){
+        $("#transaksi_table_edit_field").show();
+        $("#transaksi_table_edit_field_admin").hide();
+        show_table_po();
+    }else{
+        $("#transaksi_table_edit_field").hide();
+        $("#transaksi_table_edit_field_admin").show();
+        show_table_po_admin();
+    }
     function show_table_po(){
+        if ($.fn.dataTable.isDataTable('#transaksi_table_edit_field')) {
+            $('#transaksi_table_edit_field').DataTable().destroy();
+        }
         const table = $('#transaksi_table_edit_field').DataTable({
             processing: true,
-            serverSide: true,
+            serverSide: false,
             ajax: {
                 url: '{{ route('get_edit_transaksi_data') }}',
                 type: 'GET',
@@ -259,11 +290,62 @@ $(document).ready(function(){
             ],
         });
     }
+
+    // ### Versi Admin ###
+    function show_table_po_admin(){
+        if ($.fn.dataTable.isDataTable('#transaksi_table_edit_field_admin')) {
+            $('#transaksi_table_edit_field_admin').DataTable().destroy();
+        }
+        const table = $('#transaksi_table_edit_field_admin').DataTable({
+            processing: true,
+            serverSide: false,
+            ajax: {
+                url: '{{ route('get_edit_transaksi_data_admin') }}',
+                type: 'GET',
+            },
+            columns: [
+                {
+                    data: null,
+                    name: 'no',
+                    render: (data, type, row, meta) => meta.row + 1, // Nomor otomatis
+                },
+                { data: 'no_invoice', name: 'no_invoice' },
+                { data: 'user_kode', name: 'user_kode' },
+                { data: 'nama_cust', name: 'nama_cust' },
+                { data: 'created_at', name: 'created_at' },
+                {
+                    data: 'total',
+                    name: 'total',
+                    render: $.fn.dataTable.render.number(',', '.', 2, 'Rp ') // Format angka jadi Rupiah
+                },
+                {
+                    data: 'no_invoice',
+                    orderable: false,
+                    render: (data, type, row) => {
+                        return `
+                            <div style="display: flex; justify-content: center; gap: 0.5rem;">
+                                <button class="btn btn-sm btn-primary edit-btn" data-no-invoice="${row.no_invoice}" style="margin-right: 0;">
+                                    <i class="fa fa-edit"></i> Edit
+                                </button>
+                                <button class="btn btn-sm btn-danger delete-btn" data-no-invoice="${row.no_invoice}">
+                                    <i class="fa fa-trash"></i> Delete
+                                </button>
+                            </div>
+                        `;
+                    },
+                },
+            ],
+        });
+    }
 // ================================= End Of Show Table PO ===========================================
 // ================================= Click Edit Button ===========================================
     let grandTotal = 0;
     // console.log(grandTotal);
     $(document).on('click', '#transaksi_table_edit_field .edit-btn', function () {
+        let no_invoice = $(this).data('no-invoice');
+        ajax_click_edit_button(no_invoice);
+    });
+    $(document).on('click', '#transaksi_table_edit_field_admin .edit-btn', function () {
         let no_invoice = $(this).data('no-invoice');
         ajax_click_edit_button(no_invoice);
     });
@@ -702,7 +784,15 @@ $(document).ready(function(){
         $('#transaksi_table_edit_field').DataTable().destroy();
         $('#transaksi_table_edit_field tbody').empty();
         $('#master_table_edit_field').show();
-        show_table_po();
+        if(user_role_select == 'customer'){
+            $("#transaksi_table_edit_field").show();
+            $("#transaksi_table_edit_field_admin").hide();
+            show_table_po();
+        }else{
+            $("#transaksi_table_edit_field").hide();
+            $("#transaksi_table_edit_field_admin").show();
+            show_table_po_admin();
+        }
     });
 // ============================== End Of Return Tabel PO =====================================
 // ============================== Number Formating =====================================

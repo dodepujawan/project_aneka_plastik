@@ -2,28 +2,14 @@
     .table-responsive {
         overflow: visible;
     }
-    #userTable {
+    #cabang_datatables {
         width: 100% !important;
     }
 </style>
 <div class="container mt-5">
     <div id="formtable_cabang">
         <h5>Cabang Table</h5>
-        <div class="row mb-3">
-            <div class="col-md-3">
-                <input type="date" id="startDate" class="form-control" placeholder="Start Date">
-            </div>
-            <div class="col-md-3">
-                <input type="date" id="endDate" class="form-control" placeholder="End Date">
-            </div>
-            <div class="col-md-3">
-                <input type="text" id="searchBox" class="form-control" placeholder="Search">
-            </div>
-            <div class="col-md-3">
-                <button id="filterBtn" class="btn btn-primary">Filter</button>
-            </div>
-        </div>
-        <div class="table-responsive">
+        <div class="table-responsive" style="overflow-x: auto;">
             <table id="cabang_datatables" class="display table table-bordered mb-2">
                 <thead>
                     <tr>
@@ -83,6 +69,8 @@ $(document).ready(function() {
     $('#cabang_datatables').DataTable({
         processing: true,
         serverSide: false,
+        scrollX: true,
+        responsive: true,
         ajax: {
             url: '{{ route("get_cabang_api_datatables") }}',
             dataSrc: ''

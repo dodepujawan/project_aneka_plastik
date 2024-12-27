@@ -190,126 +190,157 @@ class TransaksiController extends Controller
         ]);
     }
 
-public function get_edit_transaksi_to_table(Request $request){
-    $no_invoice = $request->no_invoice;
+    public function get_edit_transaksi_data_admin(Request $request){
+        $user = Auth::user();
 
-    $data = DB::table('po_userby as a')
-    ->leftJoin('po_online as b', 'a.no_invoice', '=', 'b.no_invoice')
-    ->select(
-        'a.no_invoice',
-        'a.created_at',
-        'b.kd_brg',
-        'b.nama_brg',
-        DB::raw('CAST(b.qty_order AS UNSIGNED) AS qty_order'),
-        DB::raw('CAST(b.qty_unit AS UNSIGNED) AS qty_unit'),
-        'b.satuan',
-        DB::raw('CAST(b.harga AS UNSIGNED) AS harga'),
-        DB::raw('CAST(b.disc AS UNSIGNED) AS disc'),
-        DB::raw('CAST(b.total AS UNSIGNED) AS total'),
-        'b.rcabang'
-    )
-    ->where('a.user_id', Auth::user()->user_id)
-    ->where('b.status_po', 0)
-    ->where('a.no_invoice', $no_invoice)
-    ->get();
+        $query = DB::table('po_userby as a')
+            ->leftJoin('po_online as b', 'a.no_invoice', '=', 'b.no_invoice')
+            ->leftJoin('mcustomer as c', 'a.user_kode', '=', 'c.CUSTOMER')
+            ->select(
+                'a.no_invoice',
+                DB::raw('DATE(a.created_at) as created_at'),
+                'a.user_kode',
+                'c.NAMACUST as nama_cust',
+                DB::raw('SUM(b.total) as total')
+            )
+            ->where('b.status_po', 0)
+            ->groupBy('a.id','a.no_invoice', 'a.created_at', 'a.user_kode', 'c.NAMACUST')
+            ->orderBy('a.id', 'desc');
 
-    return response()->json(['data' => $data]);
-}
-
-// ###  Update Transaksi
-public function update_products(Request $request)
-{
-    // Ambil data dari request
-    $products = $request->input('products');
-    $noInvoice = $request->input('value_invo'); // Ambil no_invoice dari request
-
-    // Ambil rcabang dari pengguna yang sedang login
-    $rcabang = Auth::user()->rcabang;
-    $user_id = Auth::user()->user_id;
-    $user_name = Auth::user()->name;
-
-    // Mulai transaksi
-    DB::beginTransaction();
-
-    try {
-        // Hapus data transaksi dan transuser berdasarkan no_invoice
-        Transactions::where('no_invoice', $noInvoice)->delete();
-        Transusers::where('no_invoice', $noInvoice)->delete();
-
-        // Simpan data baru ke tabel Transactions
-        foreach ($products as $product) {
-            // menghilangkan titik di total
-            $cleaned_total = str_replace(',', '.', str_replace('.', '', $product['total']));
-            Transactions::create([
-                'no_invoice' => $noInvoice, // Menggunakan nomor invoice lama
-                'kd_brg' => $product['kd_barang'],
-                'nama_brg' => $product['nama'],
-                'harga' => $product['harga'],
-                'qty_unit' => $product['unit'],
-                'satuan' => $product['satuan'],
-                'qty_order' => $product['jumlah'],
-                'disc' => $product['diskon'],
-                'total' => $cleaned_total,
-                'rcabang' => $rcabang, // Menyimpan rcabang dari pengguna yang login
-                'status_po' => 0,
-            ]);
+        if ($user->roles != 'admin') {
+            $query->where('a.user_id', $user->user_id);
         }
 
-        // Simpan data baru ke tabel Transusers
-        Transusers::create([
-            'no_invoice' => $noInvoice,
-            'user_id' => $user_id,
-            'nama_cust' => $user_name,
+        $data = $query->get();
+
+        return response()->json([
+            'draw' => $request->draw,
+            'recordsTotal' => $data->count(),
+            'recordsFiltered' => $data->count(),
+            'data' => $data,
+        ]);
+    }
+
+    public function get_edit_transaksi_to_table(Request $request){
+        $no_invoice = $request->no_invoice;
+
+        $data = DB::table('po_userby as a')
+        ->leftJoin('po_online as b', 'a.no_invoice', '=', 'b.no_invoice')
+        ->select(
+            'a.no_invoice',
+            'a.created_at',
+            'b.kd_brg',
+            'b.nama_brg',
+            DB::raw('CAST(b.qty_order AS UNSIGNED) AS qty_order'),
+            DB::raw('CAST(b.qty_unit AS UNSIGNED) AS qty_unit'),
+            'b.satuan',
+            DB::raw('CAST(b.harga AS UNSIGNED) AS harga'),
+            DB::raw('CAST(b.disc AS UNSIGNED) AS disc'),
+            DB::raw('CAST(b.total AS UNSIGNED) AS total'),
+            'b.rcabang'
+        )
+        // ->where('a.user_id', Auth::user()->user_id)
+        ->where('b.status_po', 0)
+        ->where('a.no_invoice', $no_invoice)
+        ->get();
+
+        return response()->json(['data' => $data]);
+    }
+
+    // ###  Update Transaksi
+    public function update_products(Request $request)
+    {
+        // Ambil data dari request
+        $products = $request->input('products');
+        $noInvoice = $request->input('value_invo'); // Ambil no_invoice dari request
+
+        // Ambil rcabang dari pengguna yang sedang login
+        $rcabang = Auth::user()->rcabang;
+        $user_id = Auth::user()->user_id;
+        $user_name = Auth::user()->name;
+
+        // Mulai transaksi
+        DB::beginTransaction();
+
+        try {
+            // Hapus data transaksi dan transuser berdasarkan no_invoice
+            Transactions::where('no_invoice', $noInvoice)->delete();
+            Transusers::where('no_invoice', $noInvoice)->delete();
+
+            // Simpan data baru ke tabel Transactions
+            foreach ($products as $product) {
+                // menghilangkan titik di total
+                $cleaned_total = str_replace(',', '.', str_replace('.', '', $product['total']));
+                Transactions::create([
+                    'no_invoice' => $noInvoice, // Menggunakan nomor invoice lama
+                    'kd_brg' => $product['kd_barang'],
+                    'nama_brg' => $product['nama'],
+                    'harga' => $product['harga'],
+                    'qty_unit' => $product['unit'],
+                    'satuan' => $product['satuan'],
+                    'qty_order' => $product['jumlah'],
+                    'disc' => $product['diskon'],
+                    'total' => $cleaned_total,
+                    'rcabang' => $rcabang, // Menyimpan rcabang dari pengguna yang login
+                    'status_po' => 0,
+                ]);
+            }
+
+            // Simpan data baru ke tabel Transusers
+            Transusers::create([
+                'no_invoice' => $noInvoice,
+                'user_id' => $user_id,
+                'nama_cust' => $user_name,
+            ]);
+
+            // Commit transaksi jika berhasil
+            DB::commit();
+
+            return response()->json(['message' => 'Products updated successfully!'], 200);
+        } catch (\Exception $e) {
+            // Rollback transaksi jika ada error
+            DB::rollBack();
+
+            // Kembalikan pesan error
+            return response()->json(['error' => 'Failed to update products: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function delete_products(Request $request)
+    {
+        // Validasi input
+        $request->validate([
+            'value_invo' => 'required|string'
         ]);
 
-        // Commit transaksi jika berhasil
-        DB::commit();
+        $noInvoice = $request->input('value_invo'); // Ambil no_invoice dari request
 
-        return response()->json(['message' => 'Products updated successfully!'], 200);
-    } catch (\Exception $e) {
-        // Rollback transaksi jika ada error
-        DB::rollBack();
+        // Mulai transaksi
+        DB::beginTransaction();
 
-        // Kembalikan pesan error
-        return response()->json(['error' => 'Failed to update products: ' . $e->getMessage()], 500);
-    }
-}
+        try {
+            // Periksa apakah data ada di Transactions
+            $exists = Transactions::where('no_invoice', $noInvoice)->exists();
 
-public function delete_products(Request $request)
-{
-    // Validasi input
-    $request->validate([
-        'value_invo' => 'required|string'
-    ]);
+            if (!$exists) {
+                return response()->json(['error' => 'Invoice not found'], 404);
+            }
 
-    $noInvoice = $request->input('value_invo'); // Ambil no_invoice dari request
+            // Hapus data transaksi dan transuser berdasarkan no_invoice
+            Transactions::where('no_invoice', $noInvoice)->delete();
+            Transusers::where('no_invoice', $noInvoice)->delete();
 
-    // Mulai transaksi
-    DB::beginTransaction();
+            // Commit transaksi jika berhasil
+            DB::commit();
 
-    try {
-        // Periksa apakah data ada di Transactions
-        $exists = Transactions::where('no_invoice', $noInvoice)->exists();
+            return response()->json(['message' => 'Products deleted successfully!'], 200);
+        } catch (\Exception $e) {
+            // Rollback transaksi jika ada error
+            DB::rollBack();
 
-        if (!$exists) {
-            return response()->json(['error' => 'Invoice not found'], 404);
+            // Kembalikan pesan error
+            return response()->json(['error' => 'Failed to delete products: ' . $e->getMessage()], 500);
         }
-
-        // Hapus data transaksi dan transuser berdasarkan no_invoice
-        Transactions::where('no_invoice', $noInvoice)->delete();
-        Transusers::where('no_invoice', $noInvoice)->delete();
-
-        // Commit transaksi jika berhasil
-        DB::commit();
-
-        return response()->json(['message' => 'Products deleted successfully!'], 200);
-    } catch (\Exception $e) {
-        // Rollback transaksi jika ada error
-        DB::rollBack();
-
-        // Kembalikan pesan error
-        return response()->json(['error' => 'Failed to delete products: ' . $e->getMessage()], 500);
     }
-}
 
 }

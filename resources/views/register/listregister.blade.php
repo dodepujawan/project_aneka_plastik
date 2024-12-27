@@ -10,16 +10,16 @@
     <div id="formtable">
         <h5>User Table</h5>
         <div class="row mb-3">
-            <div class="col-md-3">
+            <div class="col-md-3 mt-2">
                 <input type="date" id="startDate" class="form-control" placeholder="Start Date">
             </div>
-            <div class="col-md-3">
+            <div class="col-md-3 mt-2">
                 <input type="date" id="endDate" class="form-control" placeholder="End Date">
             </div>
-            <div class="col-md-3">
+            <div class="col-md-3 mt-2">
                 <input type="text" id="searchBox" class="form-control" placeholder="Search">
             </div>
-            <div class="col-md-3">
+            <div class="col-md-3 mt-2">
                 <button id="filterBtn" class="btn btn-primary">Filter</button>
             </div>
         </div>
@@ -137,7 +137,7 @@ $(document).ready(function() {
             searching: false,
             paging: true,
             info: false,
-            scrollY: '50vh',  // Menambahkan scrolling vertikal
+            scrollY: '100vh',  // Menambahkan scrolling vertikal
             scrollCollapse: true,
             scrollX: true,
             fixedHeader: {
