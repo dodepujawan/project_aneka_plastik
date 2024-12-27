@@ -12,22 +12,28 @@ h5 {
 } */
 
 /* table scroll */
-.table-container {
-    max-height: 500px; /* Sesuaikan tinggi maksimum sesuai kebutuhan */
-    overflow-y: auto;  /* Tambahkan scroll vertikal jika konten melebihi tinggi maksimum */
-    width: 100%;       /* Pastikan lebar kontainer sesuai dengan tabel */
-    border: 1px solid #ddd; /* Opsional: tambahkan border untuk kontainer tabel */
+.table-responsive {
+        overflow: visible;
+    }
+    .style-table {
+        width: 100% !important;
+    }
+/* .table-container {
+    max-height: 500px;  Sesuaikan tinggi maksimum sesuai kebutuhan
+    overflow-y: auto;   Tambahkan scroll vertikal jika konten melebihi tinggi maksimum
+    width: 100%;        Pastikan lebar kontainer sesuai dengan tabel
+    border: 1px solid #ddd;  Opsional: tambahkan border untuk kontainer tabel
 }
 
 .table-container table {
-    width: 100%; /* Pastikan tabel mengambil lebar penuh dari kontainer */
-    border-collapse: collapse; /* Menghindari jarak antara border sel */
+    width: 100%;  Pastikan tabel mengambil lebar penuh dari kontainer
+    border-collapse: collapse;  Menghindari jarak antara border sel
 }
 
 .table-container th, .table-container td {
-    padding: 8px; /* Opsional: tambahkan padding untuk sel tabel */
-    text-align: left; /* Opsional: sesuaikan perataan teks */
-}
+    padding: 8px;  Opsional: tambahkan padding untuk sel tabel
+    text-align: left;  Opsional: sesuaikan perataan teks
+} */
 /* end of table scroll */
 /* Styling Select2 */
 /* .select2-result-barang {
@@ -100,7 +106,7 @@ h5 {
 <div id="master_table_edit_field">
     <h1>Halaman Edit PO</h1>
     <div class="mt-3 table-container table-responsive">
-        <table id="transaksi_table_edit_field" class="display table table-bordered mb-2">
+        <table id="transaksi_table_edit_field" class="display table table-bordered mb-2 style-table">
             <thead>
                 <tr>
                     <th>No</th>
@@ -113,7 +119,7 @@ h5 {
             <tbody>
             </tbody>
         </table>
-        <table id="transaksi_table_edit_field_admin" class="display table table-bordered mb-2">
+        <table id="transaksi_table_edit_field_admin" class="display table table-bordered mb-2 style-table">
             <thead>
                 <tr>
                     <th>No</th>
@@ -288,6 +294,16 @@ $(document).ready(function(){
                     },
                 },
             ],
+            searching: true,
+            paging: true,
+            info: false,
+            scrollY: '100vh',  // Menambahkan scrolling vertikal
+            scrollCollapse: true,
+            scrollX: true,
+            fixedHeader: {
+                header: true,
+                footer: false
+            }
         });
     }
 
@@ -335,6 +351,16 @@ $(document).ready(function(){
                     },
                 },
             ],
+            searching: true,
+            paging: true,
+            info: false,
+            scrollY: '100vh',  // Menambahkan scrolling vertikal
+            scrollCollapse: true,
+            scrollX: true,
+            fixedHeader: {
+                header: true,
+                footer: false
+            }
         });
     }
 // ================================= End Of Show Table PO ===========================================
