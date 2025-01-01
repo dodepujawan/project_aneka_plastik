@@ -190,7 +190,7 @@ h5 {
                 <th>KD Barang</th>
                 <th>Nama</th>
                 <th>Harga</th>
-                <th>Unit</th>
+                <th>Isi</th>
                 <th>Satuan</th>
                 <th>Jumlah</th>
                 <th>Diskon</th>
@@ -680,27 +680,16 @@ $(document).ready(function(){
                         text: 'Data Berhasil Disimpan dengan Nomor Invoice: ' + response.invoice_number,
                         showConfirmButton: true, // Tampilkan tombol OK
                         confirmButtonText: 'OK', // Ubah teks tombol jika diperlukan
-                    }).then(() => {
-                        // Callback setelah tombol OK ditekan
-                        $('#transaksi_table tbody').empty();
-                        if(user_role_select != 'customer'){
-                            $('#select_user_trans').val(null).trigger('change');
-                            $("#kode_user_trans").val('');
-                            $("#nama_user_trans").val('');
-                        }
-                        $('#grand_total').text(0);
-                        grandTotal = 0;
-                        // ### Redirect Hal Edit
-                        $.ajax({
-                            url: '{{ route('index_edit_transaksi') }}',
-                            type: 'GET',
-                            success: function(response) {
-                                $('.master-page').html(response);
-                            },
-                            error: function() {
-                                $('.master-page').html('<p>Error loading form.</p>');
+                        showDenyButton: true, // Show Deny button for Print PDF
+                        denyButtonText: 'Print PDF',
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // Callback setelah tombol OK ditekan
+                            success_call();
+                        }   else if (result.isDenied) {
+                            window.open('{{ route("generate_pdf", ":invoice_number") }}'.replace(':invoice_number', response.invoice_number), '_blank');
+                                success_call();
                             }
-                        });
                     });
                 },
                 error: function (xhr, status, error) {
@@ -713,7 +702,27 @@ $(document).ready(function(){
             });
         }, 2000);
     }
-
+    function success_call(){
+        $('#transaksi_table tbody').empty();
+        if(user_role_select != 'customer'){
+            $('#select_user_trans').val(null).trigger('change');
+            $("#kode_user_trans").val('');
+            $("#nama_user_trans").val('');
+        }
+        $('#grand_total').text(0);
+        grandTotal = 0;
+        // ### Redirect Hal Edit
+        $.ajax({
+            url: '{{ route('index_edit_transaksi') }}',
+            type: 'GET',
+            success: function(response) {
+                $('.master-page').html(response);
+            },
+            error: function() {
+                $('.master-page').html('<p>Error loading form.</p>');
+            }
+        });
+    }
 // ================================= End Of Submit Barang To DB =========================================
 // ============================== Number Formating =====================================
     function hapus_format(angka) {

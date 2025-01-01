@@ -3,6 +3,7 @@
 use App\Http\Controllers\CabangController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LoginController;
+use App\Http\Controllers\PDFController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\TransaksiController;
 use Illuminate\Support\Facades\Route;
@@ -73,5 +74,8 @@ Route::prefix('cabang')->middleware('auth')->group(function () {
     Route::delete('delete_list_cabang/{id}', [CabangController::class, 'delete_list_cabang'])->name('delete_list_cabang');
 });
 
+Route::prefix('pdf')->group(function () {
+    Route::get('/generate-pdf/{invoice_number}', [PDFController::class, 'generate_pdf'])->name('generate_pdf');
+});
 // admin123
 // github : project_aneka_plastik

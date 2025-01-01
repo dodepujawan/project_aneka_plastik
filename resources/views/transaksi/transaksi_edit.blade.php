@@ -234,7 +234,7 @@ h5 {
                     <th>KD Barang</th>
                     <th>Nama</th>
                     <th>Harga</th>
-                    <th>Unit</th>
+                    <th>Isi</th>
                     <th>Satuan</th>
                     <th>Jumlah</th>
                     <th>Diskon</th>
@@ -312,10 +312,13 @@ $(document).ready(function(){
                         return `
                             <div style="display: flex; justify-content: center; gap: 0.5rem;">
                                 <button class="btn btn-sm btn-primary edit-btn" data-no-invoice="${row.no_invoice}" style="margin-right: 0;">
-                                    <i class="fa fa-edit"></i> Edit
+                                    <i class="fa fa-edit"></i>
+                                </button>
+                                <button class="btn btn-sm btn-success print-btn" id="print_edit_pdf" data-no-invoice="${row.no_invoice}">
+                                    <i class="fa fa-print"></i>
                                 </button>
                                 <button class="btn btn-sm btn-danger delete-btn" data-no-invoice="${row.no_invoice}">
-                                    <i class="fa fa-trash"></i> Delete
+                                    <i class="fa fa-trash"></i>
                                 </button>
                             </div>
                         `;
@@ -369,10 +372,13 @@ $(document).ready(function(){
                         return `
                             <div style="display: flex; justify-content: center; gap: 0.5rem;">
                                 <button class="btn btn-sm btn-primary edit-btn" data-no-invoice="${row.no_invoice}" style="margin-right: 0;">
-                                    <i class="fa fa-edit"></i> Edit
+                                    <i class="fa fa-edit"></i>
+                                </button>
+                                <button class="btn btn-sm btn-success print-btn" id="print_edit_pdf" data-no-invoice="${row.no_invoice}">
+                                    <i class="fa fa-print"></i>
                                 </button>
                                 <button class="btn btn-sm btn-danger delete-btn" data-no-invoice="${row.no_invoice}">
-                                    <i class="fa fa-trash"></i> Delete
+                                    <i class="fa fa-trash"></i>
                                 </button>
                             </div>
                         `;
@@ -454,6 +460,29 @@ $(document).ready(function(){
         });
     }
 // ================================= End Of Click Edit Button ===========================================
+// ==================================== Click Print Button ==============================================
+    $(document).on('click', '#print_edit_pdf', function() {
+        var invoice_number = $(this).data("no-invoice");
+
+        // Show SweetAlert confirmation
+        Swal.fire({
+            title: 'Are you sure?',
+            text: `Apakah Ingin Print PO: ${invoice_number} ?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Ya Print !',
+            cancelButtonText: 'Batal',
+            customClass: {
+                cancelButton: 'btn-danger'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // If user confirms, open the PDF
+                window.open('{{ route("generate_pdf", ":invoice_number") }}'.replace(':invoice_number', invoice_number), '_blank');
+            }
+        });
+    });
+// ================================= End Of Click Print Button ===========================================
 // ================================= Click Delete Button ===========================================
     $(document).on('click', '#transaksi_table_edit_field .delete-btn', function () {
         let no_invoice = $(this).data('no-invoice');

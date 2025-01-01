@@ -200,6 +200,7 @@ class TransaksiController extends Controller
             ->select(
                 'a.no_invoice',
                 DB::raw('DATE(a.created_at) as created_at'),
+                'a.user_id',
                 'a.user_kode',
                 'c.NAMACUST as nama_cust',
                 DB::raw('SUM(b.total) as total')
