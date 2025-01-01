@@ -177,7 +177,8 @@ class TransaksiController extends Controller
                 DB::raw('DATE(a.created_at) as created_at'), // Gunakan DATE untuk mengambil tanggal saja
                 DB::raw('SUM(b.total) as total')
             )
-            ->where('a.user_id', Auth::user()->user_id)
+            // ->where('a.user_id', Auth::user()->user_id)
+            ->where('a.user_kode', Auth::user()->user_kode)
             ->where('b.status_po', 0)
             ->groupBy('a.no_invoice', 'a.created_at')
             ->get();
@@ -259,9 +260,24 @@ class TransaksiController extends Controller
 
         // Ambil rcabang dari pengguna yang sedang login
         $rcabang = Auth::user()->rcabang;
+        $roles_user = Auth::user()->roles;
+        $user_kode = Auth::user()->user_kode;
         // jika ingin mengisi Transusers dengan data sesuai yang login
         $user_id = Auth::user()->user_id;
         $user_name = Auth::user()->name;
+
+        // Memastikan jika user login customer user_kode harus sama mencegah update data yng diubah admin
+        if ($roles_user == 'customer') {
+            // Periksa apakah Transusers memiliki nilai sesuai kondisi
+            $statusRolesCheck = Transusers::where('no_invoice', $noInvoice)
+                ->where('user_kode', $user_kode)
+                ->exists();
+
+            if (!$statusRolesCheck) {
+                return response()->json([
+                    'error' => 'Anda tidak dapat mengupdate produk karena status_po Anda tidak memenuhi syarat, Tolong Refresh.'], 403);
+            }
+        }
 
         // Memastikan Semua Nilai status_po = 0
         $statusPoCheck = Transactions::where('no_invoice', $noInvoice)
@@ -334,7 +350,21 @@ class TransaksiController extends Controller
             'value_invo' => 'required|string'
         ]);
 
+        $roles_user = Auth::user()->roles;
+        $user_kode = Auth::user()->user_kode;
         $noInvoice = $request->input('value_invo'); // Ambil no_invoice dari request
+
+        if ($roles_user == 'customer') {
+            // Periksa apakah Transusers memiliki nilai sesuai kondisi
+            $statusRolesCheck = Transusers::where('no_invoice', $noInvoice)
+                ->where('user_kode', $user_kode)
+                ->exists();
+
+            if (!$statusRolesCheck) {
+                return response()->json([
+                    'error' => 'Anda tidak dapat menghapus produk karena status_po Anda tidak memenuhi syarat, Tolong Refresh.'], 403);
+            }
+        }
 
         // Memastikan Semua Nilai status_po = 0
         $statusPoCheck = Transactions::where('no_invoice', $noInvoice)

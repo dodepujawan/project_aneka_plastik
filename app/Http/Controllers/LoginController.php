@@ -47,7 +47,8 @@ class LoginController extends Controller
                 'id' => $user->id,
                 'name' => $user->name,
                 'roles' => $user->roles,
-                'user_id' => $user->user_id
+                'user_id' => $user->user_id,
+                'user_kode' => $user->user_kode
             ]);
 
             return redirect()->intended('home');
@@ -59,7 +60,7 @@ class LoginController extends Controller
 
     public function actionlogout()
     {
-        session()->forget(['id', 'name', 'roles', 'user_id']);
+        session()->forget(['id', 'name', 'roles', 'user_id', 'user_kode']);
 
         Auth::logout();
         return redirect('/');

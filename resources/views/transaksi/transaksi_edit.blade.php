@@ -445,6 +445,7 @@ $(document).ready(function(){
                 $('#grand_total_edit').text(format_ribuan(grandTotal));
                 $('#master_table_edit_field').hide();
                 $('.master_transaksi_field').show();
+                $('#select_user_trans_edit').val(null).trigger('change');
                 select2_call();
             },
             error: function (xhr, status, error) {
@@ -987,7 +988,14 @@ function get_barang_satuan_edit(kd_barang){
                     console.log("Status: " + status);  // Menampilkan status HTTP
                     console.log("Error: " + error);  // Menampilkan error message
                     console.log(xhr.responseText);
-                    alert('Failed to save data.');
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Save Failed',
+                        text: xhr.responseText,
+                        showConfirmButton: false,
+                        timer: 2000 // Durasi tampil dalam milidetik
+                    });
+                    // alert('Failed to save data.');
                 }
             });
         }, 2000);
