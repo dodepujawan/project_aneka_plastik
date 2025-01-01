@@ -11,6 +11,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>AXMY - Management System</title>
+    <link rel="icon" href="{{ asset('assets/gambar/pos.png') }}" type="image/png">
 
     <!-- Custom fonts for this template-->
     {{-- <link href="vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css"> --}}
