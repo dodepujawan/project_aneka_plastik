@@ -206,7 +206,7 @@ class TransaksiController extends Controller
                 DB::raw('SUM(b.total) as total')
             )
             ->where('b.status_po', 0)
-            ->groupBy('a.id','a.no_invoice', 'a.created_at', 'a.user_kode', 'c.NAMACUST')
+            ->groupBy('a.id','a.no_invoice', 'a.created_at', 'a.user_kode', 'c.NAMACUST', 'a.user_id')
             ->orderBy('a.id', 'desc');
 
         if ($user->roles != 'admin') {
