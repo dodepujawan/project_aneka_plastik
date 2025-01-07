@@ -88,7 +88,7 @@
         }
 
         h3 {
-            font-size: 14px;
+            font-size: 12px;
             margin-bottom: 10px;
         }
 
@@ -111,7 +111,8 @@
             <table>
                 <tr>
                     <td>
-                        <div class="logo">♥ Aneka Plastik</div>
+                        {{-- ♥ --}}
+                        <div class="logo">Aneka Plastik</div>
                         <p><b>Toko Plastik Terlengkap</b></p>
                     </td>
                     <td class="right">
@@ -137,7 +138,20 @@
             </table>
         </div>
 
-        <h3>PO Online: {{ $transaction->first()->no_invoice }}</h3>
+        <div class="info-row">
+            <table>
+                <tr>
+                    <td>
+                        <h3>PO Nomor: {{ $transaction->first()->no_invoice }}</h3>
+                    </td>
+                    <td>
+                        <h3>Tgl PO: {{ $transaction->first()->created_at }}</h3>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+
 
         <!-- Tabel Transaksi -->
         <table id="transaksi_table_po">

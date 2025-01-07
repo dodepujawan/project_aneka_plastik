@@ -9,6 +9,7 @@ class Transactions extends Model
 {
     use HasFactory;
     protected $table = 'po_online';
+    // public $timestamps = false;
     protected $fillable = [
         'no_invoice',
         'kd_brg',
@@ -22,5 +23,7 @@ class Transactions extends Model
         'total',
         'rcabang',
         'status_po',
+        'created_at',
+        'updated_at',
     ];
 }

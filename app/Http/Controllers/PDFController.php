@@ -17,7 +17,7 @@ class PDFController extends Controller
             ->select([
                 'a.no_invoice',
                 'a.user_id',
-                'a.created_at',
+                DB::raw('DATE_FORMAT(a.created_at, "%d-%m-%Y") AS created_at'),
                 'a.user_kode',
                 'b.kd_brg',
                 'b.nama_brg',

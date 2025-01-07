@@ -296,15 +296,17 @@ class TransaksiController extends Controller
             $user_name_prev = $previousUserData->nama_cust;
         }
 
+        // Simpan nilai created_at lama
+        $created_at_transusers = $previousUserData->created_at; // Untuk tabel Transusers
+        $transactionsCreatedAt = Transactions::where('no_invoice', $noInvoice)->pluck('created_at')->first();
+
         // Mulai transaksi
         DB::beginTransaction();
 
         try {
-            // Hapus data transaksi dan transuser berdasarkan no_invoice
             Transactions::where('no_invoice', $noInvoice)->delete();
             Transusers::where('no_invoice', $noInvoice)->delete();
 
-            // Simpan data baru ke tabel Transactions
             foreach ($products as $product) {
                 // menghilangkan titik di total
                 $cleaned_total = str_replace(',', '.', str_replace('.', '', $product['total']));
@@ -320,6 +322,8 @@ class TransaksiController extends Controller
                     'total' => $cleaned_total,
                     'rcabang' => $rcabang, // Menyimpan rcabang dari pengguna yang login
                     'status_po' => 0,
+                    'created_at' => $transactionsCreatedAt,
+                    'updated_at' => Carbon::now(),
                 ]);
             }
 
@@ -329,6 +333,8 @@ class TransaksiController extends Controller
                 'user_id' => $user_id_prev,
                 'nama_cust' => $user_name_prev,
                 'user_kode' => $kodeUser,
+                'created_at' => $created_at_transusers,
+                'updated_at' => Carbon::now(),
             ]);
 
             // Commit transaksi jika berhasil
@@ -403,4 +409,46 @@ class TransaksiController extends Controller
         }
     }
 
+    // ### Halaman Transaksi Approved
+    public function approved(){
+        return view('transaksi.approved_transaksi');
+    }
+
+    public function filter_approved_invoice(Request $request){
+        if (!Auth::check()) {
+            return response()->json(['message' => 'Silakan login terlebih dahulu'], 401);
+        }
+
+        $query = DB::table('po_userby as a')
+            ->leftJoin('po_online as b', 'a.no_invoice', '=', 'b.no_invoice')
+            ->select(
+                'a.no_invoice',
+                DB::raw('DATE(a.created_at) as created_at'), // Gunakan DATE untuk mengambil tanggal saja
+                DB::raw('SUM(b.total) as total')
+            )
+            // ->where('a.user_id', Auth::user()->user_id)
+            ->where('a.user_kode', Auth::user()->user_kode)
+            ->where('b.status_po', '!=', 0)
+            ->groupBy('a.no_invoice', 'a.created_at');
+
+            if ($request->has('startDate') && $request->startDate) {
+                $query->where('a.created_at', '>=', $request->startDate);
+            }
+
+            if ($request->has('endDate') && $request->endDate) {
+                $query->where('a.created_at', '<=', $request->endDate);
+            }
+
+            if ($request->has('searchText') && $request->searchText) {
+                $query->where(function($q) use ($request) {
+                    $q->where('a.no_invoice', 'like', '%' . $request->searchText . '%');
+                });
+            }
+
+        $order = $query->get();
+
+        return response()->json([
+            'data' => $order
+        ]);
+    }
 }

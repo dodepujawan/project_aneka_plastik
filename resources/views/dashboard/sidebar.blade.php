@@ -48,6 +48,7 @@
                 <h6 class="collapse-header">Transaksi:</h6>
                 <a class="collapse-item" id="main_transaksi_link" href="#">Input PO</a>
                 <a class="collapse-item" id="edit_transaksi_link" href="#">edit PO</a>
+                <a class="collapse-item" id="approved_transaksi_link" href="#">PO Disetujui</a>
             </div>
         </div>
     </li>

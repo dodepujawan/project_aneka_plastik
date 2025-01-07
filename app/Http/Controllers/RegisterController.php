@@ -162,6 +162,7 @@ class RegisterController extends Controller
             $query->where(function($q) use ($request) {
                 $q->where('users.email', 'like', '%' . $request->searchText . '%')
                 ->orWhere('users.name', 'like', '%' . $request->searchText . '%')
+                ->orWhere('users.user_id', 'like', '%' . $request->searchText . '%')
                 ->orWhere('users.roles', 'like', '%' . $request->searchText . '%');
             });
         }
@@ -259,8 +260,7 @@ class RegisterController extends Controller
     }
 
     // Fungsi Calback id_user
-    public function generate_user_id(Request $request)
-    {
+    public function generate_user_id(Request $request){
         $role = $request->input('role');
 
         $lastUser = DB::table('users')

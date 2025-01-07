@@ -128,6 +128,25 @@ $(document).on('click', '.main-sidebar #edit_transaksi_link', function(e) {
         });
     }
 // ========================= End Of Edit Transaksi ======================================
+// ========================= Transaksi Sukses ======================================
+$(document).on('click', '.main-sidebar #approved_transaksi_link', function(e) {
+            e.preventDefault();
+            load_approved_transaksilink();
+        });
+
+    function load_approved_transaksilink() {
+        $.ajax({
+            url: '{{ route('approved_transaksi') }}',
+            type: 'GET',
+            success: function(response) {
+                $('.master-page').html(response);
+            },
+            error: function() {
+                $('.master-page').html('<p>Error loading form.</p>');
+            }
+        });
+    }
+// ========================= End Of Transaksi Sukses ======================================
 // ########################### End Of SIDEBAR ROOM #####################################
 
 });
