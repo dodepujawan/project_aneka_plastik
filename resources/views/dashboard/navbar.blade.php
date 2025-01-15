@@ -60,10 +60,10 @@
                     <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
                     Edit Register
                 </a>
-                @php
+                {{-- @php
                 $user = Auth::user();
                 $allowedRoles = ['programmer', 'admin'];
-                @endphp
+                @endphp --}}
 
                 @if (in_array($user->roles, $allowedRoles))
                 <a class="dropdown-item list-register" href="#">
@@ -73,10 +73,10 @@
                 <div class="dropdown-divider"></div>
                 @endif
                 {{-- Cabang --}}
-                @php
+                {{-- @php
                 $user = Auth::user();
                 $allowedRoles = ['admin'];
-                @endphp
+                @endphp --}}
 
                 @if (in_array($user->roles, $allowedRoles))
                 <a class="dropdown-item cabang-create" href="#">

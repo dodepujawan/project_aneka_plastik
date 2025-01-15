@@ -423,13 +423,27 @@ class TransaksiController extends Controller
             ->leftJoin('po_online as b', 'a.no_invoice', '=', 'b.no_invoice')
             ->select(
                 'a.no_invoice',
-                DB::raw('DATE(a.created_at) as created_at'), // Gunakan DATE untuk mengambil tanggal saja
+                DB::raw('DATE(a.created_at) as created_at'),
+                'a.user_id',
+                'a.user_kode',
                 DB::raw('SUM(b.total) as total')
             )
             // ->where('a.user_id', Auth::user()->user_id)
-            ->where('a.user_kode', Auth::user()->user_kode)
+            // ->where('a.user_kode', Auth::user()->user_kode)
             ->where('b.status_po', '!=', 0)
-            ->groupBy('a.no_invoice', 'a.created_at');
+            ->groupBy('a.no_invoice', 'a.created_at', 'a.user_id', 'a.user_kode')
+            ->orderBy('a.created_at', 'desc');
+
+            $userRole = Auth::user()->roles;
+            if ($userRole === 'customer') {
+                $query->where('a.user_kode', Auth::user()->user_kode);
+            } elseif ($userRole === 'staff') {
+                $query->where('a.user_id', Auth::user()->user_id);
+            } elseif ($userRole === 'admin') {
+                // Tidak ada filter tambahan untuk admin, karena admin bisa melihat semua data
+            } else {
+                return response()->json(['message' => 'Anda tidak memiliki izin untuk mengakses data ini'], 403);
+            }
 
             if ($request->has('startDate') && $request->startDate) {
                 $query->where('a.created_at', '>=', $request->startDate);
@@ -442,6 +456,13 @@ class TransaksiController extends Controller
             if ($request->has('searchText') && $request->searchText) {
                 $query->where(function($q) use ($request) {
                     $q->where('a.no_invoice', 'like', '%' . $request->searchText . '%');
+                    $userRole = Auth::user()->roles;
+                    if ($userRole === 'staff') {
+                        $q->where('a.user_kode', Auth::user()->user_kode);
+                    } elseif ($userRole === 'admin') {
+                        $q->where('a.user_kode', Auth::user()->user_kode)
+                        ->orWhere('a.user_id', Auth::user()->user_id);
+                    }
                 });
             }
 
@@ -451,4 +472,31 @@ class TransaksiController extends Controller
             'data' => $order
         ]);
     }
+
+    public function get_po_approved_det(Request $request){
+        $no_invoice = $request->input('no_invoice');
+        $query = DB::table('po_online')
+            ->select([
+                'no_invoice',
+                'kd_brg',
+                'nama_brg',
+                'harga',
+                'qty_unit',
+                'satuan',
+                'qty_order',
+                'qty_sup',
+                'disc',
+                'total'
+            ])
+            ->where('no_invoice', $no_invoice)
+            ->get();
+
+        $grandTotal = $query->sum('total');
+
+        return response()->json([
+            'data' => $query,
+            'grand_total' => $grandTotal
+        ]);
+    }
+
 }

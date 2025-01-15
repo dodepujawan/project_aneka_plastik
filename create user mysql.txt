@@ -1,0 +1,3 @@
+CREATE USER 'aneka_plastik'@'bind-address' IDENTIFIED BY 'aneka123';
+GRANT ALL PRIVILEGES ON project_aneka_plastik.* TO 'aneka_plastik'@'bind-address';
+flush privileges;
