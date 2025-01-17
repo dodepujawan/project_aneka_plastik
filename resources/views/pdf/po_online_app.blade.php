@@ -102,6 +102,15 @@
         #transaksi_table_po tfoot td {
             font-weight: bold;
         }
+
+        /* Untuk Title Po Disetujui */
+        .title_bar{
+            text-align: center;
+            font-family: Arial, sans-serif;
+            font-size: 20px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
     </style>
 </head>
 <body>
@@ -150,8 +159,9 @@
                 </tr>
             </table>
         </div>
-
-
+        <div class="title_bar">
+        <p style="margin: 0;">PO Disetujui</p>
+        </div>
 
         <!-- Tabel Transaksi -->
         <table id="transaksi_table_po">
@@ -164,8 +174,9 @@
                     <th>Isi</th>
                     <th>Satuan</th>
                     <th>Jumlah</th>
+                    <th style="background-color: rgba(255, 0, 0, 0.3); color: rgba(28, 13, 13, 0.973);">Disetujui</th>
                     <th>Diskon</th>
-                    <th>Total</th>
+                    <th style="background-color: rgba(255, 0, 0, 0.3); color: rgba(28, 13, 13, 0.973);">Total Disetujui</th>
                 </tr>
             </thead>
             <tbody>
@@ -178,6 +189,7 @@
                     <td>{{ $item->qty_unit }}</td>
                     <td>{{ $item->satuan }}</td>
                     <td>{{ $item->qty_order }}</td>
+                    <td>{{ $item->qty_sup }}</td>
                     <td>{{ number_format($item->disc, 0, ',', '.') }}</td>
                     <td>{{ number_format($item->total, 0, ',', '.') }}</td>
                 </tr>
@@ -185,7 +197,7 @@
             </tbody>
             <tfoot>
                 <tr>
-                    <td colspan="8" style="text-align: right;"><strong>Grand Total:</strong></td>
+                    <td colspan="9" style="text-align: right;"><strong>Grand Total:</strong></td>
                     <td>{{ number_format($transaction->sum('total'), 0, ',', '.') }}</td>
                 </tr>
             </tfoot>

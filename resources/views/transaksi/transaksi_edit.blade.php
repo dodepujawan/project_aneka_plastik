@@ -288,6 +288,7 @@ $(document).ready(function(){
         const table = $('#transaksi_table_edit_field').DataTable({
             processing: true,
             serverSide: false,
+            stateSave: true, // untuk kembali ke halaman sebelumnya
             ajax: {
                 url: '{{ route('get_edit_transaksi_data') }}',
                 type: 'GET',
@@ -346,6 +347,7 @@ $(document).ready(function(){
         const table = $('#transaksi_table_edit_field_admin').DataTable({
             processing: true,
             serverSide: false,
+            stateSave: true, // untuk kembali ke halaman sebelumnya
             ajax: {
                 url: '{{ route('get_edit_transaksi_data_admin') }}',
                 type: 'GET',

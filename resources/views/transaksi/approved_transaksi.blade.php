@@ -117,6 +117,9 @@
                 <!-- Data akan diisi oleh DataTables -->
             </tbody>
         </table>
+        {{-- <div class="button-container" style="display: flex; justify-content: flex-end; gap: 10px;">
+            <button type="submit" class="btn btn-warning mt-2 mb-2" id="return_table_transaksi_approved"><i class="fas fa-undo"> List Menu</i></button>
+        </div> --}}
     </div>
 
 </div>
@@ -206,6 +209,7 @@ $(document).ready(function() {
             scrollY: '100vh',  // Menambahkan scrolling vertikal
             scrollCollapse: true,
             scrollX: true,
+            stateSave: true, // untuk kembali ke halaman sebelumnya
             fixedHeader: {
                 header: true,
                 footer: false
@@ -283,6 +287,7 @@ $(document).ready(function() {
             scrollY: '100vh',  // Menambahkan scrolling vertikal
             scrollCollapse: true,
             scrollX: true,
+            stateSave: true, // untuk kembali ke halaman sebelumnya
             fixedHeader: {
                 header: true,
                 footer: false
@@ -361,6 +366,7 @@ $(document).ready(function() {
             scrollY: '100vh',  // Menambahkan scrolling vertikal
             scrollCollapse: true,
             scrollX: true,
+            stateSave: true, // untuk kembali ke halaman sebelumnya
             fixedHeader: {
                 header: true,
                 footer: false
@@ -416,6 +422,49 @@ $(document).ready(function() {
     });
 
 // ================================== End Of Show PO Detail Approved ===========================================
+// ==================================== Click Print Button ==============================================
+$(document).on('click', '#print_po_pdf_app', function() {
+        var invoice_number = $(this).data("no-invoice");
+
+        // Show SweetAlert confirmation
+        Swal.fire({
+            title: 'Are you sure?',
+            text: `Apakah Ingin Print PO: ${invoice_number} ?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Ya Print !',
+            cancelButtonText: 'Batal',
+            customClass: {
+                cancelButton: 'btn-danger'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // If user confirms, open the PDF
+                window.open('{{ route("generate_pdf_approved", ":invoice_number") }}'.replace(':invoice_number', invoice_number), '_blank');
+            }
+        });
+    });
+// ================================= End Of Click Print Button ===========================================
+// ================================= Return Tabel PO =========================================
+    // $('#return_table_transaksi_approved').on('click', function(){
+    //     return_table_po_approved();
+    // });
+    // function return_table_po_approved(){
+    //     alert('test');
+    //     grandTotal = 0;
+    //     $("#table_transaksi_po_app").hide();
+    //     if(user_role_select_app == 'customer'){
+    //         $("#transaksi_table_approve_field").show();
+    //         transaksi_table_approve_field();
+    //     }else if(user_role_select_app == 'staff'){
+    //         $("#transaksi_table_approve_field_staff").show();
+    //         transaksi_table_approve_field_staff();
+    //     }else{
+    //         $("#transaksi_table_approve_field_admin").show();
+    //         transaksi_table_approve_field_admin();
+    //     }
+    // }
+// ================================= End Of Return Tabel PO =========================================
 // ================================== Format Angka ===========================================
     function hapus_format(angka) {
         // Menghapus titik pemisah ribuan

@@ -181,6 +181,7 @@ class TransaksiController extends Controller
             ->where('a.user_kode', Auth::user()->user_kode)
             ->where('b.status_po', 0)
             ->groupBy('a.no_invoice', 'a.created_at')
+            ->orderBy('a.created_at', 'desc')
             ->get();
 
         return response()->json([
@@ -207,7 +208,8 @@ class TransaksiController extends Controller
             )
             ->where('b.status_po', 0)
             ->groupBy('a.id','a.no_invoice', 'a.created_at', 'a.user_kode', 'c.NAMACUST', 'a.user_id')
-            ->orderBy('a.id', 'desc');
+            // ->orderBy('a.id', 'desc');
+            ->orderBy('a.created_at', 'desc');
 
         if ($user->roles != 'admin') {
             $query->where('a.user_id', $user->user_id);

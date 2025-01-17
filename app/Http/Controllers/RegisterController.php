@@ -145,6 +145,7 @@ class RegisterController extends Controller
             'users.name',
             'users.roles',
             'users.rcabang',
+            'users.user_kode',
             'cabangs.nama as cabang_name',
             DB::raw('DATE(users.created_at) as created_at')
         ])
@@ -163,6 +164,7 @@ class RegisterController extends Controller
                 $q->where('users.email', 'like', '%' . $request->searchText . '%')
                 ->orWhere('users.name', 'like', '%' . $request->searchText . '%')
                 ->orWhere('users.user_id', 'like', '%' . $request->searchText . '%')
+                ->orWhere('users.user_kode', 'like', '%' . $request->searchText . '%')
                 ->orWhere('users.roles', 'like', '%' . $request->searchText . '%');
             });
         }

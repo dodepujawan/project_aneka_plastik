@@ -79,6 +79,7 @@ Route::prefix('cabang')->middleware('auth')->group(function () {
 
 Route::prefix('pdf')->group(function () {
     Route::get('/generate-pdf/{invoice_number}', [PDFController::class, 'generate_pdf'])->name('generate_pdf');
+    Route::get('/generate-pdf/approved/{invoice_number}', [PDFController::class, 'generate_pdf_approved'])->name('generate_pdf_approved');
 });
 // admin123
 // github : project_aneka_plastik

@@ -32,6 +32,7 @@
                         <th>Name</th>
                         <th>Roles</th>
                         <th>Branch</th>
+                        <th>User Kode</th>
                         <th>Joined At</th>
                         <th>Actions</th>
                     </tr>
@@ -126,6 +127,7 @@ $(document).ready(function() {
                      return data ? data : '-'; // Jika cabang_name kosong, tampilkan '-'
                   }
                 },
+                { data: 'user_kode' },
                 { data: 'created_at' },
                 {
                     data: null,
