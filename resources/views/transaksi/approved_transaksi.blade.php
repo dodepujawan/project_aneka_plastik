@@ -1,10 +1,11 @@
 <style>
-    .table-responsive {
+    .table-responsive-set {
         overflow: visible;
     }
-    #transaksi_table_approve_field, #transaksi_table_approve_field_staff, #transaksi_table_approve_field_admin {
+    .style-table {
         width: 100% !important;
     }
+
 </style>
 <div class="container mt-5">
     <div id="formtable_po">
@@ -26,7 +27,7 @@
                 <button id="filterBtnApp" class="btn btn-primary">Filter</button>
             </div>
         </div>
-        <div class="table-responsive">
+        <div class="table-responsive-set">
             <table id="transaksi_table_approve_field" class="display table table-bordered mb-2 style-table" style="display: none;">
                 <thead>
                     <tr>
@@ -94,6 +95,7 @@
     </div>
 
     <div class="mt-3 table-container table-responsive" id="table_transaksi_po_app" style="display: none;">
+        <h3>Detail PO Approved Table</h3>
         <table id="table_transaksi_list_po_app" class="display table table-bordered mb-2">
             <thead>
                 <tr>
@@ -137,6 +139,11 @@ $(document).ready(function() {
     // console.log('kode:' + user_role_select);
     // console.log('nama:' + user_nama_select);
     user_select_po_app();
+    if (table) {
+        table.state.clear();
+        user_select_po_app();
+    }
+
     function user_select_po_app(){
         if(user_role_select_app == 'customer'){
             $("#transaksi_table_approve_field").show();
@@ -202,7 +209,7 @@ $(document).ready(function() {
 
                 // Calculate the total for current page
                 let pageTotal = api
-                    .column(3, { page: 'current' })
+                    .column(3)
                     .data()
                     .reduce((a, b) => parseFloat(a) + parseFloat(b), 0);
 
@@ -280,7 +287,7 @@ $(document).ready(function() {
 
                 // Calculate the total for current page
                 let pageTotal = api
-                    .column(4, { page: 'current' })
+                    .column(4)
                     .data()
                     .reduce((a, b) => parseFloat(a) + parseFloat(b), 0);
 
@@ -359,7 +366,7 @@ $(document).ready(function() {
 
                 // Calculate the total for current page
                 let pageTotal = api
-                    .column(5, { page: 'current' })
+                    .column(5)
                     .data()
                     .reduce((a, b) => parseFloat(a) + parseFloat(b), 0);
 
@@ -389,7 +396,7 @@ $(document).ready(function() {
 $(document).on('click', '#po_table_refresh', function() {
     if (table) {
         table.state.clear();  // Hapus state
-        table.destroy();      // Hancurkan tabel
+        // table.destroy();      // Hancurkan tabel
         user_select_po_app(); // Panggil ulang fungsi untuk memuat ulang tabel yang sesuai
     }
 });
