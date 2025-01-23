@@ -11,7 +11,7 @@
     <div id="formtable_po">
         <h5>PO Approved Table</h5>
         <div class="button-container" style="display: flex; justify-content: flex-start; gap: 10px;">
-            <button type="button" class="btn btn-warning mt-2 mb-2" id="po_table_refresh"><i class="fas fa-undo"> Refresh</i></button>
+            <button type="button" class="btn mt-2 mb-2" id="po_table_refresh" style="background-color: rgba(0, 123, 255, 0.5); border-color: rgba(0, 123, 255, 0.5); color: white;"><i class="fas fa-undo"> Refresh</i></button>
         </div>
         <div class="row mb-3">
             <div class="col-md-3 mt-2">
