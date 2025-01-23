@@ -8,7 +8,10 @@
 </style>
 <div class="container mt-5">
     <div id="formtable_po">
-        <h5>User Table</h5>
+        <h5>PO Approved Table</h5>
+        <div class="button-container" style="display: flex; justify-content: flex-start; gap: 10px;">
+            <button type="button" class="btn btn-warning mt-2 mb-2" id="po_table_refresh"><i class="fas fa-undo"> Refresh</i></button>
+        </div>
         <div class="row mb-3">
             <div class="col-md-3 mt-2">
                 <input type="date" id="startDateApp" class="form-control" placeholder="Start Date">
@@ -117,36 +120,41 @@
                 <!-- Data akan diisi oleh DataTables -->
             </tbody>
         </table>
-        {{-- <div class="button-container" style="display: flex; justify-content: flex-end; gap: 10px;">
-            <button type="submit" class="btn btn-warning mt-2 mb-2" id="return_table_transaksi_approved"><i class="fas fa-undo"> List Menu</i></button>
-        </div> --}}
+        <div class="button-container" style="display: flex; justify-content: flex-end; gap: 10px;">
+            <button type="button" class="btn btn-warning mt-2 mb-2" id="return_table_transaksi_approved"><i class="fas fa-undo"> List Menu</i></button>
+        </div>
     </div>
 
 </div>
 {{-- <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> --}}
 <script>
 $(document).ready(function() {
-    // ======================================== Show Table Approved =================================================
+// ======================================== Show Table Approved ===============================================
     let user_role_select_app = @json(Auth::user()->roles);
     let user_kode_select_app = @json(Auth::user()->user_kode);
     let user_nama_select_app = @json(Auth::user()->name);
+    let table; // ### Untuk fungsi refresh Pindahkan ke datatble ini siasi jika error
     // console.log('kode:' + user_role_select);
     // console.log('nama:' + user_nama_select);
-    if(user_role_select_app == 'customer'){
-        $("#transaksi_table_approve_field").show();
-        transaksi_table_approve_field();
-    }else if(user_role_select_app == 'staff'){
-        $("#transaksi_table_approve_field_staff").show();
-        transaksi_table_approve_field_staff();
-    }else{
-        $("#transaksi_table_approve_field_admin").show();
-        transaksi_table_approve_field_admin();
+    user_select_po_app();
+    function user_select_po_app(){
+        if(user_role_select_app == 'customer'){
+            $("#transaksi_table_approve_field").show();
+            transaksi_table_approve_field();
+        }else if(user_role_select_app == 'staff'){
+            $("#transaksi_table_approve_field_staff").show();
+            transaksi_table_approve_field_staff();
+        }else{
+            $("#transaksi_table_approve_field_admin").show();
+            transaksi_table_approve_field_admin();
+        }
     }
+
     function transaksi_table_approve_field() {
         if ($.fn.dataTable.isDataTable('#transaksi_table_approve_field')) {
             $('#transaksi_table_approve_field').DataTable().clear().destroy();
         }
-        let table = $('#transaksi_table_approve_field').DataTable({
+        table = $('#transaksi_table_approve_field').DataTable({
             ajax: {
                 url: '{{ route("filter_approved_invoice") }}',
                 data: function(d) {
@@ -223,7 +231,7 @@ $(document).ready(function() {
         if ($.fn.dataTable.isDataTable('#transaksi_table_approve_field_staff')) {
             $('#transaksi_table_approve_field_staff').DataTable().clear().destroy();
         }
-        let table = $('#transaksi_table_approve_field_staff').DataTable({
+        table = $('#transaksi_table_approve_field_staff').DataTable({
             ajax: {
                 url: '{{ route("filter_approved_invoice") }}',
                 data: function(d) {
@@ -301,7 +309,7 @@ $(document).ready(function() {
         if ($.fn.dataTable.isDataTable('#transaksi_table_approve_field_admin')) {
             $('#transaksi_table_approve_field_admin').DataTable().clear().destroy();
         }
-        let table = $('#transaksi_table_approve_field_admin').DataTable({
+        table = $('#transaksi_table_approve_field_admin').DataTable({
             ajax: {
                 url: '{{ route("filter_approved_invoice") }}',
                 data: function(d) {
@@ -377,6 +385,15 @@ $(document).ready(function() {
             });
     }
 // ===================================== End Of Show Table Approved ==============================================
+// ======================================== Refresh Table =================================================
+$(document).on('click', '#po_table_refresh', function() {
+    if (table) {
+        table.state.clear();  // Hapus state
+        table.destroy();      // Hancurkan tabel
+        user_select_po_app(); // Panggil ulang fungsi untuk memuat ulang tabel yang sesuai
+    }
+});
+// ===================================== End Of Refresh Table ==============================================
 // ===================================== Show PO Detail Approved ==============================================
     $(document).on('click', '.show_po_app', function() {
         let no_po = $(this).data('no-invoice');
@@ -446,24 +463,12 @@ $(document).on('click', '#print_po_pdf_app', function() {
     });
 // ================================= End Of Click Print Button ===========================================
 // ================================= Return Tabel PO =========================================
-    // $('#return_table_transaksi_approved').on('click', function(){
-    //     return_table_po_approved();
-    // });
-    // function return_table_po_approved(){
-    //     alert('test');
-    //     grandTotal = 0;
-    //     $("#table_transaksi_po_app").hide();
-    //     if(user_role_select_app == 'customer'){
-    //         $("#transaksi_table_approve_field").show();
-    //         transaksi_table_approve_field();
-    //     }else if(user_role_select_app == 'staff'){
-    //         $("#transaksi_table_approve_field_staff").show();
-    //         transaksi_table_approve_field_staff();
-    //     }else{
-    //         $("#transaksi_table_approve_field_admin").show();
-    //         transaksi_table_approve_field_admin();
-    //     }
-    // }
+    $('#return_table_transaksi_approved').on('click', function(){
+        $("#formtable_po").show();
+        // grandTotal = 0;
+        $("#table_transaksi_po_app").hide();
+        user_select_po_app();
+    });
 // ================================= End Of Return Tabel PO =========================================
 // ================================== Format Angka ===========================================
     function hapus_format(angka) {
