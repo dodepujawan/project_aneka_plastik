@@ -71,7 +71,7 @@
                     </div>
                     <div class="form-group">
                         <label><i class="fa fa-key"></i> Password</label>
-                        <input type="password" name="password" id="password" class="form-control" placeholder="Kosongkan Jika Tidak Ingin Ubah Password !.">
+                        <input type="password" name="password" id="password" class="form-control" placeholder="Kosongkan Jika Tidak Ingin Ubah Password !">
                     </div>
                     <div class="form-group">
                         <label><i class="fa fa-address-book"></i> Role</label>

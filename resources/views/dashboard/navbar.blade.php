@@ -52,13 +52,13 @@
 
                 @if (in_array($user->roles, $allowedRoles))
                 <a class="dropdown-item user-create-register" href="{{ route('register') }}">
-                    <i class="fas fa-address-book fa-sm fa-fw mr-2 text-gray-400"></i>
+                    <i class="fas fa-address-card fa-sm fa-fw mr-2 text-primary"></i>
                     Register User
                 </a>
                 @endif
                 <a class="dropdown-item edit-register" href="#">
-                    <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
-                    Edit Register
+                    <i class="fas fa-user fa-sm fa-fw mr-2 text-primary"></i>
+                    Edit Account
                 </a>
                 {{-- @php
                 $user = Auth::user();
@@ -67,8 +67,8 @@
 
                 @if (in_array($user->roles, $allowedRoles))
                 <a class="dropdown-item list-register" href="#">
-                    <i class="fas fa-address-book fa-sm fa-fw mr-2 text-gray-400"></i>
-                    List Register
+                    <i class="fas fa-address-book fa-sm fa-fw mr-2 text-primary"></i>
+                    List Users
                 </a>
                 <div class="dropdown-divider"></div>
                 @endif
@@ -80,7 +80,7 @@
 
                 @if (in_array($user->roles, $allowedRoles))
                 <a class="dropdown-item cabang-create" href="#">
-                    <i class="fas fa-address-book fa-sm fa-fw mr-2 text-gray-400"></i>
+                    <i class="fas fa-building fa-sm fa-fw mr-2 text-primary"></i>
                     Create Cabang
                 </a>
                 @endif
@@ -92,7 +92,7 @@
 
                 @if (in_array($user->roles, $allowedRoles))
                 <a class="dropdown-item cabang-list" href="#">
-                    <i class="fas fa-address-book fa-sm fa-fw mr-2 text-gray-400"></i>
+                    <i class="fas fa-city fa-sm fa-fw mr-2 text-primary"></i>
                     List Cabang
                 </a>
                 <div class="dropdown-divider"></div>
@@ -108,7 +108,7 @@
                     Activity Log
                 </a> --}}
                 <a class="dropdown-item" href="{{route('actionlogout')}}">
-                    <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                    <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-danger"></i>
                     Logout
                 </a>
             </div>
