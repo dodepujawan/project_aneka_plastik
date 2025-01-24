@@ -105,6 +105,9 @@ h5 {
 </style>
 {{-- ### Tabel List Transaksi ### --}}
 <div id="master_table_edit_field">
+    <div class="button-container" style="display: flex; justify-content: flex-start; gap: 10px;">
+        <button type="button" class="btn mt-2 mb-2" id="po_table_edit_refresh" style="background-color: rgba(0, 123, 255, 0.5); border-color: rgba(0, 123, 255, 0.5); color: white;"><i class="fas fa-undo"> Refresh</i></button>
+    </div>
     <h1>Halaman Edit PO</h1>
     <div class="mt-3 table-container table-responsive table-responsive-set">
         <table id="transaksi_table_edit_field" class="display table table-bordered mb-2 style-table">
@@ -275,11 +278,17 @@ $(document).ready(function(){
         $("#transaksi_table_edit_field_admin").hide();
         show_table_po();
         $(".master_customer_select_edit").hide();
+        // menghapus halaman sebelumnya lalu reload ulang from sidebar click
+        $('#transaksi_table_edit_field').DataTable().state.clear();
+        show_table_po();
     }else{
         $("#transaksi_table_edit_field").hide();
         $("#transaksi_table_edit_field_admin").show();
         show_table_po_admin();
         select_user_list_edit();
+        // menghapus halaman sebelumnya lalu reload ulang from sidebar click
+        $('#transaksi_table_edit_field_admin').DataTable().state.clear();
+        show_table_po_admin();
     }
     function show_table_po(){
         if ($.fn.dataTable.isDataTable('#transaksi_table_edit_field')) {
@@ -335,6 +344,12 @@ $(document).ready(function(){
             fixedHeader: {
                 header: true,
                 footer: false
+            }
+        });
+        $('#po_table_edit_refresh').on('click', function() {
+            if (table) {
+                table.state.clear();
+                show_table_po();
             }
         });
     }
@@ -396,6 +411,12 @@ $(document).ready(function(){
             fixedHeader: {
                 header: true,
                 footer: false
+            }
+        });
+        $('#po_table_edit_refresh').on('click', function() {
+            if (table) {
+                table.state.clear();
+                show_table_po_admin();
             }
         });
     }
