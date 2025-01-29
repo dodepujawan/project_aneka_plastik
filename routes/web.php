@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\CabangController;
+use App\Http\Controllers\HargaController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\PDFController;
@@ -80,6 +81,11 @@ Route::prefix('cabang')->middleware('auth')->group(function () {
 Route::prefix('pdf')->group(function () {
     Route::get('/generate-pdf/{invoice_number}', [PDFController::class, 'generate_pdf'])->name('generate_pdf');
     Route::get('/generate-pdf/approved/{invoice_number}', [PDFController::class, 'generate_pdf_approved'])->name('generate_pdf_approved');
+});
+
+Route::prefix('harga')->group(function () {
+    Route::get('/list-harga', [HargaController::class, 'list_harga'])->name('list_harga')->middleware('auth');
+    Route::get('/api/filter_list_harga', [HargaController::class, 'filter_list_harga'])->name('filter_list_harga');
 });
 // admin123
 // github : project_aneka_plastik

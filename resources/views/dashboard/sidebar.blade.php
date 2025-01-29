@@ -53,6 +53,25 @@
         </div>
     </li>
 
+    @php
+        $user = Auth::user();
+        $allowedRoles = ['programmer', 'admin', 'staff'];
+    @endphp
+    @if (in_array($user->roles, $allowedRoles))
+    <li class="nav-item">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseThree"
+            aria-expanded="true" aria-controls="collapseThree">
+            <i class="fas fa-tags"></i>
+            <span>List Harga</span>
+        </a>
+        <div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#accordionSidebar">
+            <div class="bg-white py-2 collapse-inner rounded">
+                <h6 class="collapse-header">List Harga:</h6>
+                <a class="collapse-item" id="list_harga_link" href="#">List Harga</a>
+            </div>
+        </div>
+    </li>
+    @endif
     {{-- <li class="nav-item">
         <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseThee"
             aria-expanded="true" aria-controls="collapseThee">

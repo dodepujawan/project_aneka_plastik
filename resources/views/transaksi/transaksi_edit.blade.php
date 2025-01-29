@@ -107,6 +107,7 @@ h5 {
 <div id="master_table_edit_field">
     <div class="button-container" style="display: flex; justify-content: flex-start; gap: 10px;">
         <button type="button" class="btn mt-2 mb-2" id="po_table_edit_refresh" style="background-color: rgba(0, 123, 255, 0.5); border-color: rgba(0, 123, 255, 0.5); color: white;"><i class="fas fa-undo"> Refresh</i></button>
+        <button type="button" class="btn mt-2 mb-2" id="po_table_edit_input" style="background-color: rgba(16, 247, 16, 0.5); border-color: rgba(78, 242, 78, 0.5); color: white;"><i class="fas fa-pencil-alt"> Input PO</i></button>
     </div>
     <h1>Halaman Edit PO</h1>
     <div class="mt-3 table-container table-responsive table-responsive-set">
@@ -421,6 +422,25 @@ $(document).ready(function(){
         });
     }
 // ================================= End Of Show Table PO ===========================================
+// ========================= Input PO Main Transaksi ======================================
+    $(document).on('click', '#po_table_edit_input', function(e) {
+        e.preventDefault();
+        loadMainTransaksilinkEdit();
+    });
+
+    function loadMainTransaksilinkEdit() {
+        $.ajax({
+            url: '{{ route('index_transaksi') }}',
+            type: 'GET',
+            success: function(response) {
+                $('.master-page').html(response);
+            },
+            error: function() {
+                $('.master-page').html('<p>Error loading form.</p>');
+            }
+        });
+    }
+// ========================= End Of Input PO Main Transaksi ======================================
 // ================================= Click Edit Button ===========================================
     let grandTotal = 0;
     // console.log(grandTotal);

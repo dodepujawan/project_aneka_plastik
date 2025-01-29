@@ -147,6 +147,25 @@ $(document).on('click', '.main-sidebar #approved_transaksi_link', function(e) {
         });
     }
 // ========================= End Of Transaksi Sukses ======================================
+// ========================= List Harga ======================================
+$(document).on('click', '.main-sidebar #list_harga_link', function(e) {
+            e.preventDefault();
+            loadListHargalink();
+        });
+
+    function loadListHargalink() {
+        $.ajax({
+            url: '{{ route('list_harga') }}',
+            type: 'GET',
+            success: function(response) {
+                $('.master-page').html(response);
+            },
+            error: function() {
+                $('.master-page').html('<p>Error loading form.</p>');
+            }
+        });
+    }
+// ========================= End Of List Harga ======================================
 // ########################### End Of SIDEBAR ROOM #####################################
 
 });
