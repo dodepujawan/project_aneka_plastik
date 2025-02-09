@@ -141,6 +141,7 @@ $(document).ready(function() {
                 email: $('#email').val(),
                 password: $('#password').val(),
                 role: $('#role').val(),
+                cabang_list_reg: $('#cabang_list_reg_new').val(),
                 kode_user: $('#kode_user').val()
             },
             success: function(response) {

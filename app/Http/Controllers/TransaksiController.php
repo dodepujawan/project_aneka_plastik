@@ -455,15 +455,35 @@ class TransaksiController extends Controller
                 $query->where('a.created_at', '<=', $request->endDate);
             }
 
+            // if ($request->has('searchText') && $request->searchText) {
+            //     $query->where(function($q) use ($request) {
+            //         $q->where('a.no_invoice', 'like', '%' . $request->searchText . '%');
+            //         $userRole = Auth::user()->roles;
+            //         if ($userRole === 'staff') {
+            //             $q->where('a.user_kode', Auth::user()->user_kode);
+            //         } elseif ($userRole === 'admin') {
+            //             $q->where('a.user_kode', Auth::user()->user_kode)
+            //             ->orWhere('a.user_id', Auth::user()->user_id);
+            //         }
+            //     });
+            // }
             if ($request->has('searchText') && $request->searchText) {
                 $query->where(function($q) use ($request) {
-                    $q->where('a.no_invoice', 'like', '%' . $request->searchText . '%');
                     $userRole = Auth::user()->roles;
+                    $searchText = $request->searchText;
+
+                    // Cari berdasarkan no_invoice
+                    $q->where('a.no_invoice', 'like', '%' . $searchText . '%');
+
+                    // Tambahkan filter berdasarkan role
                     if ($userRole === 'staff') {
-                        $q->where('a.user_kode', Auth::user()->user_kode);
+                        // Staff hanya bisa melihat data dengan user_kode mereka
+                        // $q->where('a.user_kode', Auth::user()->user_kode);
+                        $q->orWhere('a.user_kode', 'like', '%' . $searchText . '%');
                     } elseif ($userRole === 'admin') {
-                        $q->where('a.user_kode', Auth::user()->user_kode)
-                        ->orWhere('a.user_id', Auth::user()->user_id);
+                        // Admin bisa melihat data dengan user_kode atau user_id mereka
+                        $q->orWhere('a.user_kode', 'like', '%' . $searchText . '%')
+                          ->orWhere('a.user_id', 'like', '%' . $searchText . '%');
                     }
                 });
             }

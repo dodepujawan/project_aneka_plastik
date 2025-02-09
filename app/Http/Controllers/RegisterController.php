@@ -58,6 +58,7 @@ class RegisterController extends Controller
                 'name' => $request->name,
                 'password' => Hash::make($request->password),
                 'roles' => $roleName,
+                'rcabang' => $request->cabang_list_reg,
                 'user_kode' => $request->kode_user,
             ]);
 
