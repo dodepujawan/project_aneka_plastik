@@ -3,9 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Transactions;
+use App\Models\HargaNotif;
 use mPDF;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Jobs\ConvertPdf;
+use Illuminate\Support\Facades\Auth;
 
 class PDFController extends Controller
 {
@@ -81,5 +84,16 @@ class PDFController extends Controller
         $mpdf = new \Mpdf\Mpdf();
         $mpdf->WriteHTML($html);
         $mpdf->Output('PO_online_' . $invoice_number . '.pdf', 'I');
+    }
+
+    public function generate_list_harga_pdf(){
+        $userId = Auth::user()->user_id;
+        $idNotifikasi = HargaNotif::insertGetId([
+            'user' => $userId,
+            'status' => 'running',
+        ]);
+
+        ConvertPdf::dispatch($idNotifikasi);
+        return back();
     }
 }

@@ -15,6 +15,9 @@
         <div class="col-md-3 mt-2">
             <button id="filterBtnHarga" class="btn btn-primary">Filter</button>
         </div>
+        <div class="col-md-3 mt-2">
+            <button id="generatePdfBtn" class="btn btn-success">Print Pdf</button>
+        </div>
     </div>
     <div class="table-responsive">
         <table id="listHargaTable" class="display table table-bordered mb-2">
@@ -36,6 +39,25 @@
 </div>
 <script>
 $(document).ready(function(){
+    $.ajaxSetup({
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        }
+    });
+
+    $('#generatePdfBtn').on('click', function () {
+        $.ajax({
+            url: '{{ route('generate_list_harga_pdf') }}', // Pakai route name
+            method: 'POST', // Gunakan 'POST' jika route-nya POST
+            success: function (response) {
+                alert('PDF sedang diproses!');
+            },
+            error: function (xhr, status, error) {
+                alert('Terjadi kesalahan: ' + xhr.responseJSON.message);
+            }
+        });
+    });
+
     transaksi_table_harga_field();
     function transaksi_table_harga_field() {
         if ($.fn.dataTable.isDataTable('#listHargaTable')) {
