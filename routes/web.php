@@ -82,6 +82,7 @@ Route::prefix('pdf')->group(function () {
     Route::get('/generate-pdf/{invoice_number}', [PDFController::class, 'generate_pdf'])->name('generate_pdf');
     Route::get('/generate-pdf/approved/{invoice_number}', [PDFController::class, 'generate_pdf_approved'])->name('generate_pdf_approved');
     Route::post('/generate-list-harga-pdf', [PDFController::class, 'generate_list_harga_pdf'])->name('generate_list_harga_pdf');
+    Route::get('/generate-list-harga-pdf-node', [PDFController::class, 'generate_list_harga_pdf_node'])->name('generate_list_harga_pdf_node');
 });
 
 Route::prefix('harga')->group(function () {

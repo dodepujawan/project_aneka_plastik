@@ -50,7 +50,7 @@ $(document).ready(function(){
             url: '{{ route('generate_list_harga_pdf') }}', // Pakai route name
             method: 'POST', // Gunakan 'POST' jika route-nya POST
             success: function (response) {
-                alert('PDF sedang diproses!');
+                alert('PDF sedang diproses!' + responseJSON.message);
             },
             error: function (xhr, status, error) {
                 alert('Terjadi kesalahan: ' + xhr.responseJSON.message);

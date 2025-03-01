@@ -1,0 +1,42 @@
+const puppeteer = require('puppeteer');
+const fs = require('fs');
+
+(async () => {
+    const args = process.argv.slice(2);
+    if (args.length < 2) {
+        console.error("Usage: node generate_pdf.js <input_html_path> <output_pdf_path>");
+        process.exit(1);
+    }
+
+    const [inputHtmlPath, outputPdfPath] = args;
+
+    if (!fs.existsSync(inputHtmlPath)) {
+        console.error("Input HTML file not found:", inputHtmlPath);
+        process.exit(1);
+    }
+
+    try {
+        console.log("Launching Puppeteer...");
+        const browser = await puppeteer.launch({
+            headless: "new",
+            executablePath: '/usr/bin/google-chrome' // Gunakan path Chrome di WSL
+        });
+        const page = await browser.newPage();
+
+        console.log("Reading HTML content...");
+        const content = fs.readFileSync(inputHtmlPath, "utf8");
+
+        console.log("Setting HTML content to page...");
+        await page.setContent(content, { waitUntil: "networkidle0" });
+
+        console.log("Generating PDF...");
+        await page.pdf({ path: outputPdfPath, format: "A4" });
+
+        console.log("PDF successfully generated at:", outputPdfPath);
+
+        await browser.close();
+    } catch (error) {
+        console.error("Error generating PDF:", error);
+        process.exit(1);
+    }
+})();
