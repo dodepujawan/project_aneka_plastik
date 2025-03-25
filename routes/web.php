@@ -89,5 +89,13 @@ Route::prefix('harga')->group(function () {
     Route::get('/list-harga', [HargaController::class, 'list_harga'])->name('list_harga')->middleware('auth');
     Route::get('/api/filter_list_harga', [HargaController::class, 'filter_list_harga'])->name('filter_list_harga');
 });
+Route::post('/broadcasting/auth', function () {
+    return Auth::user();
+ });
+// Route::post('/broadcasting/auth', function (Illuminate\Http\Request $request) {
+//     return Auth::user() ? Broadcast::auth($request) : abort(403);
+// });
+
+
 // admin123
 // github : project_aneka_plastik

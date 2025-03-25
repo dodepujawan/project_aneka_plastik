@@ -37,6 +37,7 @@
         </table>
     </div>
 </div>
+<script src="{{ asset('js/app.js') }}" defer></script>
 <script>
 $(document).ready(function(){
     $.ajaxSetup({
@@ -47,10 +48,10 @@ $(document).ready(function(){
 
     $('#generatePdfBtn').on('click', function () {
         $.ajax({
-            url: '{{ route('generate_list_harga_pdf') }}', // Pakai route name
-            method: 'POST', // Gunakan 'POST' jika route-nya POST
+            url: '{{ route('generate_list_harga_pdf_node') }}', // Pakai route name
+            method: 'GET', // Gunakan 'POST' jika route-nya POST
             success: function (response) {
-                alert('PDF sedang diproses!' + responseJSON.message);
+                alert(response.message);
             },
             error: function (xhr, status, error) {
                 alert('Terjadi kesalahan: ' + xhr.responseJSON.message);
@@ -118,5 +119,25 @@ $(document).ready(function(){
                 table.ajax.reload();
             });
     }
+
 });
 </script>
+<script type="module">
+    window.Laravel = {!! json_encode(['userId' => auth()->user()->user_id]) !!};
+    console.log("User ID di frontend:", window.Laravel.userId);
+
+    let channelName = `user.${window.Laravel.userId}`;
+    console.log("Listening on channel:", channelName);
+
+    window.Echo.private(channelName)
+        .listen('.pdf.done', (e) => {
+            console.log("Event diterima:", e);
+            alert(e.message);
+            alert('2');
+        });
+</script>
+
+{{-- <script>
+    window.Laravel = {!! json_encode(['userId' => auth()->id()]) !!};
+</script> --}}
+

@@ -1,5 +1,5 @@
-const puppeteer = require('puppeteer');
-const fs = require('fs');
+const puppeteer = require("puppeteer");
+const fs = require("fs");
 
 (async () => {
     const args = process.argv.slice(2);
@@ -11,29 +11,43 @@ const fs = require('fs');
     const [inputHtmlPath, outputPdfPath] = args;
 
     if (!fs.existsSync(inputHtmlPath)) {
-        console.error("Input HTML file not found:", inputHtmlPath);
+        console.error("Error: Input HTML file not found:", inputHtmlPath);
         process.exit(1);
     }
 
     try {
         console.log("Launching Puppeteer...");
         const browser = await puppeteer.launch({
-            headless: "new",
-            executablePath: '/usr/bin/google-chrome' // Gunakan path Chrome di WSL
+            headless: true,
+            args: [
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--disable-dev-shm-usage',
+                '--disable-gpu',
+                '--single-process',
+                '--headless=new' // Mode lebih ringan
+            ],
+            executablePath: "/usr/bin/google-chrome" // Pastikan Chrome ada di lokasi ini
         });
+
         const page = await browser.newPage();
+        await page.setViewport({ width: 1280, height: 1024 }); // Hindari rendering berlebihan
 
         console.log("Reading HTML content...");
         const content = fs.readFileSync(inputHtmlPath, "utf8");
 
         console.log("Setting HTML content to page...");
-        await page.setContent(content, { waitUntil: "networkidle0" });
+        await page.setContent(content, { waitUntil: "domcontentloaded", timeout: 120000 }); // Naikkan timeout
 
         console.log("Generating PDF...");
-        await page.pdf({ path: outputPdfPath, format: "A4" });
+        await page.pdf({
+            path: outputPdfPath,
+            format: "A4",
+            printBackground: true,
+            timeout: 300000  // Timeout lebih lama
+        });
 
         console.log("PDF successfully generated at:", outputPdfPath);
-
         await browser.close();
     } catch (error) {
         console.error("Error generating PDF:", error);

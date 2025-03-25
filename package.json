@@ -16,6 +16,8 @@
         "postcss": "^8.1.14"
     },
     "dependencies": {
-        "puppeteer": "^24.3.0"
+        "laravel-echo": "^1.19.0",
+        "puppeteer": "^24.3.0",
+        "pusher-js": "^8.4.0"
     }
 }

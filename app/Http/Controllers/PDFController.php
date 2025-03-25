@@ -100,49 +100,17 @@ class PDFController extends Controller
         // return back();
     }
 
-    public function generate_list_harga_pdf_node(){
-        $total = DB::table('mbarang')->count();
-        $chunkSize = 500;
+    public function generate_list_harga_pdf_node(Request $request) {
         $userId = Auth::user()->user_id;
+        $idNotifikasi = HargaNotif::insertGetId([
+            'user' => $userId,
+            'description' => 'Export PDF ' . $userId,
+            'status' => 'running',
+        ]);
+        ConvertPdf::dispatch($userId, $idNotifikasi);
 
-        // Buat file HTML sementara
-        $htmlPath = storage_path("app/pdftemp$userId.html");
-        $htmlContent = '';
-
-        for ($i = 0; $i < $total; $i += $chunkSize) {
-            $transaction = DB::table('mbarang')
-                ->select(['KD_STOK', 'NAMA_BRG', 'KEMASAN', 'HJ1'])
-                ->skip($i)
-                ->take($chunkSize)
-                ->get();
-
-            $htmlContent .= view('pdf.harga_online', compact('transaction'))->render();
-        }
-
-        // Simpan file HTML
-        if (File::put($htmlPath, $htmlContent) === false) {
-            Log::error("Gagal menulis file HTML: $htmlPath");
-            return response()->json(['error' => 'Gagal menulis file HTML'], 500);
-        }
-
-        // Panggil Puppeteer dengan Node.js
-        $pdfPath = storage_path("app/listharga$userId.pdf");
-        $command = "node " . base_path('generate_pdf.js') . " \"$htmlPath\" \"$pdfPath\"";
-        $output = shell_exec("$command 2>&1");
-
-        Log::info("Output command: $output");
-
-        // Cek apakah PDF berhasil dibuat
-        if (!File::exists($pdfPath)) {
-            Log::error("Gagal membuat PDF: $pdfPath");
-            return response()->json(['error' => 'Gagal membuat PDF'], 500);
-        }
-
-        // Hapus file HTML sementara
-        File::delete($htmlPath);
-
-        // Kirim PDF ke browser dan paksa pengunduhan
-        // return response()->download($pdfPath, 'listhargaAD0002.pdf')->deleteFileAfterSend(true);
-        return response()->download($pdfPath, 'listhargaAD0002.pdf');
+        return response()->json(['message' => 'Diproses'], 200);
     }
+
+
 }

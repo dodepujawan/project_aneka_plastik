@@ -150,7 +150,7 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach($transaction as $key => $item)
+                @foreach($transactions as $key => $item)
                 <tr>
                     <td>{{ $key + 1 }}</td>
                     <td>{{ $item->KD_STOK }}</td>
