@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\File;
 class ConvertPdf implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    public $userBroad;
     public $userId;
     public $idNotifikasi;
 
@@ -29,8 +30,9 @@ class ConvertPdf implements ShouldQueue
      *
      * @return void
      */
-    public function __construct($userId, $idNotifikasi)
+    public function __construct($userBroad, $userId, $idNotifikasi)
     {
+        $this->userBroad = $userBroad;
         $this->userId = $userId;
         $this->idNotifikasi = $idNotifikasi;
     }
@@ -41,6 +43,7 @@ class ConvertPdf implements ShouldQueue
      * @return void
      */
     public function handle(){
+        $userBroad = $this->userBroad;
         $userId = $this->userId;
         $idNotifikasi = $this->idNotifikasi;
         // Ambil semua data barang langsung tanpa chunk
@@ -97,9 +100,14 @@ class ConvertPdf implements ShouldQueue
 
         Log::info('Notifikasi'.json_encode($notifikasi));
 
-        event(new PdfDone($userId));
+        Log::info('Melakukan broadcasting ke target user: ' . $userBroad);
 
-        Log::info("Event PdfDone dikirim ke user: $userId");
+        event(new PdfDone($userBroad));
+
+        Log::info("PdfDone event triggered", [
+            'userBroad' => $userBroad,
+            'channelName' => 'user.' . $userBroad
+        ]);
     }
     // public function handle()
     // {

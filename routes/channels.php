@@ -13,17 +13,16 @@ use Illuminate\Support\Facades\Broadcast;
 |
 */
 
-// Broadcast::channel('user.{userId}', function ($user, $userId) {
-//     Log::info('Auth checked for user: ', ['user' => $user, 'userId' => $userId]);
-//     return true;
-//     // return (string) $user->user_id === (string) $userId;
-// });
-// Broadcast::channel('user.{userId}', function ($user, $userId) {
-//     return (int) $user->user_id === (int) $userId;
-// });
 // Menggunakan suer_id contoh AD0002 yang berbentuk string sebagai parameter pencocok
-Broadcast::channel('user.{userId}', function ($user, $userId) {
-    \Log::info("Autentikasi channel: userId dari frontend = {$userId}, user_id di DB = {$user->user_id}");
-    return (string) $user->user_id === (string) $userId; // Gunakan user_id yang sesuai
+// Broadcast::channel('user.{userId}', function ($user, $userId) {
+//     \Log::info("Autentikasi channel: userId dari frontend = {$userId}, user_id di DB = {$user->id}");
+//     return (int) $user->id === (int) $userId; // Pastikan kedua tipe sama
+// });
+// Broadcast::channel('user.{userId}', function ($user, $userId) {
+//     return (int) $user->id === (int) $userId;
+// }, ['guards' => ['web']]);  // <- Pakai guard web
+Broadcast::channel('private-private-user.{id}', function ($user, $id) {
+    \Log::info('Authenticating user: ' . $id);
+    return (int) $user->id === (int) $id;
 });
 

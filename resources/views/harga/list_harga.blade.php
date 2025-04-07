@@ -123,18 +123,26 @@ $(document).ready(function(){
 });
 </script>
 <script type="module">
-    window.Laravel = {!! json_encode(['userId' => auth()->user()->user_id]) !!};
-    console.log("User ID di frontend:", window.Laravel.userId);
+    window.Laravel = {!! json_encode(['userId' => auth()->user()->id]) !!};
 
-    let channelName = `user.${window.Laravel.userId}`;
-    console.log("Listening on channel:", channelName);
+if (window.Echo) {
 
+    // Pastikan nama channel sama persis dengan yang ada di server
+    let channelName = `private-user.${window.Laravel.userId}`;
+
+    console.log(channelName);
     window.Echo.private(channelName)
-        .listen('.pdf.done', (e) => {
+        .listen('.pdf.done', (e) => {  // Perhatikan titik di depan nama event
             console.log("Event diterima:", e);
-            alert(e.message);
-            alert('2');
+            alert(e.message || 'PDF Selesai');
         });
+
+    // window.Echo.channel('public-pdf-notifications')
+    // .listen('.pdf.done', (e) => {
+    //     console.log("Event diterima:", e);
+    //     alert(e.message || 'PDF Selesai');
+    // });
+}
 </script>
 
 {{-- <script>

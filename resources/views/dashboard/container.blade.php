@@ -166,8 +166,56 @@ $(document).on('click', '.main-sidebar #list_harga_link', function(e) {
         });
     }
 // ========================= End Of List Harga ======================================
+// ========================= Main Transaksi Mobile ======================================
+$(document).on('click', '.main-sidebar #main_transaksi_link_mobile', function(e) {
+            e.preventDefault();
+            loadMainTransaksilinkMobile();
+        });
+
+    function loadMainTransaksilinkMobile() {
+        $.ajax({
+            url: '{{ route('index_mobile') }}',
+            type: 'GET',
+            success: function(response) {
+                $('.master-page').html(response);
+            },
+            error: function() {
+                $('.master-page').html('<p>Error loading form.</p>');
+            }
+        });
+    }
+// ========================= End Of Main Transaksi Mobile ======================================
 // ########################### End Of SIDEBAR ROOM #####################################
 
 });
 </script>
+
+<script type="module">
+    window.Laravel = {!! json_encode(['userId' => auth()->user()->id]) !!};
+
+if (window.Echo) {
+
+    // Pastikan nama channel sama persis dengan yang ada di server
+    let channelName = `private-user.${window.Laravel.userId}`;
+
+    console.log(channelName);
+    window.Echo.private(channelName)
+        .listen('.pdf.done', (e) => {  // Perhatikan titik di depan nama event
+            console.log("Event diterima:", e);
+            alert(e.message || 'PDF Selesai');
+        });
+
+    // window.Echo.channel('public-pdf-notifications')
+    // .listen('.pdf.done', (e) => {
+    //     console.log("Event diterima:", e);
+    //     alert(e.message || 'PDF Selesai');
+    // });
+}
+</script>
+
+{{-- <script>
+    window.Laravel = {!! json_encode(['userId' => auth()->id()]) !!};
+</script> --}}
+
+
 @endsection

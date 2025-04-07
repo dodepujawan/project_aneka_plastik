@@ -53,6 +53,22 @@
         </div>
     </li>
 
+    <li class="nav-item">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseFour"
+            aria-expanded="true" aria-controls="collapseFour">
+            <i class="fa fa-mobile"></i>
+            <span>Transaksi</span>
+        </a>
+        <div id="collapseFour" class="collapse" aria-labelledby="headingFour" data-parent="#accordionSidebar">
+            <div class="bg-white py-2 collapse-inner rounded">
+                <h6 class="collapse-header">Transaksi:</h6>
+                <a class="collapse-item" id="main_transaksi_link_mobile" href="#">Input PO</a>
+                <a class="collapse-item" id="edit_transaksi_link_mobile" href="#">edit PO</a>
+                <a class="collapse-item" id="approved_transaksi_link_mobile" href="#">PO Disetujui</a>
+            </div>
+        </div>
+    </li>
+
     @php
         $user = Auth::user();
         $allowedRoles = ['programmer', 'admin', 'staff'];

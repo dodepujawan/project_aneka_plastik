@@ -13,15 +13,16 @@ use Illuminate\Queue\SerializesModels;
 class PdfDone implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
-    public $userId;
+    public $userBroad;
     /**
      * Create a new event instance.
      *
      * @return void
      */
-    public function __construct($userId)
+    public function __construct($userBroad)
     {
-        $this->userId = $userId;
+        $this->userBroad = $userBroad;
+        \Log::info('PdfDone konstruktor', ['userBroad' => $this->userBroad]);
     }
 
     /**
@@ -31,8 +32,17 @@ class PdfDone implements ShouldBroadcast
      */
     public function broadcastOn()
     {
-        \Log::info('Broadcast ke userId:', ['userId' => $this->userId]);
-        return new PrivateChannel('user.' . $this->userId);
+        // \Log::info('Broadcast channel:', ['channel' => $channel]);
+        \Log::info('Event user broadcastr:' . $this->userBroad);
+
+        // return [
+        //     // new Channel('public-pdf-notifications'),
+        //     new PrivateChannel('user.'. $this->userBroad)
+        // ];
+        return new PrivateChannel('user.'. $this->userBroad);
+
+        // $channel = 'user.' . $this->userBroad;
+        // return new PrivateChannel($channel);
     }
 
     public function broadcastAs()

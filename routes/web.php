@@ -7,7 +7,9 @@ use App\Http\Controllers\LoginController;
 use App\Http\Controllers\PDFController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\TransaksiController;
+use App\Http\Controllers\MobileController;
 use Illuminate\Support\Facades\Route;
+Broadcast::routes();
 
 /*
 |--------------------------------------------------------------------------
@@ -89,9 +91,16 @@ Route::prefix('harga')->group(function () {
     Route::get('/list-harga', [HargaController::class, 'list_harga'])->name('list_harga')->middleware('auth');
     Route::get('/api/filter_list_harga', [HargaController::class, 'filter_list_harga'])->name('filter_list_harga');
 });
+
+Route::prefix('mobile')->middleware('auth')->group(function () {
+    Route::get('/index', [MobileController::class, 'index'])->name('index_mobile');
+
+});
+
 Route::post('/broadcasting/auth', function () {
     return Auth::user();
  });
+
 // Route::post('/broadcasting/auth', function (Illuminate\Http\Request $request) {
 //     return Auth::user() ? Broadcast::auth($request) : abort(403);
 // });

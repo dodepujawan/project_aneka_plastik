@@ -102,12 +102,13 @@ class PDFController extends Controller
 
     public function generate_list_harga_pdf_node(Request $request) {
         $userId = Auth::user()->user_id;
+        $userBroad = Auth::user()->id;
         $idNotifikasi = HargaNotif::insertGetId([
             'user' => $userId,
             'description' => 'Export PDF ' . $userId,
             'status' => 'running',
         ]);
-        ConvertPdf::dispatch($userId, $idNotifikasi);
+        ConvertPdf::dispatch($userBroad, $userId, $idNotifikasi);
 
         return response()->json(['message' => 'Diproses'], 200);
     }
