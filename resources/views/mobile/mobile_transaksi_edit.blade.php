@@ -1,270 +1,267 @@
 {{-- <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/css/select2.min.css" rel="stylesheet" /> --}}
 <style>
-/* .product-info {
-    display: flex;
-    gap: 20px; / Adds space between the items /
-}
-.info-item {
-    flex: 1; / Makes each item take up equal space /
-}
-h5 {
-    margin: 0; / Removes default margin from h5 /
-} */
-
-/* table scroll */
-.table-responsive-set {
-        overflow: visible;
-    }
-    .style-table {
-        width: 100% !important;
-    }
-/* .table-container {
-    max-height: 500px;  Sesuaikan tinggi maksimum sesuai kebutuhan
-    overflow-y: auto;   Tambahkan scroll vertikal jika konten melebihi tinggi maksimum
-    width: 100%;        Pastikan lebar kontainer sesuai dengan tabel
-    border: 1px solid #ddd;  Opsional: tambahkan border untuk kontainer tabel
-}
-
-.table-container table {
-    width: 100%;  Pastikan tabel mengambil lebar penuh dari kontainer
-    border-collapse: collapse;  Menghindari jarak antara border sel
-}
-
-.table-container th, .table-container td {
-    padding: 8px;  Opsional: tambahkan padding untuk sel tabel
-    text-align: left;  Opsional: sesuaikan perataan teks
-} */
-/* end of table scroll */
-/* Styling Select2 */
-/* .select2-result-barang {
-    padding: 4px;
-}
-.select2-result-barang__kode {
-    font-size: 16px;
-    color: #333;
-}
-.select2-result-barang__info {
-    font-size: 14px;
-    color: #666;
-} */
-/* End Of Styling Select2 */
-/* Product info */
-.product-info {
-    background-color: white;
-    border-radius: 8px; /* Ukuran lebih kecil */
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Lebih ringan */
-    padding: 15px; /* Padding lebih kecil */
-    margin-top: 15px; /* Margin atas lebih kecil */
-}
-
-.info-item {
-    text-align: center;
-    margin-bottom: 10px; /* Jarak antar item lebih kecil */
-}
-
-.info-item h5 {
-    color: #6c757d;
-    font-size: 0.9rem; /* Ukuran font lebih kecil */
-    margin-bottom: 0;
-    display: inline; /* Ubah ke inline untuk sejajar */
-    padding-bottom: 2px;
-    border-bottom: 2px solid transparent;
-    transition: border-bottom-color 0.3s ease;
-}
-
-.info-item:hover h5 {
-    border-bottom-color: #6c757d;
-}
-
-.info-item span {
-    color: black;
-    font-weight: bold;
-    display: inline; /* Pastikan sejajar dengan h5 */
-    margin-left: 5px; /* Jarak kecil antara teks dan span */
-}
-
-.underline {
-    width: 100%;
-    border-bottom: 1px solid #dee2e6;
-    margin: 10px 0; /* Margin lebih kecil */
-}
-
-@media (max-width: 768px) {
-    .product-info {
-        padding: 10px; /* Padding lebih kecil untuk layar kecil */
+    /* .product-info {
+        display: flex;
+        gap: 20px; / Adds space between the items /
     }
     .info-item {
-        margin-bottom: 8px; /* Jarak antar item lebih kecil */
+        flex: 1; / Makes each item take up equal space /
     }
-    .info-item h5 {
-        font-size: 0.85rem; /* Font lebih kecil untuk layar kecil */
-    }
-}
+    h5 {
+        margin: 0; / Removes default margin from h5 /
+    } */
 
-/* End of Product Info */
-</style>
-{{-- ### Tabel List Transaksi ### --}}
-<div id="master_table_edit_field">
-    <h3>Halaman Edit PO</h3>
-    <div class="button-container" style="display: flex; justify-content: flex-start; gap: 10px;">
-        <button type="button" class="btn mt-2 mb-2" id="po_table_edit_refresh" style="background-color: rgba(0, 123, 255, 0.5); border-color: rgba(0, 123, 255, 0.5); color: white;"><i class="fas fa-undo"> Refresh</i></button>
-        <button type="button" class="btn mt-2 mb-2" id="po_table_edit_input" style="background-color: rgba(16, 247, 16, 0.5); border-color: rgba(78, 242, 78, 0.5); color: white;"><i class="fas fa-pencil-alt"> Input PO</i></button>
+    /* table scroll */
+    .table-responsive-set {
+            overflow: visible;
+        }
+        .style-table {
+            width: 100% !important;
+        }
+    /* .table-container {
+        max-height: 500px;  Sesuaikan tinggi maksimum sesuai kebutuhan
+        overflow-y: auto;   Tambahkan scroll vertikal jika konten melebihi tinggi maksimum
+        width: 100%;        Pastikan lebar kontainer sesuai dengan tabel
+        border: 1px solid #ddd;  Opsional: tambahkan border untuk kontainer tabel
+    }
+
+    .table-container table {
+        width: 100%;  Pastikan tabel mengambil lebar penuh dari kontainer
+        border-collapse: collapse;  Menghindari jarak antara border sel
+    }
+
+    .table-container th, .table-container td {
+        padding: 8px;  Opsional: tambahkan padding untuk sel tabel
+        text-align: left;  Opsional: sesuaikan perataan teks
+    } */
+    /* end of table scroll */
+    /* Styling Select2 */
+    /* .select2-result-barang {
+        padding: 4px;
+    }
+    .select2-result-barang__kode {
+        font-size: 16px;
+        color: #333;
+    }
+    .select2-result-barang__info {
+        font-size: 14px;
+        color: #666;
+    } */
+    /* End Of Styling Select2 */
+    /* Product info */
+    .product-info {
+        background-color: white;
+        border-radius: 8px; /* Ukuran lebih kecil */
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Lebih ringan */
+        padding: 15px; /* Padding lebih kecil */
+        margin-top: 15px; /* Margin atas lebih kecil */
+    }
+
+    .info-item {
+        text-align: center;
+        margin-bottom: 10px; /* Jarak antar item lebih kecil */
+    }
+
+    .info-item h5 {
+        color: #6c757d;
+        font-size: 0.9rem; /* Ukuran font lebih kecil */
+        margin-bottom: 0;
+        display: inline; /* Ubah ke inline untuk sejajar */
+        padding-bottom: 2px;
+        border-bottom: 2px solid transparent;
+        transition: border-bottom-color 0.3s ease;
+    }
+
+    .info-item:hover h5 {
+        border-bottom-color: #6c757d;
+    }
+
+    .info-item span {
+        color: black;
+        font-weight: bold;
+        display: inline; /* Pastikan sejajar dengan h5 */
+        margin-left: 5px; /* Jarak kecil antara teks dan span */
+    }
+
+    .underline {
+        width: 100%;
+        border-bottom: 1px solid #dee2e6;
+        margin: 10px 0; /* Margin lebih kecil */
+    }
+
+    @media (max-width: 768px) {
+        .product-info {
+            padding: 10px; /* Padding lebih kecil untuk layar kecil */
+        }
+        .info-item {
+            margin-bottom: 8px; /* Jarak antar item lebih kecil */
+        }
+        .info-item h5 {
+            font-size: 0.85rem; /* Font lebih kecil untuk layar kecil */
+        }
+    }
+    /* End of Product Info */
+    /* Display Card */
+    .transaksi-card-edit {
+    border-radius: 12px;
+    border: 1px solid #ddd;
+    background-color: #f9f9f9;
+    transition: box-shadow 0.3s ease;
+    }
+    .transaksi-card-edit:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .transaksi-card-edit .card-body div {
+        margin-bottom: 6px;
+    }
+    .editable-jumlah,
+    .editable-diskon {
+        background-color: #fff3cd;
+        padding: 2px 6px;
+        border-radius: 4px;
+    }
+    /* End Of Display Card */
+    </style>
+    {{-- ### Tabel List Transaksi ### --}}
+    <div id="master_table_edit_field">
+        <h3>Halaman Edit PO Mobile</h3>
+        <div class="button-container" style="display: flex; justify-content: flex-start; gap: 10px;">
+            <button type="button" class="btn mt-2 mb-2" id="po_table_edit_refresh" style="background-color: rgba(0, 123, 255, 0.5); border-color: rgba(0, 123, 255, 0.5); color: white;"><i class="fas fa-undo"> Refresh</i></button>
+            <button type="button" class="btn mt-2 mb-2" id="po_table_edit_input" style="background-color: rgba(16, 247, 16, 0.5); border-color: rgba(78, 242, 78, 0.5); color: white;"><i class="fas fa-pencil-alt"> Input PO</i></button>
+        </div>
+        <div class="mt-3 table-container table-responsive table-responsive-set">
+            <table id="transaksi_table_edit_field" class="display table table-bordered mb-2 style-table">
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>No PO</th>
+                        <th>Tgl PO</th>
+                        <th>Total PO</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+            <table id="transaksi_table_edit_field_admin" class="display table table-bordered mb-2 style-table">
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>No PO</th>
+                        <th>Customer Kode</th>
+                        <th>Customer</th>
+                        <th>Tgl PO</th>
+                        <th>Total PO</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
     </div>
-    <div class="mt-3 table-container table-responsive table-responsive-set">
-        <table id="transaksi_table_edit_field" class="display table table-bordered mb-2 style-table">
-            <thead>
-                <tr>
-                    <th>No</th>
-                    <th>No PO</th>
-                    <th>Tgl PO</th>
-                    <th>Total PO</th>
-                    <th>Aksi</th>
-                </tr>
-            </thead>
-            <tbody>
-            </tbody>
-        </table>
-        <table id="transaksi_table_edit_field_admin" class="display table table-bordered mb-2 style-table">
-            <thead>
-                <tr>
-                    <th>No</th>
-                    <th>No PO</th>
-                    <th>Customer Kode</th>
-                    <th>Customer</th>
-                    <th>Tgl PO</th>
-                    <th>Total PO</th>
-                    <th>Aksi</th>
-                </tr>
-            </thead>
-            <tbody>
-            </tbody>
-        </table>
-    </div>
-</div>
-<div class="master_transaksi_field" style="display: none">
-    <div class="col-lg-12 alert alert-warning" id="mssakit_warning" role="alert" style="margin-top: 10px; opacity: 0.8;">
-        <h5 style="font-weight: bold;">Mode Edit Data PO</h5>
-    </div>
-    <div class="container master_customer_select_edit">
-        <div class="row">
-            <div class="form-group col-lg-4 col-md-12 col-sm-12 mb-3">
-                <input type="text" name="kode_user_trans_edit" id="kode_user_trans_edit" class="form-control" placeholder="Kode User" required="" readonly>
+    <div class="master_transaksi_field" style="display: none">
+        <div class="col-lg-12 alert alert-warning" id="mssakit_warning" role="alert" style="margin-top: 10px; opacity: 0.8;">
+            <h5 style="font-weight: bold;">Mode Edit Data PO</h5>
+        </div>
+        <div class="container master_customer_select_edit">
+            <div class="row">
+                <div class="form-group col-lg-4 col-md-12 col-sm-12 mb-3">
+                    <input type="text" name="kode_user_trans_edit" id="kode_user_trans_edit" class="form-control" placeholder="Kode User" required="" readonly>
+                </div>
+                <div class="form-group col-lg-4 col-md-12 col-sm-12 mb-3">
+                    <input type="text" name="nama_user_trans_edit" id="nama_user_trans_edit" class="form-control" placeholder="Nama User" required="" readonly>
+                </div>
+                <div class="form-group col-lg-4 col-md-12 col-sm-12 mb-3">
+                    <select name="select_user_trans_edit" id="select_user_trans_edit" class="form-control">
+                        <option value="">Pilih User</option>
+                    </select>
+                </div>
             </div>
-            <div class="form-group col-lg-4 col-md-12 col-sm-12 mb-3">
-                <input type="text" name="nama_user_trans_edit" id="nama_user_trans_edit" class="form-control" placeholder="Nama User" required="" readonly>
+        </div>
+        <div class="container master_transaksi_edit">
+            <div class="product-info">
+                <input type="hidden" value="" id="kd_barang" readonly>
+
+                <!-- Informasi Barang -->
+                <div class="row">
+                    <div class="col-md-4 info-item">
+                        <h5>Nama: <span id="nama_barang_edit">-</span></h5>
+                    </div>
+                    <div class="col-md-4 info-item">
+                        <h5>Harga: <span id="harga_barang_edit">-</span></h5>
+                    </div>
+                    <div class="col-md-4 info-item">
+                        <h5>Isi: <span id="unit_barang_edit">-</span></h5>
+                    </div>
+                </div>
+
+                {{-- <!-- Garis Pembatas -->
+                <div class="underline"></div>
+
+                <!-- Informasi Harga dan Stok -->
+                <div class="row mt-3">
+                    <div class="col-md-6 info-item">
+                        <h5>Harga Barang: <span id="harga_barang_edit">-</span></h5>
+                    </div>
+                    <div class="col-md-6 info-item">
+                        <h5>Stok Barang: <span id="stok_barang_edit">-</span></h5>
+                    </div>
+                </div> --}}
             </div>
-            <div class="form-group col-lg-4 col-md-12 col-sm-12 mb-3">
-                <select name="select_user_trans_edit" id="select_user_trans_edit" class="form-control">
-                    <option value="">Pilih User</option>
+        </div>
+        {{-- Inputan No PO --}}
+        <div class="container">
+            <input type="text" class="form-control mt-3 col-lg-3" name="no_po_edit" id="no_po_edit" readonly>
+        </div>
+        {{-- End Of Inputan No PO --}}
+        <form action="" class="row mt-3">
+            <div class="col-lg-4 col-md-12 mb-3">
+                <div class="d-flex align-items-center">
+                <button type="button" id="clear_select_edit" class="btn btn-secondary btn-sm me-2 mr-2">
+                    <i class="fa fa-eraser" aria-hidden="true"></i>
+                </button>
+                <select name="select_barang_edit" id="select_barang_edit" class="form-control">
+                    <option></option>
+                    <!-- Options untuk select dropdown -->
+                </select>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 col-sm-12 mb-3">
+                <select name="select_barang_satuan_edit" id="select_barang_satuan_edit" class="form-control">
+                    <option value="">Pilih Satuan</option>
                 </select>
             </div>
-        </div>
-    </div>
-    <div class="container master_transaksi_edit">
-        <div class="product-info">
-            <input type="hidden" value="" id="kd_barang" readonly>
-
-            <!-- Informasi Barang -->
-            <div class="row">
-                <div class="col-md-4 info-item">
-                    <h5>Nama: <span id="nama_barang_edit">-</span></h5>
-                </div>
-                <div class="col-md-4 info-item">
-                    <h5>Harga: <span id="harga_barang_edit">-</span></h5>
-                </div>
-                <div class="col-md-4 info-item">
-                    <h5>Isi: <span id="unit_barang_edit">-</span></h5>
+            <div class="col-lg-3 col-md-6 col-sm-12 mb-3">
+                <input type="number" id="jumlah_trans_edit" class="form-control" placeholder="Jumlah barang">
+            </div>
+            <div class="col-lg-2 col-md-6 col-sm-12 mb-3">
+                <div class="d-flex align-items-center">
+                    @php
+                        $user = Auth::user();
+                        $allowed_roles = ['customer'];
+                        $is_customer = in_array($user->roles, $allowed_roles);
+                    @endphp
+                <input type="number" id="diskon_barang_edit" class="form-control" placeholder="Disc %" {{ $is_customer ? 'readonly' : '' }}>
+                <button type="submit" class="btn btn-success btn-sm ms-2 ml-2">
+                    {{-- <i class="fa fa-check" aria-hidden="true"></i> --}}Simpan
+                </button>
                 </div>
             </div>
-
-            {{-- <!-- Garis Pembatas -->
-            <div class="underline"></div>
-
-            <!-- Informasi Harga dan Stok -->
-            <div class="row mt-3">
-                <div class="col-md-6 info-item">
-                    <h5>Harga Barang: <span id="harga_barang_edit">-</span></h5>
-                </div>
-                <div class="col-md-6 info-item">
-                    <h5>Stok Barang: <span id="stok_barang_edit">-</span></h5>
-                </div>
-            </div> --}}
+        </form>
+        {{-- ### Display Card ###  --}}
+        <div id="transaksi_card_container_edit" class="mt-3"></div>
+        <div class="mt-3">
+            <h5>Grand Total: <span id="grand_total_edit">0</span></h5>
+        </div>
+        {{-- ### End of Display Card ###  --}}
+        <div class="button-container" style="display: flex; justify-content: flex-end; gap: 10px;">
+            <button type="submit" class="btn btn-primary mt-2 mb-2" id="save_table_transaksi_edit"><i class="fas fa-save"> Proses</i></button>
+            <button type="submit" class="btn btn-info mt-2 mb-2" id="reset_table_transaksi_edit"><i class="fas fa-sync-alt"> Reset</i></button>
+            <button type="submit" class="btn btn-warning mt-2 mb-2" id="return_table_transaksi_edit"><i class="fas fa-undo"> List Menu</i></button>
         </div>
     </div>
-    {{-- Inputan No PO --}}
-    <div class="container">
-        <input type="text" class="form-control mt-3 col-lg-3" name="no_po_edit" id="no_po_edit" readonly>
-    </div>
-    {{-- End Of Inputan No PO --}}
-    <form action="" class="row mt-3">
-        <div class="col-lg-4 col-md-12 mb-3">
-            <div class="d-flex align-items-center">
-            <button type="button" id="clear_select_edit" class="btn btn-secondary btn-sm me-2 mr-2">
-                <i class="fa fa-eraser" aria-hidden="true"></i>
-            </button>
-            <select name="select_barang_edit" id="select_barang_edit" class="form-control">
-                <option></option>
-                <!-- Options untuk select dropdown -->
-            </select>
-            </div>
-        </div>
-        <div class="col-lg-3 col-md-6 col-sm-12 mb-3">
-            <select name="select_barang_satuan_edit" id="select_barang_satuan_edit" class="form-control">
-                <option value="">Pilih Satuan</option>
-            </select>
-        </div>
-        <div class="col-lg-3 col-md-6 col-sm-12 mb-3">
-            <input type="number" id="jumlah_trans_edit" class="form-control" placeholder="Jumlah barang">
-        </div>
-        <div class="col-lg-2 col-md-6 col-sm-12 mb-3">
-            <div class="d-flex align-items-center">
-                @php
-                    $user = Auth::user();
-                    $allowed_roles = ['customer'];
-                    $is_customer = in_array($user->roles, $allowed_roles);
-                @endphp
-            <input type="number" id="diskon_barang_edit" class="form-control" placeholder="Disc %" {{ $is_customer ? 'readonly' : '' }}>
-            <button type="submit" class="btn btn-success btn-sm ms-2 ml-2">
-                {{-- <i class="fa fa-check" aria-hidden="true"></i> --}}Simpan
-            </button>
-            </div>
-        </div>
-    </form>
-    <div class="mt-3 table-container table-responsive">
-        <table id="transaksi_table_edit" class="display table table-bordered mb-2">
-            <thead>
-                <tr>
-                    <th>No</th>
-                    <th>KD Barang</th>
-                    <th>Nama</th>
-                    <th>Harga</th>
-                    <th>Isi</th>
-                    <th>Satuan</th>
-                    <th>Jumlah</th>
-                    <th>Diskon</th>
-                    <th>Total</th>
-                    <th>del</th>
-                </tr>
-            </thead>
-            <tfoot>
-                <tr>
-                    <td colspan="8" class="text-right"><strong>Grand Total:</strong></td>
-                    <td id="grand_total_edit">0</td>
-                    {{-- <td id="grand_total_edit_mirror">0</td> --}}
-                </tr>
-            </tfoot>
-            <tbody>
-                <!-- Data akan diisi oleh DataTables -->
-            </tbody>
-        </table>
-    </div>
-    <div class="button-container" style="display: flex; justify-content: flex-end; gap: 10px;">
-        <button type="submit" class="btn btn-primary mt-2 mb-2" id="save_table_transaksi_edit"><i class="fas fa-save"> Proses</i></button>
-        <button type="submit" class="btn btn-info mt-2 mb-2" id="reset_table_transaksi_edit"><i class="fas fa-sync-alt"> Reset</i></button>
-        <button type="submit" class="btn btn-warning mt-2 mb-2" id="return_table_transaksi_edit"><i class="fas fa-undo"> List Menu</i></button>
-    </div>
-</div>
-{{-- <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/js/select2.min.js"></script> --}}
+    {{-- <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/js/select2.min.js"></script> --}}
 
 <script>
 $(document).ready(function(){
@@ -452,43 +449,56 @@ $(document).ready(function(){
         let no_invoice = $(this).data('no-invoice');
         ajax_click_edit_button(no_invoice);
     });
-    function ajax_click_edit_button(no_invoice){
+    function ajax_click_edit_button(no_invoice) {
         $.ajax({
-            url: '{{ route('get_edit_transaksi_to_table') }}', // Ganti dengan route yang sesuai
+            url: '{{ route('get_edit_transaksi_to_table') }}',
             type: 'GET',
-            data: {
-                no_invoice: no_invoice // Mengirimkan no_invoice ke server
-            },
+            data: { no_invoice },
             success: function (response) {
-                $('#transaksi_table_edit tbody').empty();
-                const get_no_nvoice = response.data[0].no_invoice;
-                $('#no_po_edit').val('Invoice No : '+get_no_nvoice);
-                $('#save_table_transaksi_edit').val(get_no_nvoice);
-                $('#reset_table_transaksi_edit').val(get_no_nvoice);
-                $("#kode_user_trans_edit").val(response.data[0].user_kode);
-                $("#nama_user_trans_edit").val(response.data[0].nama_cust);
-                let user_role_diskon = @json(Auth::user()->roles);
-                // let grandTotal = 0;
+                grandTotal = 0; // Reset total dulu
+                $('#transaksi_card_container_edit').empty(); // Hapus semua card sebelumnya
+
+                const invoice = response.data[0];
+                const user_role_diskon = @json(Auth::user()->roles);
+
+                $('#no_po_edit').val('Invoice No : ' + invoice.no_invoice);
+                $('#save_table_transaksi_edit').val(invoice.no_invoice);
+                $('#reset_table_transaksi_edit').val(invoice.no_invoice);
+                $('#kode_user_trans_edit').val(invoice.user_kode);
+                $('#nama_user_trans_edit').val(invoice.nama_cust);
 
                 response.data.forEach((item, index) => {
-                    let total = item.total; // Menggunakan nilai total yang sudah ada dari database
-                    grandTotal += total;// Menambahkan ke grand total
-                    // console.log('TEST: ' + item.kd_brg); // Cek item.kd_brg
-                    let total_order = format_ribuan(item.total);
-                    $('#transaksi_table_edit tbody').append(`
-                        <tr>
-                            <td>${index + 1}</td>
-                            <td>${item.kd_brg}</td>
-                            <td>${item.nama_brg}</td>
-                            <td>${item.harga}</td>
-                            <td>${item.qty_unit}</td>
-                            <td>${item.satuan}</td>
-                            <td class="editable" contenteditable="true">${item.qty_order}</td>
-                            <td class="editable" ${user_role_diskon === 'customer' ? '' : 'contenteditable="true"'}>${item.disc}</td>
-                            <td>${total_order}</td>
-                            <td><button type="button" class="btn btn-danger btn-sm delete-row"><i class="fa fa-trash" aria-hidden="true"></i></button></td>
-                        </tr>
-                    `);
+                    let harga = parseFloat(item.harga) || 0;
+                    let qty = parseFloat(item.qty_order) || 0;
+                    let diskon = parseFloat(item.disc) || 0;
+                    let satuan = item.satuan || '-';
+                    let unit = item.qty_unit || '-';
+                    let total = parseFloat(item.total) || 0;
+
+                    grandTotal += total;
+
+                    let cardHtml = `
+                    <div class="card mb-3 shadow-sm transaksi-card-edit" data-total="${total}" data-index="${index}">
+                        <div class="card-body position-relative">
+                            <div><strong>No:</strong> <span class="card-number">${index + 1}</span></div>
+                            <div><strong>KD Barang:</strong> <span class="kd-barang">${item.kd_brg}</span></div>
+                            <div><strong>Nama:</strong> <span class="nama-barang">${item.nama_brg}</span></div>
+                            <div><strong>Harga:</strong> <span class="harga-barang">${format_ribuan(harga)}</span></div>
+                            <div><strong>Isi:</strong> <span class="isi-barang">${unit}</span></div>
+                            <div><strong>Satuan:</strong> <span class="satuan-barang">${satuan}</span></div>
+                            <div><strong>Jumlah:</strong>
+                                <span class="editable-jumlah" contenteditable="true">${qty}</span>
+                            </div>
+                            <div><strong>Diskon:</strong>
+                                <span class="editable-diskon" ${user_role_diskon === 'customer' ? '' : 'contenteditable="true"'}>${diskon}</span>
+                            </div>
+                            <div><strong>Total:</strong> <span class="total-text">${format_ribuan(total)}</span></div>
+                            <button class="btn btn-sm btn-danger mt-2 delete-card-edit"><i class="fa fa-trash"></i> Hapus</button>
+                        </div>
+                    </div>
+                    `;
+
+                    $('#transaksi_card_container_edit').append(cardHtml);
                 });
 
                 $('#grand_total_edit').text(format_ribuan(grandTotal));
@@ -540,7 +550,7 @@ $(document).ready(function(){
     });
 
     function delete_table_edit(no_invoice, row){
-         // Mendapatkan baris terdekat dari tombol delete
+            // Mendapatkan baris terdekat dari tombol delete
         Swal.fire({
             title: 'Anda yakin?',
             text: `Hapus Data dengan No. Invoice ${no_invoice} ?`,
@@ -760,7 +770,7 @@ $(document).ready(function(){
         // === end of fungsi enter next di form ===
 // ================================= End Of Select Barang ===========================================
 // ======================= Trigger Select Satuan Barang When kd_barang change =============================
-function get_barang_satuan_edit(kd_barang){
+    function get_barang_satuan_edit(kd_barang){
         // console.log('test :' + kd_barang)
         if (kd_barang) {
             $.ajax({
@@ -825,6 +835,8 @@ function get_barang_satuan_edit(kd_barang){
 // ================= End of Trigger Select Satuan Barang When select_barang_satuan change ========================
 // ================================= Input Barang To Table ===========================================
     // let grandTotal = 0;
+    let cardIndex = 0; // untuk penomoran unik tiap card
+
     $('form').on('submit', function(event) {
         event.preventDefault();
 
@@ -836,98 +848,123 @@ function get_barang_satuan_edit(kd_barang){
         let satuanBarang = $('#select_barang_satuan_edit').val();
         let jumlahTrans = parseFloat($('#jumlah_trans_edit').val()) || 0;
         let diskonBarang = parseFloat($('#diskon_barang_edit').val()) || 0;
-            // Pengecekan untuk nilai kosong
+
         if (!kdBarang || !namaBarang || hargaBarang === 0 || jumlahTrans === 0) {
             Swal.fire({
                 icon: 'warning',
                 title: 'Submit Failed',
                 text: 'Mohon lengkapi semua data sebelum submit!',
                 showConfirmButton: false,
-                timer: 2000 // Durasi tampil dalam milidetik
+                timer: 2000
             });
-            // alert('Mohon lengkapi semua data sebelum submit!');
-            return; // Hentikan proses jika salah satu input kosong
+            return;
         }
-        // rumus diskon
+
         let diskon_dalam_uang = (diskonBarang / 100) * hargaBarang;
         let total = (hargaBarang - diskon_dalam_uang) * jumlahTrans;
-        // let formatted_total = total.toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 });-> jika butuh pembulatan .00
-        // let formatted_total = total;
 
-        // Validasi user untuk menonaktifkan diskon edit
         let user_role_diskon = @json(Auth::user()->roles);
-        let newRow = `
-            <tr>
-                <td class="row-number"></td>
-                <td>${kdBarang}</td>
-                <td>${namaBarang}</td>
-                <td>${hargaBarang}</td>
-                <td>${unitBarang}</td>
-                <td>${satuanBarang}</td>
-                <td class="editable" contenteditable="true">${jumlahTrans}</td>
-                <td class="editable" ${user_role_diskon === 'customer' ? '' : 'contenteditable="true"'}>${diskonBarang}</td>
-                <td>${format_ribuan(total)}</td>
-                <td><button type="button" class="btn btn-danger btn-sm delete-row"><i class="fa fa-trash" aria-hidden="true"></i></button></td>
-            </tr>
-        `;
-        $('#transaksi_table_edit tbody').append(newRow);
-        updateRowNumbers();
 
-        grandTotal += total;
-        $('#grand_total_edit').text(format_ribuan(grandTotal));
+        let cardHtml = `
+            <div class="card mb-3 shadow-sm transaksi-card-edit" data-total="${total}" data-index="${cardIndex}">
+                <div class="card-body position-relative">
+                    <div><strong>No:</strong> <span class="card-number">${cardIndex + 1}</span></div>
+                    <div><strong>KD Barang:</strong> <span class="kd-barang">${kdBarang}</span></div>
+                    <div><strong>Nama:</strong> <span class="nama-barang">${namaBarang}</span></div>
+                    <div><strong>Harga:</strong> <span class="harga-barang">${format_ribuan(hargaBarang)}</span></div>
+                    <div><strong>Isi:</strong> <span class="isi-barang">${unitBarang}</span></div>
+                    <div><strong>Satuan:</strong> <span class="satuan-barang">${satuanBarang}</span></div>
+                    <div><strong>Jumlah:</strong>
+                        <span class="editable-jumlah" contenteditable="true">${jumlahTrans}</span>
+                    </div>
+                    <div><strong>Diskon:</strong>
+                        <span class="editable-diskon" ${user_role_diskon === 'customer' ? '' : 'contenteditable="true"'}>${diskonBarang}</span>
+                    </div>
+                    <div><strong>Total:</strong> <span class="total-text">${format_ribuan(total)}</span></div>
+                    <button class="btn btn-sm btn-danger mt-2 delete-card-edit"><i class="fa fa-trash"></i> Hapus</button>
+                </div>
+            </div>
+        `;
+
+
+        $('#transaksi_card_container_edit').append(cardHtml);
+        let currentGrandTotal = parseFloat(hapus_format($('#grand_total_edit').text())) || 0;
+        let newGrandTotal = currentGrandTotal + total;
+        $('#grand_total_edit').text(format_ribuan(newGrandTotal));
+        cardIndex++;
 
         this.reset();
         $('#select_barang_edit').val(null).trigger('change');
         $('#nama_barang_edit').text('-');
         $('#harga_barang_edit').text('-');
         $('#unit_barang_edit').text('-');
-        $('#select_barang_satuan_edit').empty();
-        $('#select_barang_satuan_edit').append('<option value="">Pilih Satuan</option>');
+        $('#select_barang_satuan_edit').html('<option value="">Pilih Satuan</option>');
 
-        setTimeout(function() {
+        setTimeout(() => {
             $('#select_barang_edit').select2('open');
             document.querySelector('.select2-search__field').focus();
         }, 0);
-
     });
-
-    // ### Detele Table
-    $('#transaksi_table_edit').on('click', '.delete-row', function() {
-        let row = $(this).closest('tr');
-        let total_text = row.find('td:eq(8)').text();
-        let total =  parseFloat(hapus_format(total_text)) || 0;
-        row.remove();
-        updateRowNumbers();
-
-        grandTotal -= total;
-        $('#grand_total_edit').text(format_ribuan(grandTotal));
-    });
-
-    function updateRowNumbers() {
-        $('#transaksi_table_edit tbody tr').each(function(index) {
-            $(this).find('.row-number').text(index + 1);
-        });
+    function hapus_format(angka) {
+        if (!angka) return 0;
+        return angka.toString().replace(/[^\d.-]/g, '');
     }
 
-    // ### Editing Baris Table
-    $('#transaksi_table_edit').on('input', '.editable', function() {
-        let row = $(this).closest('tr');
-        let hargaBarang = parseFloat(row.find('td:eq(3)').text()) || 0;
-        let newJumlah = parseFloat(row.find('td:eq(6)').text()) || 0;
-        let diskonBarang = parseFloat(row.find('td:eq(7)').text()) || 0;
-        let oldTotal_text = row.find('td:eq(8)').text();
-        let oldTotal = parseFloat(hapus_format(oldTotal_text))|| 0;
+    function format_ribuan(angka) {
+        return angka.toLocaleString('id-ID');
+    }
 
-        // rumus diskon
-        let diskon_dalam_uang = (diskonBarang / 100) * hargaBarang;
-        // Hitung total baru dan update baris
-        let total = (hargaBarang - diskon_dalam_uang) * newJumlah;
-        // row.find('td:eq(8)').text(total.toFixed(2)); -> untuk dapat .00
-        row.find('td:eq(8)').text(format_ribuan(total));
+    // Update total saat diskon/jumlah diubah
+    $('#transaksi_card_container_edit').on('input', '.editable-jumlah, .editable-diskon', function () {
+        let card = $(this).closest('.card');
 
+        let harga = parseFloat(hapus_format(card.find('.harga-barang').text())) || 0;
+        let jumlah = parseFloat(hapus_format(card.find('.editable-jumlah').text())) || 0;
+        let diskon = parseFloat(hapus_format(card.find('.editable-diskon').text())) || 0;
+
+        let diskon_uang = (diskon / 100) * harga;
+        let total = (harga - diskon_uang) * jumlah;
+
+        card.find('.total-text').text(format_ribuan(total));
+
+        // Hitung ulang semua total
+        let totalSemua = 0;
+        $('#transaksi_card_container_edit .card').each(function () {
+            let totalPerCard = parseFloat(hapus_format($(this).find('.total-text').text())) || 0;
+            totalSemua += totalPerCard;
+        });
+
+        $('#grand_total_edit').text(format_ribuan(totalSemua));
+    });
+
+    // Trigger ulang saat contenteditable kehilangan fokus
+    $('#transaksi_card_container_edit').on('blur', '.editable-jumlah, .editable-diskon', function () {
+        $(this).trigger('input');
+    });
+
+    // Hapus Card
+    // Event hapus card
+    $('#transaksi_card_container_edit').on('click', '.delete-card-edit', function () {
+        let card = $(this).closest('.card');
+        let total = parseFloat(hapus_format(card.find('.total-text').text())) || 0;
+
+        // Kurangi grand total
+        let currentGrandTotal = parseFloat(hapus_format($('#grand_total_edit').text())) || 0;
+        let newGrandTotal = currentGrandTotal - total;
+
+        // Hapus elemen card
+        card.slideUp(300, function () {
+        card.remove();
         // Update grand total
-        grandTotal = grandTotal - oldTotal + total;
-        $('#grand_total_edit').text(format_ribuan(grandTotal));
+        $('#grand_total_edit').text(format_ribuan(newGrandTotal));
+        // Update ulang penomoran card (No:)
+        $('#transaksi_card_container_edit .card').each(function(index) {
+            $(this).find('.card-number').text(index + 1);
+            $(this).attr('data-index', index);
+        });
+        // Update cardIndex biar tetap konsisten jika user tambah lagi
+        cardIndex = $('#transaksi_card_container_edit .card').length;
+        });
     });
 // =============================== End Of Input Barang To Table =========================================
 // =================================== Update Barang To DB ==============================================
@@ -938,41 +975,40 @@ function get_barang_satuan_edit(kd_barang){
         let is_valid = true; // Untuk memeriksa validasi secara keseluruhan
 
         // Loop melalui setiap baris di tabel
-        $('#transaksi_table_edit tbody tr').each(function () {
-            const kd_barang = $(this).find('td:eq(1)').text(); // KD Barang
-            const nama = $(this).find('td:eq(2)').text();      // Nama Barang
-            const harga = $(this).find('td:eq(3)').text();     // Harga Barang
-            const unit = $(this).find('td:eq(4)').text();      // Unit Barang
-            const satuan = $(this).find('td:eq(5)').text();    // Satuan Barang
-            const jumlah = $(this).find('td:eq(6)').text();    // Jumlah (editable)
-            const diskon = $(this).find('td:eq(7)').text();    // Diskon (editable)
-            const total_text = $(this).find('td:eq(8)').text();     // Total
-            const total = hapus_format(total_text);
+        $('.transaksi-card-edit').each(function () {
+            const card = $(this);
 
-            // Validasi jumlah: tidak boleh kosong, harus angka, dan lebih besar dari 0
+            const kd_barang = card.find('.kd-barang').text().trim();
+            const nama = card.find('.nama-barang').text().trim();
+            const harga = hapus_format(card.find('.harga-barang').text().trim());
+            const unit = card.find('.isi-barang').text().trim();
+            const satuan = card.find('.satuan-barang').text().trim();
+            const jumlah = card.find('.editable-jumlah').text().trim();
+            const diskon = card.find('.editable-diskon').text().trim();
+            const total = hapus_format(card.find('.total-text').text().trim());
+
             if (!jumlah || isNaN(jumlah) || parseFloat(jumlah) <= 0) {
                 is_valid = false;
                 Swal.fire({
                     icon: 'warning',
                     title: 'Jumlah Tidak Valid',
-                    text: 'Jumlah harus berupa angka dan lebih besar dari 0 di salah satu baris!',
+                    text: 'Jumlah harus berupa angka dan lebih besar dari 0!',
                     showConfirmButton: false,
-                    timer: 2000 // Durasi tampil dalam milidetik
+                    timer: 2000
                 });
-                return false; // Hentikan loop jika tidak valid
+                return false;
             }
 
-            // Validasi diskon: harus angka (boleh 0)
-            if (diskon === "" || diskon.trim() === "" || isNaN(diskon)) {
+            if (diskon === "" || isNaN(diskon)) {
                 is_valid = false;
                 Swal.fire({
                     icon: 'warning',
                     title: 'Diskon Tidak Valid',
-                    text: 'Diskon harus berupa angka, bisa 0, dan tidak boleh kosong!',
+                    text: 'Diskon harus berupa angka, bisa 0!',
                     showConfirmButton: false,
-                    timer: 2000 // Durasi tampil dalam milidetik
+                    timer: 2000
                 });
-                return false; // Hentikan loop jika tidak valid
+                return false;
             }
 
             if (kode_user === "") {
@@ -982,41 +1018,36 @@ function get_barang_satuan_edit(kd_barang){
                     title: 'Kode User Tidak Valid',
                     text: 'Kode User tidak boleh kosong!',
                     showConfirmButton: false,
-                    timer: 2000 // Durasi tampil dalam milidetik
+                    timer: 2000
                 });
-                return false; // Hentikan loop jika tidak valid
+                return false;
             }
 
-            // Masukkan ke array hanya jika KD Barang ada
             if (kd_barang) {
                 products.push({
                     kd_barang,
                     nama,
-                    harga,
+                    harga: parseFloat(harga),
                     unit,
                     satuan,
-                    jumlah: parseFloat(jumlah), // Pastikan formatnya angka
-                    diskon: parseFloat(diskon), // Pastikan formatnya angka
-                    total: parseFloat(total) // Bersihkan format jika ada titik
+                    jumlah: parseFloat(jumlah),
+                    diskon: parseFloat(diskon),
+                    total: parseFloat(total)
                 });
             }
         });
 
-        // Pastikan validasi lolos sebelum mengirim data ke server
-        if (!is_valid) {
-            return; // Hentikan eksekusi jika validasi gagal
-        }
+        if (!is_valid) return;
 
-        // Kirim data ke server jika ada produk
         if (products.length > 0) {
             save_to_database_edit(products,value_invo,kode_user);
         } else {
             Swal.fire({
                 icon: 'warning',
-                title: 'Save Failed',
+                title: 'Save Gagal',
                 text: 'Tidak Ada Data Disimpan',
                 showConfirmButton: false,
-                timer: 2000 // Durasi tampil dalam milidetik
+                timer: 2000
             });
         }
     });

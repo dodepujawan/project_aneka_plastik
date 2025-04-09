@@ -96,6 +96,7 @@ h5 {
 }
 /* End of Product Info */
 </style>
+<h3>Halaman Input PO</h3>
 <div class="container master_customer_select">
     <div class="row">
         <div class="form-group col-lg-4 col-md-12 col-sm-12 mb-3">
@@ -113,7 +114,6 @@ h5 {
 </div>
 
 <div class="container master_transaksi">
-    <h1>Halaman Input PO</h1>
     <div class="product-info">
         <input type="hidden" value="" id="kd_barang" readonly>
         <!-- Informasi Barang -->
@@ -700,7 +700,7 @@ $(document).ready(function(){
                     alert('Failed to save data.');
                 }
             });
-        }, 2000);
+        }, 1200);
     }
     function success_call(){
         $('#transaksi_table tbody').empty();

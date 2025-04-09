@@ -14,4 +14,8 @@ class MobileController extends Controller
     public function index(){
         return view('mobile.mobile_transaksi');
     }
+
+    public function index_edit_transaksi_mobile(){
+        return view('mobile.mobile_transaksi_edit');
+    }
 }

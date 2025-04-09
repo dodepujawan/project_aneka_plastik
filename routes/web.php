@@ -94,6 +94,7 @@ Route::prefix('harga')->group(function () {
 
 Route::prefix('mobile')->middleware('auth')->group(function () {
     Route::get('/index', [MobileController::class, 'index'])->name('index_mobile');
+    Route::get('/edit/show', [MobileController::class, 'index_edit_transaksi_mobile'])->name('index_edit_transaksi_mobile');
 
 });
 

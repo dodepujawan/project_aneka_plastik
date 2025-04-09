@@ -116,8 +116,8 @@
     }
     /* End Of Display Card */
 </style>
+<h3>Mobile PO</h3>
 <div class="container master_customer_select">
-    <h3>Mobile PO</h3>
     <div class="row">
         <div class="form-group col-lg-4 col-md-12 col-sm-12 mb-3">
             <input type="text" name="kode_user_trans" id="kode_user_trans" class="form-control" placeholder="Kode User" required="" readonly>
@@ -205,12 +205,15 @@
 <div id="transaksi_card_container" class="mt-3"></div>
 {{-- ### End of Display Card ###  --}}
 
-<div class="text-end">
-    <div class="fw-bold">Grand Total: <span id="grand_total"></span></div>
-    <button type="submit" class="btn btn-primary mt-2" id="save_table_transaksi">
+<div class="d-flex justify-content-end flex-column align-items-end">
+    <div class="fw-bold mb-2">
+        Grand Total: <span id="grand_total"></span>
+    </div>
+    <button type="submit" class="btn btn-primary" id="save_table_transaksi">
         <i class="fas fa-save"></i> Proses
     </button>
 </div>
+
 {{-- <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/js/select2.min.js"></script> --}}
 
 <script>
@@ -535,11 +538,11 @@ $(document).ready(function(){
             <div class="card mb-3 shadow-sm transaksi-card" data-total="${total}">
                 <div class="card-body">
                     <div><strong>No:</strong> <span class="card-number"></span></div>
-                    <div><strong>KD Barang:</strong> ${kdBarang}</div>
-                    <div><strong>Nama:</strong> ${namaBarang}</div>
+                    <div><strong>KD Barang:</strong> <span class="kd-barang">${kdBarang}</span></div>
+                    <div><strong>Nama:</strong> <span class="nama-barang">${namaBarang}</span></div>
                     <div><strong>Harga:</strong> <span class="harga-barang">${format_ribuan(hargaBarang)}</span></div>
-                    <div><strong>Isi:</strong> ${unitBarang}</div>
-                    <div><strong>Satuan:</strong> ${satuanBarang}</div>
+                    <div><strong>Isi:</strong> <span class="isi-barang">${unitBarang}</span></div>
+                    <div><strong>Satuan:</strong> <span class="satuan-barang">${satuanBarang}</span></div>
                     <div><strong>Jumlah:</strong> <span class="editable-jumlah" contenteditable="true">${jumlahTrans}</span></div>
                     <div><strong>Diskon:</strong> <span class="editable-diskon" ${user_role_diskon === 'customer' ? '' : 'contenteditable="true"'}>${diskonBarang}</span></div>
                     <div><strong>Total:</strong> <span class="total-text">${format_ribuan(total)}</span></div>
@@ -570,43 +573,42 @@ $(document).ready(function(){
     $('#save_table_transaksi').on('click', function () {
         const kode_user = $("#kode_user_trans").val();
         const products = [];
-        let is_valid = true; // Untuk memeriksa validasi secara keseluruhan
+        let is_valid = true;
 
-        // Loop melalui setiap baris di tabel
-        $('#transaksi_table tbody tr').each(function () {
-            const kd_barang = $(this).find('td:eq(1)').text(); // KD Barang
-            const nama = $(this).find('td:eq(2)').text();      // Nama Barang
-            const harga = $(this).find('td:eq(3)').text();     // Harga Barang
-            const unit = $(this).find('td:eq(4)').text();      // Unit Barang
-            const satuan = $(this).find('td:eq(5)').text();    // Satuan Barang
-            const jumlah = $(this).find('td:eq(6)').text();    // Jumlah (editable)
-            const diskon = $(this).find('td:eq(7)').text();    // Diskon (editable)
-            const total_text = $(this).find('td:eq(8)').text();     // Total
-            const total = hapus_format(total_text);
-            // Validasi jumlah: tidak boleh kosong, harus angka, dan lebih besar dari 0
+        $('.transaksi-card').each(function () {
+            const card = $(this);
+
+            const kd_barang = card.find('.kd-barang').text().trim();
+            const nama = card.find('.nama-barang').text().trim();
+            const harga = hapus_format(card.find('.harga-barang').text().trim());
+            const unit = card.find('.isi-barang').text().trim();
+            const satuan = card.find('.satuan-barang').text().trim();
+            const jumlah = card.find('.editable-jumlah').text().trim();
+            const diskon = card.find('.editable-diskon').text().trim();
+            const total = hapus_format(card.find('.total-text').text().trim());
+
             if (!jumlah || isNaN(jumlah) || parseFloat(jumlah) <= 0) {
                 is_valid = false;
                 Swal.fire({
                     icon: 'warning',
                     title: 'Jumlah Tidak Valid',
-                    text: 'Jumlah harus berupa angka dan lebih besar dari 0 di salah satu baris!',
+                    text: 'Jumlah harus berupa angka dan lebih besar dari 0!',
                     showConfirmButton: false,
-                    timer: 2000 // Durasi tampil dalam milidetik
+                    timer: 2000
                 });
-                return false; // Hentikan loop jika tidak valid
+                return false;
             }
 
-            // Validasi diskon: harus angka (boleh 0)
-            if (diskon === "" || diskon.trim() === "" || isNaN(diskon)) {
+            if (diskon === "" || isNaN(diskon)) {
                 is_valid = false;
                 Swal.fire({
                     icon: 'warning',
                     title: 'Diskon Tidak Valid',
-                    text: 'Diskon harus berupa angka, bisa 0, dan tidak boleh kosong!',
+                    text: 'Diskon harus berupa angka, bisa 0!',
                     showConfirmButton: false,
-                    timer: 2000 // Durasi tampil dalam milidetik
+                    timer: 2000
                 });
-                return false; // Hentikan loop jika tidak valid
+                return false;
             }
 
             if (kode_user === "") {
@@ -616,46 +618,41 @@ $(document).ready(function(){
                     title: 'Kode User Tidak Valid',
                     text: 'Kode User tidak boleh kosong!',
                     showConfirmButton: false,
-                    timer: 2000 // Durasi tampil dalam milidetik
+                    timer: 2000
                 });
-                return false; // Hentikan loop jika tidak valid
+                return false;
             }
 
-            // Masukkan ke array hanya jika KD Barang ada
             if (kd_barang) {
                 products.push({
                     kd_barang,
                     nama,
-                    harga,
+                    harga: parseFloat(harga),
                     unit,
                     satuan,
-                    jumlah: parseFloat(jumlah), // Pastikan formatnya angka
-                    diskon: parseFloat(diskon), // Pastikan formatnya angka
-                    total: parseFloat(total) // Bersihkan format jika ada titik
+                    jumlah: parseFloat(jumlah),
+                    diskon: parseFloat(diskon),
+                    total: parseFloat(total)
                 });
             }
         });
 
-        // Pastikan validasi lolos sebelum mengirim data ke server
-        if (!is_valid) {
-            return; // Hentikan eksekusi jika validasi gagal
-        }
+        if (!is_valid) return;
 
-        // Kirim data ke server jika ada produk
         if (products.length > 0) {
-            save_to_database(products,kode_user);
+            save_to_database(products, kode_user);
         } else {
             Swal.fire({
                 icon: 'warning',
-                title: 'Save Failed',
+                title: 'Save Gagal',
                 text: 'Tidak Ada Data Disimpan',
                 showConfirmButton: false,
-                timer: 2000 // Durasi tampil dalam milidetik
+                timer: 2000
             });
         }
     });
 
-    function save_to_database(products,kode_user) {
+    function save_to_database(products, kode_user) {
         $('#loading_modal').modal('show');
         setTimeout(function () {
             $.ajax({
@@ -664,7 +661,7 @@ $(document).ready(function(){
                 data: {
                     _token: $('meta[name="csrf-token"]').attr('content'),
                     products: products,
-                    kode_user:kode_user
+                    kode_user: kode_user
                 },
                 success: function (response) {
                     $('#loading_modal').modal('hide');
@@ -672,50 +669,57 @@ $(document).ready(function(){
                         icon: 'success',
                         title: 'Save Successful',
                         text: 'Data Berhasil Disimpan dengan Nomor Invoice: ' + response.invoice_number,
-                        showConfirmButton: true, // Tampilkan tombol OK
-                        confirmButtonText: 'OK', // Ubah teks tombol jika diperlukan
-                        showDenyButton: true, // Show Deny button for Print PDF
+                        showConfirmButton: true,
+                        confirmButtonText: 'OK',
+                        showDenyButton: true,
                         denyButtonText: 'Print PDF',
                     }).then((result) => {
                         if (result.isConfirmed) {
-                            // Callback setelah tombol OK ditekan
                             success_call();
-                        }   else if (result.isDenied) {
+                        } else if (result.isDenied) {
                             window.open('{{ route("generate_pdf", ":invoice_number") }}'.replace(':invoice_number', response.invoice_number), '_blank');
-                                success_call();
-                            }
+                            success_call();
+                        }
                     });
                 },
                 error: function (xhr, status, error) {
-                    console.log("Status: " + status);  // Menampilkan status HTTP
-                    console.log("Error: " + error);  // Menampilkan error message
+                    console.log("Status: " + status);
+                    console.log("Error: " + error);
                     console.log(xhr.responseText);
                     $('#loading_modal').modal('hide');
                     alert('Failed to save data.');
                 }
             });
-        }, 2000);
+        }, 1200);
     }
-    function success_call(){
-        $('#transaksi_table tbody').empty();
-        if(user_role_select != 'customer'){
+
+    function success_call() {
+        $('.transaksi-card').remove();
+
+        if (user_role_select !== 'customer') {
             $('#select_user_trans').val(null).trigger('change');
             $("#kode_user_trans").val('');
             $("#nama_user_trans").val('');
         }
+
         $('#grand_total').text(0);
         grandTotal = 0;
-        // ### Redirect Hal Edit
+
         $.ajax({
-            url: '{{ route('index_edit_transaksi') }}',
+            url: '{{ route('index_edit_transaksi_mobile') }}',
             type: 'GET',
-            success: function(response) {
+            success: function (response) {
                 $('.master-page').html(response);
             },
-            error: function() {
+            error: function () {
                 $('.master-page').html('<p>Error loading form.</p>');
             }
         });
+    }
+
+    // Fungsi bantu hapus format Rp
+    function hapus_format(nominal) {
+        return nominal.replace(/[^0-9.-]+/g, '');
     }
 // ================================= End Of Submit Barang To DB =========================================
 // ============================== Number Formating =====================================

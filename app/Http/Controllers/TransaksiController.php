@@ -86,7 +86,7 @@ class TransaksiController extends Controller
 
         try {
             // Ambil nomor urut terakhir untuk transaksi berdasarkan bulan dan tahun yang sama
-            $lastInvoice = Transactions::where('no_invoice', 'like', '%'.$currentMonthYear.'%')
+            $lastInvoice = Transusers::where('no_invoice', 'like', '%'.$currentMonthYear.'%')
                                         ->orderBy('no_invoice', 'desc')
                                         ->lockForUpdate()
                                         ->first();
@@ -96,6 +96,13 @@ class TransaksiController extends Controller
 
             // Format nomor invoice dengan menambahkan prefix dan nomor urut
             $invoiceNumber = 'POL-' . $currentMonthYear . str_pad($nextInvoiceNumber, 5, '0', STR_PAD_LEFT);
+
+            Transusers::create([
+                'no_invoice' => $invoiceNumber,
+                'user_id' => $user_id,
+                'nama_cust' => $user_name,
+                'user_kode' => $kode_user,
+            ]);
 
             // Proses menyimpan data produk
             foreach ($products as $product) {
@@ -115,13 +122,6 @@ class TransaksiController extends Controller
                     'status_po' => 0,
                 ]);
             }
-
-            Transusers::create([
-                'no_invoice' => $invoiceNumber,
-                'user_id' => $user_id,
-                'nama_cust' => $user_name,
-                'user_kode' => $kode_user,
-            ]);
 
             // Commit transaksi jika berhasil
             DB::commit();
@@ -256,80 +256,65 @@ class TransaksiController extends Controller
 
     // ###  Update Transaksi
     public function update_products(Request $request){
-        // Ambil data dari request
         $products = $request->input('products');
-        $noInvoice = $request->input('value_invo'); // Ambil no_invoice dari request
+        $noInvoice = $request->input('value_invo');
         $kodeUser = $request->input('kode_user');
 
-        // Ambil rcabang dari pengguna yang sedang login
         $rcabang = Auth::user()->rcabang;
         $roles_user = Auth::user()->roles;
         $user_kode = Auth::user()->user_kode;
-        // jika ingin mengisi Transusers dengan data sesuai yang login
         $user_id = Auth::user()->user_id;
         $user_name = Auth::user()->name;
 
-        // Memastikan jika user login customer user_kode harus sama mencegah update data yng diubah admin
         if ($roles_user == 'customer') {
-            // Periksa apakah Transusers memiliki nilai sesuai kondisi
             $statusRolesCheck = Transusers::where('no_invoice', $noInvoice)
                 ->where('user_kode', $user_kode)
                 ->exists();
 
             if (!$statusRolesCheck) {
                 return response()->json([
-                    'error' => 'Anda tidak dapat mengupdate produk karena status_po Anda tidak memenuhi syarat, Tolong Refresh.'], 403);
+                    'error' => 'Anda tidak dapat mengupdate produk karena status_po Anda tidak memenuhi syarat, Tolong Refresh.'
+                ], 403);
             }
         }
 
-        // Memastikan Semua Nilai status_po = 0
         $statusPoCheck = Transactions::where('no_invoice', $noInvoice)
-                                  ->where('status_po', '!=', 0)
-                                  ->exists();
+            ->where('status_po', '!=', 0)
+            ->exists();
         if ($statusPoCheck) {
-            return response()->json(['error' => 'Tidak dapat melanjutkan, terdapat transaksi dengan status_po selain 0'], 400);
+            return response()->json([
+                'error' => 'Tidak dapat melanjutkan, terdapat transaksi dengan status_po selain 0'
+            ], 400);
         }
 
-        // Untuk Mengambil data user_id dan nama_cust dari Transusers berdasarkan no_invoice sebelumnya
-        $previousUserData = Transusers::where('no_invoice', $noInvoice)->first();
-
-        if ($previousUserData) {
-            $user_id_prev = $previousUserData->user_id;
-            $user_name_prev = $previousUserData->nama_cust;
-        }
-
-        // Simpan nilai created_at lama
-        $created_at_transusers = $previousUserData->created_at; // Untuk tabel Transusers
-        $transactionsCreatedAt = Transactions::where('no_invoice', $noInvoice)->pluck('created_at')->first();
-
-        // Mulai transaksi
         DB::beginTransaction();
 
         try {
-            Transactions::where('no_invoice', $noInvoice)->delete();
-            Transusers::where('no_invoice', $noInvoice)->delete();
+            // Lock dulu data transusers biar tidak ada race condition
+            $lockedTransUser = Transusers::where('no_invoice', $noInvoice)
+                ->lockForUpdate()
+                ->first();
 
-            foreach ($products as $product) {
-                // menghilangkan titik di total
-                $cleaned_total = str_replace(',', '.', str_replace('.', '', $product['total']));
-                Transactions::create([
-                    'no_invoice' => $noInvoice, // Menggunakan nomor invoice lama
-                    'kd_brg' => $product['kd_barang'],
-                    'nama_brg' => $product['nama'],
-                    'harga' => $product['harga'],
-                    'qty_unit' => $product['unit'],
-                    'satuan' => $product['satuan'],
-                    'qty_order' => $product['jumlah'],
-                    'disc' => $product['diskon'],
-                    'total' => $cleaned_total,
-                    'rcabang' => $rcabang, // Menyimpan rcabang dari pengguna yang login
-                    'status_po' => 0,
-                    'created_at' => $transactionsCreatedAt,
-                    'updated_at' => Carbon::now(),
-                ]);
+            if (!$lockedTransUser) {
+                DB::rollBack();
+                return response()->json([
+                    'error' => 'Data tidak ditemukan atau tidak bisa dikunci.'
+                ], 404);
             }
 
-            // Simpan data baru ke tabel Transusers
+            // Simpan data penting sebelum delete
+            $user_id_prev = $lockedTransUser->user_id;
+            $user_name_prev = $lockedTransUser->nama_cust;
+            $created_at_transusers = $lockedTransUser->created_at;
+
+            $transactionsCreatedAt = Transactions::where('no_invoice', $noInvoice)
+                ->pluck('created_at')->first();
+
+            // Hapus data lama
+            Transusers::where('no_invoice', $noInvoice)->delete();
+            Transactions::where('no_invoice', $noInvoice)->delete();
+
+            // Simpan data baru
             Transusers::create([
                 'no_invoice' => $noInvoice,
                 'user_id' => $user_id_prev,
@@ -339,21 +324,37 @@ class TransaksiController extends Controller
                 'updated_at' => Carbon::now(),
             ]);
 
-            // Commit transaksi jika berhasil
+            foreach ($products as $product) {
+                $cleaned_total = str_replace(',', '.', str_replace('.', '', $product['total']));
+
+                Transactions::create([
+                    'no_invoice' => $noInvoice,
+                    'kd_brg' => $product['kd_barang'],
+                    'nama_brg' => $product['nama'],
+                    'harga' => $product['harga'],
+                    'qty_unit' => $product['unit'],
+                    'satuan' => $product['satuan'],
+                    'qty_order' => $product['jumlah'],
+                    'disc' => $product['diskon'],
+                    'total' => $cleaned_total,
+                    'rcabang' => $rcabang,
+                    'status_po' => 0,
+                    'created_at' => $transactionsCreatedAt,
+                    'updated_at' => Carbon::now(),
+                ]);
+            }
+
             DB::commit();
 
             return response()->json(['message' => 'Products updated successfully!'], 200);
         } catch (\Exception $e) {
-            // Rollback transaksi jika ada error
             DB::rollBack();
 
-            // Kembalikan pesan error
             return response()->json(['error' => 'Failed to update products: ' . $e->getMessage()], 500);
         }
     }
 
-    public function delete_products(Request $request)
-    {
+    public function delete_products(Request $request){
         // Validasi input
         $request->validate([
             'value_invo' => 'required|string'
@@ -395,8 +396,8 @@ class TransaksiController extends Controller
             }
 
             // Hapus data transaksi dan transuser berdasarkan no_invoice
-            Transactions::where('no_invoice', $noInvoice)->delete();
             Transusers::where('no_invoice', $noInvoice)->delete();
+            Transactions::where('no_invoice', $noInvoice)->delete();
 
             // Commit transaksi jika berhasil
             DB::commit();
@@ -522,3 +523,101 @@ class TransaksiController extends Controller
     }
 
 }
+
+// Jaga Jaga Vesi Update Lama Tanpa Lock
+// public function update_products(Request $request){
+//     // Ambil data dari request
+//     $products = $request->input('products');
+//     $noInvoice = $request->input('value_invo'); // Ambil no_invoice dari request
+//     $kodeUser = $request->input('kode_user');
+
+//     // Ambil rcabang dari pengguna yang sedang login
+//     $rcabang = Auth::user()->rcabang;
+//     $roles_user = Auth::user()->roles;
+//     $user_kode = Auth::user()->user_kode;
+//     // jika ingin mengisi Transusers dengan data sesuai yang login
+//     $user_id = Auth::user()->user_id;
+//     $user_name = Auth::user()->name;
+
+//     // Memastikan jika user login customer user_kode harus sama mencegah update data yng diubah admin
+//     if ($roles_user == 'customer') {
+//         // Periksa apakah Transusers memiliki nilai sesuai kondisi
+//         $statusRolesCheck = Transusers::where('no_invoice', $noInvoice)
+//             ->where('user_kode', $user_kode)
+//             ->exists();
+
+//         if (!$statusRolesCheck) {
+//             return response()->json([
+//                 'error' => 'Anda tidak dapat mengupdate produk karena status_po Anda tidak memenuhi syarat, Tolong Refresh.'], 403);
+//         }
+//     }
+
+//     // Memastikan Semua Nilai status_po = 0
+//     $statusPoCheck = Transactions::where('no_invoice', $noInvoice)
+//                               ->where('status_po', '!=', 0)
+//                               ->exists();
+//     if ($statusPoCheck) {
+//         return response()->json(['error' => 'Tidak dapat melanjutkan, terdapat transaksi dengan status_po selain 0'], 400);
+//     }
+
+//     // Untuk Mengambil data user_id dan nama_cust dari Transusers berdasarkan no_invoice sebelumnya
+//     $previousUserData = Transusers::where('no_invoice', $noInvoice)->first();
+
+//     if ($previousUserData) {
+//         $user_id_prev = $previousUserData->user_id;
+//         $user_name_prev = $previousUserData->nama_cust;
+//     }
+
+//     // Simpan nilai created_at lama
+//     $created_at_transusers = $previousUserData->created_at; // Untuk tabel Transusers
+//     $transactionsCreatedAt = Transactions::where('no_invoice', $noInvoice)->pluck('created_at')->first();
+
+//     // Mulai transaksi
+//     DB::beginTransaction();
+
+//     try {
+//         Transusers::where('no_invoice', $noInvoice)->delete();
+//         Transactions::where('no_invoice', $noInvoice)->delete();
+
+//         // Simpan data baru ke tabel Transusers
+//         Transusers::create([
+//             'no_invoice' => $noInvoice,
+//             'user_id' => $user_id_prev,
+//             'nama_cust' => $user_name_prev,
+//             'user_kode' => $kodeUser,
+//             'created_at' => $created_at_transusers,
+//             'updated_at' => Carbon::now(),
+//         ]);
+
+//         foreach ($products as $product) {
+//             // menghilangkan titik di total
+//             $cleaned_total = str_replace(',', '.', str_replace('.', '', $product['total']));
+//             Transactions::create([
+//                 'no_invoice' => $noInvoice, // Menggunakan nomor invoice lama
+//                 'kd_brg' => $product['kd_barang'],
+//                 'nama_brg' => $product['nama'],
+//                 'harga' => $product['harga'],
+//                 'qty_unit' => $product['unit'],
+//                 'satuan' => $product['satuan'],
+//                 'qty_order' => $product['jumlah'],
+//                 'disc' => $product['diskon'],
+//                 'total' => $cleaned_total,
+//                 'rcabang' => $rcabang, // Menyimpan rcabang dari pengguna yang login
+//                 'status_po' => 0,
+//                 'created_at' => $transactionsCreatedAt,
+//                 'updated_at' => Carbon::now(),
+//             ]);
+//         }
+
+//         // Commit transaksi jika berhasil
+//         DB::commit();
+
+//         return response()->json(['message' => 'Products updated successfully!'], 200);
+//     } catch (\Exception $e) {
+//         // Rollback transaksi jika ada error
+//         DB::rollBack();
+
+//         // Kembalikan pesan error
+//         return response()->json(['error' => 'Failed to update products: ' . $e->getMessage()], 500);
+//     }
+// }
