@@ -108,6 +108,8 @@ class TransaksiController extends Controller
             foreach ($products as $product) {
                 // menghilangkan titik di total
                 // $cleaned_total = intval(str_replace('.', '', explode(',', $product['total'])[0]));
+                $ppn_rupiah = ($product['harga'] * $product['ppn_trans']) / 100;
+                $diskon_rupiah = ($product['diskon'] / 100) * $product['harga'];
                 Transactions::create([
                     'no_invoice' => $invoiceNumber,  // Menyimpan nomor invoice
                     'kd_brg' => $product['kd_barang'],
@@ -116,7 +118,13 @@ class TransaksiController extends Controller
                     'qty_unit' => $product['unit'],
                     'satuan' => $product['satuan'],
                     'qty_order' => $product['jumlah'],
+                    'ppn' => $product['ppn_trans'],
+                    'rppn' => $ppn_rupiah,
+                    'hsppn' => $product['harga'] - $ppn_rupiah,
                     'disc' => $product['diskon'],
+                    'rdisc' => $diskon_rupiah,
+                    'ndisc' => $product['diskon_rp'],
+                    'ttldisc' => $diskon_rupiah + $product['diskon_rp'],
                     'total' => $product['total'],
                     'rcabang' => $rcabang,  // Menyimpan rcabang dari pengguna yang login
                     'status_po' => 0,

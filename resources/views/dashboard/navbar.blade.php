@@ -97,6 +97,19 @@
                 </a>
                 <div class="dropdown-divider"></div>
                 @endif
+
+                @php
+                $user = Auth::user();
+                $allowedRoles = ['admin'];
+                @endphp
+
+                @if (in_array($user->roles, $allowedRoles))
+                <a class="dropdown-item edit-pajak" href="#">
+                    <i class="fas fa-money-bill fa-sm fa-fw mr-2 text-primary"></i>
+                    Update Pajak
+                </a>
+                <div class="dropdown-divider"></div>
+                @endif
                 {{-- End Of Cabang --}}
                 {{-- <div class="dropdown-divider"></div>
                 <a class="dropdown-item" href="#">

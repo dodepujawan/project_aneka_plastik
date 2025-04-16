@@ -97,6 +97,34 @@
         </div>
     </div>
     {{-- End Of Download Loading Modal --}}
+    {{-- Modal Update Pajak --}}
+    <div class="modal fade" id="pajakModal" tabindex="-1" aria-labelledby="pajakModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <form id="pajakForm">
+            <div class="modal-content">
+              <div class="modal-header bg-primary">
+                <h5 class="modal-title text-white" id="pajakModalLabel">Update Pajak</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+
+              <div class="modal-body">
+                <div class="form-group">
+                  <label for="modal-ppn">Nilai PPN (%)</label>
+                  <input type="number" step="0.01" class="form-control" id="modal-ppn" name="ppn" required>
+                </div>
+              </div>
+
+              <div class="modal-footer">
+                <input type="hidden" name="id" id="modal-id">
+                <button type="submit" class="btn btn-primary" id="submit_pajak">Update</button>
+              </div>
+            </div>
+          </form>
+        </div>
+    </div>
+    {{-- End Of Modal Update Pajak --}}
 
     {{-- <!-- Logout Modal-->
     <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"

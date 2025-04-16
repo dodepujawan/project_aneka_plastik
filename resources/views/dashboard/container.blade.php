@@ -88,6 +88,53 @@ $(document).on('click', '.dropdown-item.cabang-list', function(e) {
         });
     }
 // ========================= End Of List Cabang ======================================
+// ========================= Update Pajak ======================================
+    $(document).on('click', '.dropdown-item.edit-pajak', function(e) {
+        e.preventDefault();
+        loadDataPajak();
+        function loadDataPajak(){
+            $.ajax({
+                url: '{{ route('get_pajak') }}',
+                type: 'GET',
+                success: function(response) {
+                    let nilai_ppn = response.data.ppn;
+                    $('#modal-ppn').val(nilai_ppn);
+                },
+                error: function() {
+                    $('#modal-ppn').val('Error Loading');
+                }
+            });
+        }
+        $('#pajakModal').modal('show');
+    });
+    // ### Submit Pajak ###
+    $('#submit_pajak').on('click', function (e) {
+    e.preventDefault();
+    let ppn_pajak = $('#modal-ppn').val();
+        $.ajax({
+            url: '{{ route('update_pajak') }}', // Ganti sesuai route di Laravel kamu
+            type: 'POST',
+            data: {
+                _token: $('meta[name="csrf-token"]').attr('content'), // CSRF token
+                ppn: ppn_pajak
+            },
+            success: function (response) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Sukses!',
+                    text: response.message || 'PPN berhasil disimpan!',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                $('#pajakModal').modal('hide');
+            },
+            error: function (xhr) {
+                console.error('Gagal:', xhr.responseText);
+                alert('Gagal menyimpan PPN');
+            }
+        });
+    });
+// ========================= End Of Update Pajak ======================================
 // ########################### End Of NAVBAR ROOM #####################################
 // ########################### SIDEBAR ROOM #####################################
 // ========================= Main Transaksi ======================================

@@ -8,8 +8,8 @@ use App\Http\Controllers\PDFController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\TransaksiController;
 use App\Http\Controllers\MobileController;
+use App\Http\Controllers\PajakController;
 use Illuminate\Support\Facades\Route;
-Broadcast::routes();
 
 /*
 |--------------------------------------------------------------------------
@@ -95,7 +95,11 @@ Route::prefix('harga')->group(function () {
 Route::prefix('mobile')->middleware('auth')->group(function () {
     Route::get('/index', [MobileController::class, 'index'])->name('index_mobile');
     Route::get('/edit/show', [MobileController::class, 'index_edit_transaksi_mobile'])->name('index_edit_transaksi_mobile');
+});
 
+Route::prefix('pajak')->middleware('auth')->group(function () {
+    Route::get('/get-pajak', [PajakController::class, 'get_pajak'])->name('get_pajak');
+    Route::post('/edit/show', [PajakController::class, 'update_pajak'])->name('update_pajak');
 });
 
 Route::post('/broadcasting/auth', function () {

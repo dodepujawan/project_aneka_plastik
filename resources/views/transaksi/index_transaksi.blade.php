@@ -147,37 +147,55 @@ h5 {
     </div>
 </div>
 {{-- ### Form Inputan ### --}}
-<form action="" class="row mt-3">
-    <div class="col-lg-4 col-md-12 col-sm-12 mb-3">
-        <div class="d-flex align-items-center">
-        <button type="button" id="clear_select" class="btn btn-secondary btn-sm me-2 mr-2">
-            <i class="fa fa-eraser" aria-hidden="true"></i>
-        </button>
-        <select name="select_barang" id="select_barang" class="form-control">
-            <option></option>
-            <!-- Options untuk select dropdown -->
-        </select>
+<form action="" class="mt-3">
+    <div class="row">
+        <div class="col-lg-4 col-md-12 col-sm-12 mb-3">
+            <div class="d-flex align-items-center">
+            <button type="button" id="clear_select" class="btn btn-secondary btn-sm me-2 mr-2">
+                <i class="fa fa-eraser" aria-hidden="true"></i>
+            </button>
+            <select name="select_barang" id="select_barang" class="form-control">
+                <option></option>
+                <!-- Options untuk select dropdown -->
+            </select>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6 col-sm-12 mb-3">
+            <select name="select_barang_satuan" id="select_barang_satuan" class="form-control">
+                <option value="">Pilih Satuan</option>
+            </select>
+        </div>
+        <div class="col-lg-4 col-md-6 col-sm-12 mb-3">
+            <input type="number" id="jumlah_trans" class="form-control" placeholder="Jumlah barang">
         </div>
     </div>
-    <div class="col-lg-3 col-md-6 col-sm-12 mb-3">
-        <select name="select_barang_satuan" id="select_barang_satuan" class="form-control">
-            <option value="">Pilih Satuan</option>
-        </select>
-    </div>
-    <div class="col-lg-3 col-md-6 col-sm-12 mb-3">
-        <input type="number" id="jumlah_trans" class="form-control" placeholder="Jumlah barang">
-    </div>
-    <div class="col-lg-2 col-md-6 col-sm-12 mb-3">
-        <div class="d-flex align-items-center">
-            @php
-                $user = Auth::user();
-                $allowed_roles = ['customer'];
-                $is_customer = in_array($user->roles, $allowed_roles);
-            @endphp
-        <input type="number" id="diskon_barang" class="form-control" placeholder="Disc %" {{ $is_customer ? 'readonly' : '' }}>
-        <button type="submit" class="btn btn-success btn-sm ms-2 ml-2">
-            {{-- <i class="fa fa-check" aria-hidden="true"></i> --}}Simpan
-        </button>
+    <div class="row">
+        <div class="col-lg-4 col-md-6 col-sm-12 mb-3">
+            <div class="d-flex align-items-center">
+                @php
+                    $user = Auth::user();
+                    $allowed_roles = ['customer'];
+                    $is_customer = in_array($user->roles, $allowed_roles);
+                @endphp
+            <input type="number" id="diskon_barang" class="form-control" placeholder="Diskon %" {{ $is_customer ? 'readonly' : '' }}>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6 col-sm-12 mb-3">
+            <div class="d-flex align-items-center">
+                @php
+                    $user = Auth::user();
+                    $allowed_roles = ['customer'];
+                    $is_customer = in_array($user->roles, $allowed_roles);
+                @endphp
+            <input type="number" id="diskon_barang_rp" class="form-control" placeholder="Diskon RP" {{ $is_customer ? 'readonly' : '' }}>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6 col-sm-12 mb-3">
+            <div class="d-flex align-items-center" style="gap: 10px;">
+                <label for="ppn_trans" class="mb-0">PPN</label>
+                <input type="number" id="ppn_trans" class="form-control form-control-md" style="width: 150px;" placeholder="0" disabled>
+                <button type="submit" class="btn btn-success btn-md">Simpan</button>
+            </div>
         </div>
     </div>
 </form>
@@ -193,14 +211,16 @@ h5 {
                 <th>Isi</th>
                 <th>Satuan</th>
                 <th>Jumlah</th>
-                <th>Diskon</th>
+                <th>Diskon %</th>
+                <th>Diskon Rp</th>
+                <th>PPN</th>
                 <th>Total</th>
                 <th>del</th>
             </tr>
         </thead>
         <tfoot>
             <tr>
-                <td colspan="8" class="text-right"><strong>Grand Total:</strong></td>
+                <td colspan="10" class="text-right"><strong>Grand Total:</strong></td>
                 <td id="grand_total">0</td>
             </tr>
         </tfoot>
@@ -369,16 +389,18 @@ $(document).ready(function(){
     // === fungsi enter next di form ===
     // ### Mencegah submit ketika Enter kecuali pada tombol submit (fungsi enter jadi next)
     $('form').on('keydown', 'input, select', function(e) {
-        if (e.keyCode == 13) {
-            e.preventDefault(); // Mencegah submit
+        if (e.keyCode === 13) {
+            e.preventDefault(); // Mencegah form langsung submit
+            // Dapatkan semua elemen fokusable (yang terlihat, tidak disabled, tidak readonly)
+            var focusable = $('form').find('input, select, button')
+                .filter(':visible:not([disabled]):not([readonly])');
 
-            // Pindah ke elemen input atau select berikutnya
-            var focusable = $('form').find('input, select, button').filter(':visible');
             var nextIndex = focusable.index(this) + 1;
+
             if (nextIndex < focusable.length) {
                 focusable.eq(nextIndex).focus();
             } else {
-                // Jika sudah sampai di elemen terakhir (submit button), submit form
+                // Submit form kalau sudah sampai elemen terakhir
                 $('form').submit();
             }
         }
@@ -465,6 +487,22 @@ $(document).ready(function(){
     });
 
 // =================== End of Trigger Select Satuan Barang When select_barang_satuan change ==========================
+// =================== Pajak PPN ==========================
+    loadInputPajak();
+    function loadInputPajak(){
+        $.ajax({
+            url: '{{ route('get_pajak') }}',
+            type: 'GET',
+            success: function(response) {
+                let nilai_ppn = response.data.ppn;
+                $('#ppn_trans').val(nilai_ppn);
+            },
+            error: function() {
+                $('#ppn_trans').val('Error Loading');
+            }
+        });
+    }
+// =================== End Of Pajak PPN ==========================
 // ================================= Input Barang To Table ===========================================
     let grandTotal = 0;
     $('form').on('submit', function(event) {
@@ -478,6 +516,8 @@ $(document).ready(function(){
         let satuanBarang = $('#select_barang_satuan').val();
         let jumlahTrans = parseFloat($('#jumlah_trans').val()) || 0;
         let diskonBarang = parseFloat($('#diskon_barang').val()) || 0;
+        let diskonBarangRp = parseFloat($('#diskon_barang_rp').val()) || 0;
+        let ppnBarang = parseFloat($('#ppn_trans').val().replace(',', '.')) || 0;
             // Pengecekan untuk nilai kosong
         if (!kdBarang || !namaBarang || hargaBarang === 0 || jumlahTrans === 0) {
             Swal.fire({
@@ -492,7 +532,10 @@ $(document).ready(function(){
         }
         // rumus diskon
         let diskon_dalam_uang = (diskonBarang / 100) * hargaBarang;
-        let total = (hargaBarang - diskon_dalam_uang) * jumlahTrans;
+        let total = (hargaBarang - diskon_dalam_uang - diskonBarangRp) * jumlahTrans;
+        let ppn_dalam_uang = (hargaBarang * ppnBarang) / 100;
+        let total_ppn = (ppn_dalam_uang * jumlahTrans);
+        let gtotal = (total + total_ppn);
         // let formatted_total = total.toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 });-> jika butuh pembulatan .00
         // let formatted_total = total;
 
@@ -506,16 +549,18 @@ $(document).ready(function(){
                 <td>${hargaBarang}</td>
                 <td>${unitBarang}</td>
                 <td>${satuanBarang}</td>
-                <td class="editable" contenteditable="true">${jumlahTrans}</td>
+                <td class="editable" contenteditable="true" style="background-color: #fff8dc;">${jumlahTrans}</td>
                 <td class="editable" ${user_role_diskon === 'customer' ? '' : 'contenteditable="true"'}>${diskonBarang}</td>
-                <td>${format_ribuan(total)}</td>
+                <td class="editable" ${user_role_diskon === 'customer' ? '' : 'contenteditable="true"'}>${diskonBarangRp}</td>
+                <td class="editable" ${user_role_diskon !== 'customer' && user_role_diskon !== 'staff' ? 'contenteditable="true"' : ''}>${ppnBarang}</td>
+                <td>${format_ribuan(gtotal)}</td>
                 <td><button type="button" class="btn btn-danger btn-sm delete-row"><i class="fa fa-trash" aria-hidden="true"></i></button></td>
             </tr>
         `;
         $('#transaksi_table tbody').append(newRow);
         updateRowNumbers();
 
-        grandTotal += total;
+        grandTotal += gtotal;
         $('#grand_total').text(format_ribuan(grandTotal));
 
         this.reset();
@@ -525,6 +570,7 @@ $(document).ready(function(){
         $('#unit_barang').text('-');
         $('#select_barang_satuan').empty();
         $('#select_barang_satuan').append('<option value="">Pilih Satuan</option>');
+        loadInputPajak();
 
         setTimeout(function() {
             $('#select_barang').select2('open');
@@ -536,7 +582,7 @@ $(document).ready(function(){
     // ### Detele Table
     $('#transaksi_table').on('click', '.delete-row', function() {
         let row = $(this).closest('tr');
-        let total_text = row.find('td:eq(8)').text();
+        let total_text = row.find('td:eq(10)').text();
         let total =  parseFloat(hapus_format(total_text)) || 0;
         row.remove();
         updateRowNumbers();
@@ -557,18 +603,24 @@ $(document).ready(function(){
         let hargaBarang = parseFloat(row.find('td:eq(3)').text()) || 0;
         let newJumlah = parseFloat(row.find('td:eq(6)').text()) || 0;
         let diskonBarang = parseFloat(row.find('td:eq(7)').text()) || 0;
-        let oldTotal_text = row.find('td:eq(8)').text();
+        let diskonBarangRp = parseFloat(row.find('td:eq(8)').text()) || 0;
+        let ppnBarang = parseFloat(row.find('td:eq(9)').text()) || 0;
+        let oldTotal_text = row.find('td:eq(10)').text();
         let oldTotal = parseFloat(hapus_format(oldTotal_text))|| 0;
+
 
         // rumus diskon
         let diskon_dalam_uang = (diskonBarang / 100) * hargaBarang;
         // Hitung total baru dan update baris
-        let total = (hargaBarang - diskon_dalam_uang) * newJumlah;
+        let total = (hargaBarang - diskon_dalam_uang - diskonBarangRp) * newJumlah;
+        let ppn_dalam_uang = (hargaBarang * ppnBarang) / 100;
+        let total_ppn = (ppn_dalam_uang * newJumlah);
+        let gtotal = (total + total_ppn);
         // row.find('td:eq(8)').text(total.toFixed(2)); -> untuk dapat .00
-        row.find('td:eq(8)').text(format_ribuan(total));
+        row.find('td:eq(10)').text(format_ribuan(gtotal));
 
         // Update grand total
-        grandTotal = grandTotal - oldTotal + total;
+        grandTotal = grandTotal - oldTotal + gtotal;
         $('#grand_total').text(format_ribuan(grandTotal));
     });
 // =============================== End Of Input Barang To Table =========================================
@@ -587,7 +639,9 @@ $(document).ready(function(){
             const satuan = $(this).find('td:eq(5)').text();    // Satuan Barang
             const jumlah = $(this).find('td:eq(6)').text();    // Jumlah (editable)
             const diskon = $(this).find('td:eq(7)').text();    // Diskon (editable)
-            const total_text = $(this).find('td:eq(8)').text();     // Total
+            const diskon_rp = $(this).find('td:eq(8)').text();
+            const ppn_trans = $(this).find('td:eq(9)').text();
+            const total_text = $(this).find('td:eq(10)').text();     // Total
             const total = hapus_format(total_text);
             // Validasi jumlah: tidak boleh kosong, harus angka, dan lebih besar dari 0
             if (!jumlah || isNaN(jumlah) || parseFloat(jumlah) <= 0) {
@@ -609,6 +663,31 @@ $(document).ready(function(){
                     icon: 'warning',
                     title: 'Diskon Tidak Valid',
                     text: 'Diskon harus berupa angka, bisa 0, dan tidak boleh kosong!',
+                    showConfirmButton: false,
+                    timer: 2000 // Durasi tampil dalam milidetik
+                });
+                return false; // Hentikan loop jika tidak valid
+            }
+
+            // Validasi diskon: harus angka (boleh 0)
+            if (diskon_rp === "" || diskon_rp.trim() === "" || isNaN(diskon_rp)) {
+                is_valid = false;
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Diskon Tidak Valid',
+                    text: 'Diskon harus berupa angka, bisa 0, dan tidak boleh kosong!',
+                    showConfirmButton: false,
+                    timer: 2000 // Durasi tampil dalam milidetik
+                });
+                return false; // Hentikan loop jika tidak valid
+            }
+
+            if (ppn_trans === "" || ppn_trans.trim() === "" || isNaN(ppn_trans)) {
+                is_valid = false;
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'PPN Tidak Valid',
+                    text: 'PPN harus berupa angka, bisa 0, dan tidak boleh kosong!',
                     showConfirmButton: false,
                     timer: 2000 // Durasi tampil dalam milidetik
                 });
@@ -637,6 +716,8 @@ $(document).ready(function(){
                     satuan,
                     jumlah: parseFloat(jumlah), // Pastikan formatnya angka
                     diskon: parseFloat(diskon), // Pastikan formatnya angka
+                    diskon_rp: parseFloat(diskon_rp),
+                    ppn_trans: parseFloat(ppn_trans),
                     total: parseFloat(total) // Bersihkan format jika ada titik
                 });
             }
