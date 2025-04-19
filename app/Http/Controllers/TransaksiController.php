@@ -251,6 +251,8 @@ class TransaksiController extends Controller
             'b.satuan',
             DB::raw('CAST(b.harga AS UNSIGNED) AS harga'),
             DB::raw('CAST(b.disc AS UNSIGNED) AS disc'),
+            DB::raw('CAST(b.ndisc AS UNSIGNED) AS ndisc'),
+            DB::raw('CAST(b.ppn AS UNSIGNED) AS ppn'),
             DB::raw('CAST(b.total AS UNSIGNED) AS total'),
             'b.rcabang'
         )
@@ -334,7 +336,8 @@ class TransaksiController extends Controller
 
             foreach ($products as $product) {
                 $cleaned_total = str_replace(',', '.', str_replace('.', '', $product['total']));
-
+                $ppn_rupiah = ($product['harga'] * $product['ppn_trans']) / 100;
+                $diskon_rupiah = ($product['diskon'] / 100) * $product['harga'];
                 Transactions::create([
                     'no_invoice' => $noInvoice,
                     'kd_brg' => $product['kd_barang'],
@@ -343,7 +346,13 @@ class TransaksiController extends Controller
                     'qty_unit' => $product['unit'],
                     'satuan' => $product['satuan'],
                     'qty_order' => $product['jumlah'],
+                    'ppn' => $product['ppn_trans'],
+                    'rppn' => $ppn_rupiah,
+                    'hsppn' => $product['harga'] - $ppn_rupiah,
                     'disc' => $product['diskon'],
+                    'rdisc' => $diskon_rupiah,
+                    'ndisc' => $product['diskon_rp'],
+                    'ttldisc' => $diskon_rupiah + $product['diskon_rp'],
                     'total' => $cleaned_total,
                     'rcabang' => $rcabang,
                     'status_po' => 0,

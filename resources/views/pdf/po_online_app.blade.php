@@ -175,7 +175,9 @@
                     <th>Satuan</th>
                     <th>Jumlah</th>
                     <th style="background-color: rgba(255, 0, 0, 0.3); color: rgba(28, 13, 13, 0.973);">Disetujui</th>
-                    <th>Diskon</th>
+                    <th>Diskon %</th>
+                    <th>Diskon Rp</th>
+                    <th>PPN</th>
                     <th style="background-color: rgba(255, 0, 0, 0.3); color: rgba(28, 13, 13, 0.973);">Total Disetujui</th>
                 </tr>
             </thead>
@@ -190,14 +192,16 @@
                     <td>{{ $item->satuan }}</td>
                     <td>{{ $item->qty_order }}</td>
                     <td>{{ $item->qty_sup }}</td>
-                    <td>{{ number_format($item->disc, 0, ',', '.') }}</td>
+                    <td>{{ number_format($item->disc, 0, ',', '.') }} %</td>
+                    <td>{{ number_format($item->ndisc, 0, ',', '.') }}</td>
+                    <td>{{ number_format($item->ppn, 0, ',', '.') }}</td>
                     <td>{{ number_format($item->total, 0, ',', '.') }}</td>
                 </tr>
                 @endforeach
             </tbody>
             <tfoot>
                 <tr>
-                    <td colspan="9" style="text-align: right;"><strong>Grand Total:</strong></td>
+                    <td colspan="11" style="text-align: right;"><strong>Grand Total:</strong></td>
                     <td>{{ number_format($transaction->sum('total'), 0, ',', '.') }}</td>
                 </tr>
             </tfoot>

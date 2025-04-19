@@ -164,7 +164,9 @@
                     <th>Isi</th>
                     <th>Satuan</th>
                     <th>Jumlah</th>
-                    <th>Diskon</th>
+                    <th>Diskon %</th>
+                    <th>Diskon Rp</th>
+                    <th>PPN</th>
                     <th>Total</th>
                 </tr>
             </thead>
@@ -178,14 +180,16 @@
                     <td>{{ $item->qty_unit }}</td>
                     <td>{{ $item->satuan }}</td>
                     <td>{{ $item->qty_order }}</td>
-                    <td>{{ number_format($item->disc, 0, ',', '.') }}</td>
+                    <td>{{ number_format($item->disc, 0, ',', '.') }} %</td>
+                    <td>{{ number_format($item->ndisc, 0, ',', '.') }}</td>
+                    <td>{{ number_format($item->ppn, 0, ',', '.') }}</td>
                     <td>{{ number_format($item->total, 0, ',', '.') }}</td>
                 </tr>
                 @endforeach
             </tbody>
             <tfoot>
                 <tr>
-                    <td colspan="8" style="text-align: right;"><strong>Grand Total:</strong></td>
+                    <td colspan="10" style="text-align: right;"><strong>Grand Total:</strong></td>
                     <td>{{ number_format($transaction->sum('total'), 0, ',', '.') }}</td>
                 </tr>
             </tfoot>
