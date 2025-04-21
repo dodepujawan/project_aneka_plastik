@@ -108,7 +108,10 @@ class TransaksiController extends Controller
             foreach ($products as $product) {
                 // menghilangkan titik di total
                 // $cleaned_total = intval(str_replace('.', '', explode(',', $product['total'])[0]));
-                $ppn_rupiah = ($product['harga'] * $product['ppn_trans']) / 100;
+                $total_net = $product['total'];
+                $ppn = $product['ppn_trans']; // contoh: 10
+                $dpp = round($total_net / (1 + ($ppn / 100)));
+                $ppn_rupiah = $total_net - $dpp;
                 $diskon_rupiah = ($product['diskon'] / 100) * $product['harga'];
                 Transactions::create([
                     'no_invoice' => $invoiceNumber,  // Menyimpan nomor invoice
@@ -120,11 +123,12 @@ class TransaksiController extends Controller
                     'qty_order' => $product['jumlah'],
                     'ppn' => $product['ppn_trans'],
                     'rppn' => $ppn_rupiah,
-                    'hsppn' => $product['harga'] - $ppn_rupiah,
+                    'dpp' => $total_net - $ppn_rupiah,
                     'disc' => $product['diskon'],
                     'rdisc' => $diskon_rupiah,
                     'ndisc' => $product['diskon_rp'],
-                    'ttldisc' => $diskon_rupiah + $product['diskon_rp'],
+                    'ttldisc' => ($diskon_rupiah + $product['diskon_rp']) * $product['jumlah'],
+                    'ttl_gross' => $product['jumlah'] * $product['harga'],
                     'total' => $product['total'],
                     'rcabang' => $rcabang,  // Menyimpan rcabang dari pengguna yang login
                     'status_po' => 0,
@@ -336,7 +340,12 @@ class TransaksiController extends Controller
 
             foreach ($products as $product) {
                 $cleaned_total = str_replace(',', '.', str_replace('.', '', $product['total']));
-                $ppn_rupiah = ($product['harga'] * $product['ppn_trans']) / 100;
+                $total_net = (float) $cleaned_total;
+                // Hitung DPP & PPN mundur (sesuai gaya Excel klien)
+                $ppn = $product['ppn_trans']; // contoh: 10
+                $dpp = round($total_net / (1 + ($ppn / 100)));
+                $ppn_rupiah = $total_net - $dpp;
+
                 $diskon_rupiah = ($product['diskon'] / 100) * $product['harga'];
                 Transactions::create([
                     'no_invoice' => $noInvoice,
@@ -348,11 +357,12 @@ class TransaksiController extends Controller
                     'qty_order' => $product['jumlah'],
                     'ppn' => $product['ppn_trans'],
                     'rppn' => $ppn_rupiah,
-                    'hsppn' => $product['harga'] - $ppn_rupiah,
+                    'dpp' => $total_net - $ppn_rupiah,
                     'disc' => $product['diskon'],
                     'rdisc' => $diskon_rupiah,
                     'ndisc' => $product['diskon_rp'],
-                    'ttldisc' => $diskon_rupiah + $product['diskon_rp'],
+                    'ttldisc' => ($diskon_rupiah + $product['diskon_rp']) * $product['jumlah'],
+                    'ttl_gross' => $product['jumlah'] * $product['harga'],
                     'total' => $cleaned_total,
                     'rcabang' => $rcabang,
                     'status_po' => 0,
@@ -450,7 +460,7 @@ class TransaksiController extends Controller
             )
             // ->where('a.user_id', Auth::user()->user_id)
             // ->where('a.user_kode', Auth::user()->user_kode)
-            ->where('b.status_po', '!=', 0)
+            ->where('b.status_po', '=', 1)
             ->groupBy('a.no_invoice', 'a.created_at', 'a.user_id', 'a.user_kode')
             ->orderBy('a.created_at', 'desc');
 
@@ -526,6 +536,9 @@ class TransaksiController extends Controller
                 'qty_order',
                 'qty_sup',
                 'disc',
+                'ndisc',
+                'ndisc',
+                'ppn',
                 'total'
             ])
             ->where('no_invoice', $no_invoice)

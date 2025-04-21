@@ -100,14 +100,14 @@ h5 {
 <div class="container master_customer_select">
     <div class="row">
         <div class="form-group col-lg-4 col-md-12 col-sm-12 mb-3">
-            <input type="text" name="kode_user_trans" id="kode_user_trans" class="form-control" placeholder="Kode User" required="" readonly>
+            <input type="text" name="kode_user_trans" id="kode_user_trans" class="form-control" placeholder="Kode Customer" required="" readonly>
         </div>
         <div class="form-group col-lg-4 col-md-12 col-sm-12 mb-3">
-            <input type="text" name="nama_user_trans" id="nama_user_trans" class="form-control" placeholder="Nama User" required="" readonly>
+            <input type="text" name="nama_user_trans" id="nama_user_trans" class="form-control" placeholder="Nama Customer" required="" readonly>
         </div>
         <div class="form-group col-lg-4 col-md-12 col-sm-12 mb-3">
             <select name="select_user_trans" id="select_user_trans" class="form-control">
-                <option value="">Pilih User</option>
+                <option value="">Pilih Customer</option>
             </select>
         </div>
     </div>
@@ -532,10 +532,14 @@ $(document).ready(function(){
         }
         // rumus diskon
         let diskon_dalam_uang = (diskonBarang / 100) * hargaBarang;
-        let total = (hargaBarang - diskon_dalam_uang - diskonBarangRp) * jumlahTrans;
-        let ppn_dalam_uang = (hargaBarang * ppnBarang) / 100;
-        let total_ppn = (ppn_dalam_uang * jumlahTrans);
-        let gtotal = (total + total_ppn);
+        let harga_setelah_diskon = hargaBarang - diskon_dalam_uang - diskonBarangRp;
+        let total = harga_setelah_diskon * jumlahTrans;
+
+        // PPN dihitung mundur (seperti di Excel)
+        let dpp = Math.round(total / (1 + ppnBarang / 100));
+        let total_ppn = total - dpp;
+
+        let gtotal = total; // karena total sudah termasuk PPN
         // let formatted_total = total.toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 });-> jika butuh pembulatan .00
         // let formatted_total = total;
 
@@ -609,13 +613,15 @@ $(document).ready(function(){
         let oldTotal = parseFloat(hapus_format(oldTotal_text))|| 0;
 
 
-        // rumus diskon
         let diskon_dalam_uang = (diskonBarang / 100) * hargaBarang;
-        // Hitung total baru dan update baris
-        let total = (hargaBarang - diskon_dalam_uang - diskonBarangRp) * newJumlah;
-        let ppn_dalam_uang = (hargaBarang * ppnBarang) / 100;
-        let total_ppn = (ppn_dalam_uang * newJumlah);
-        let gtotal = (total + total_ppn);
+        let harga_setelah_diskon = hargaBarang - diskon_dalam_uang - diskonBarangRp;
+        let total = harga_setelah_diskon * jumlahTrans;
+
+        // PPN dihitung mundur (seperti di Excel)
+        let dpp = Math.round(total / (1 + ppnBarang / 100));
+        let total_ppn = total - dpp;
+
+        let gtotal = total; // karena total sudah termasuk PPN
         // row.find('td:eq(8)').text(total.toFixed(2)); -> untuk dapat .00
         row.find('td:eq(10)').text(format_ribuan(gtotal));
 

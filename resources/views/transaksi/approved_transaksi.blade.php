@@ -96,6 +96,8 @@
 
     <div class="mt-3 table-container table-responsive" id="table_transaksi_po_app" style="display: none;">
         <h3>Detail PO Approved Table</h3>
+        {{-- Inputan No PO --}}
+        <input type="text" class="form-control mt-3 mb-1 col-lg-3" name="no_po_approve" id="no_po_approve" readonly>
         <table id="table_transaksi_list_po_app" class="display table table-bordered mb-2">
             <thead>
                 <tr>
@@ -107,13 +109,15 @@
                     <th>Satuan</th>
                     <th>Jumlah</th>
                     <th style="background-color: rgba(255, 0, 0, 0.3); color: rgba(255, 0, 0, 0.8);">Disetujui</th>
-                    <th>Diskon</th>
+                    <th>Diskon %</th>
+                    <th>Diskon Rp</th>
+                    <th>PPN</th>
                     <th style="background-color: rgba(255, 0, 0, 0.3); color: rgba(255, 0, 0, 0.8);">Total Disetujui</th>
                 </tr>
             </thead>
             <tfoot>
                 <tr>
-                    <td colspan="9" class="text-right"><strong>Grand Total:</strong></td>
+                    <td colspan="11" class="text-right"><strong>Grand Total:</strong></td>
                     <td id="grand_total_po_app">0</td>
                     {{-- <td id="grand_total_edit_mirror">0</td> --}}
                 </tr>
@@ -123,6 +127,7 @@
             </tbody>
         </table>
         <div class="button-container" style="display: flex; justify-content: flex-end; gap: 10px;">
+            <button type="button" class="btn btn-primary mt-2 mb-2" id="proses_table_transaksi_approved"><i class="fas fa-save"> Proses</i></button>
             <button type="button" class="btn btn-warning mt-2 mb-2" id="return_table_transaksi_approved"><i class="fas fa-undo"> List Menu</i></button>
         </div>
     </div>
@@ -415,6 +420,8 @@ $(document).on('click', '#po_table_refresh', function() {
                 tableBody.empty();
 
                 var grandTotal = 0;
+                $('#no_po_approve').val(response.data[0].no_invoice);
+                console.log('test :' + response.data[0].no_invoice);
 
                 $.each(response.data, function(index, item) {
                     var row = $('<tr></tr>');
@@ -426,8 +433,10 @@ $(document).on('click', '#po_table_refresh', function() {
                     row.append('<td>' + item.qty_unit + '</td>');
                     row.append('<td>' + item.satuan + '</td>');
                     row.append('<td>' + item.qty_order + '</td>');
-                    row.append('<td">' + item.qty_sup + '</td>');
+                    row.append('<td>' + item.qty_sup + '</td>');
                     row.append('<td>' + item.disc + '</td>');
+                    row.append('<td>' + item.ndisc + '</td>');
+                    row.append('<td>' + item.ppn + '</td>');
                     row.append('<td>' + format_ribuan(item.total) + '</td>');
 
                     tableBody.append(row);
@@ -446,6 +455,187 @@ $(document).on('click', '#po_table_refresh', function() {
     });
 
 // ================================== End Of Show PO Detail Approved ===========================================
+// ================================= Submit Barang To DB =========================================
+$('#proses_table_transaksi_approved').on('click', function () {
+        const kode_user = $("#kode_user_trans").val();
+        const products = [];
+        let is_valid = true; // Untuk memeriksa validasi secara keseluruhan
+
+        // Loop melalui setiap baris di tabel
+        $('#transaksi_table tbody tr').each(function () {
+            const kd_barang = $(this).find('td:eq(1)').text(); // KD Barang
+            const nama = $(this).find('td:eq(2)').text();      // Nama Barang
+            const harga = $(this).find('td:eq(3)').text();     // Harga Barang
+            const unit = $(this).find('td:eq(4)').text();      // Unit Barang
+            const satuan = $(this).find('td:eq(5)').text();    // Satuan Barang
+            const jumlah = $(this).find('td:eq(6)').text();    // Jumlah (editable)
+            const diskon = $(this).find('td:eq(7)').text();    // Diskon (editable)
+            const diskon_rp = $(this).find('td:eq(8)').text();
+            const ppn_trans = $(this).find('td:eq(9)').text();
+            const total_text = $(this).find('td:eq(10)').text();     // Total
+            const total = hapus_format(total_text);
+            // Validasi jumlah: tidak boleh kosong, harus angka, dan lebih besar dari 0
+            if (!jumlah || isNaN(jumlah) || parseFloat(jumlah) <= 0) {
+                is_valid = false;
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Jumlah Tidak Valid',
+                    text: 'Jumlah harus berupa angka dan lebih besar dari 0 di salah satu baris!',
+                    showConfirmButton: false,
+                    timer: 2000 // Durasi tampil dalam milidetik
+                });
+                return false; // Hentikan loop jika tidak valid
+            }
+
+            // Validasi diskon: harus angka (boleh 0)
+            if (diskon === "" || diskon.trim() === "" || isNaN(diskon)) {
+                is_valid = false;
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Diskon Tidak Valid',
+                    text: 'Diskon harus berupa angka, bisa 0, dan tidak boleh kosong!',
+                    showConfirmButton: false,
+                    timer: 2000 // Durasi tampil dalam milidetik
+                });
+                return false; // Hentikan loop jika tidak valid
+            }
+
+            // Validasi diskon: harus angka (boleh 0)
+            if (diskon_rp === "" || diskon_rp.trim() === "" || isNaN(diskon_rp)) {
+                is_valid = false;
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Diskon Tidak Valid',
+                    text: 'Diskon harus berupa angka, bisa 0, dan tidak boleh kosong!',
+                    showConfirmButton: false,
+                    timer: 2000 // Durasi tampil dalam milidetik
+                });
+                return false; // Hentikan loop jika tidak valid
+            }
+
+            if (ppn_trans === "" || ppn_trans.trim() === "" || isNaN(ppn_trans)) {
+                is_valid = false;
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'PPN Tidak Valid',
+                    text: 'PPN harus berupa angka, bisa 0, dan tidak boleh kosong!',
+                    showConfirmButton: false,
+                    timer: 2000 // Durasi tampil dalam milidetik
+                });
+                return false; // Hentikan loop jika tidak valid
+            }
+
+            if (kode_user === "") {
+                is_valid = false;
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Kode User Tidak Valid',
+                    text: 'Kode User tidak boleh kosong!',
+                    showConfirmButton: false,
+                    timer: 2000 // Durasi tampil dalam milidetik
+                });
+                return false; // Hentikan loop jika tidak valid
+            }
+
+            // Masukkan ke array hanya jika KD Barang ada
+            if (kd_barang) {
+                products.push({
+                    kd_barang,
+                    nama,
+                    harga,
+                    unit,
+                    satuan,
+                    jumlah: parseFloat(jumlah), // Pastikan formatnya angka
+                    diskon: parseFloat(diskon), // Pastikan formatnya angka
+                    diskon_rp: parseFloat(diskon_rp),
+                    ppn_trans: parseFloat(ppn_trans),
+                    total: parseFloat(total) // Bersihkan format jika ada titik
+                });
+            }
+        });
+
+        // Pastikan validasi lolos sebelum mengirim data ke server
+        if (!is_valid) {
+            return; // Hentikan eksekusi jika validasi gagal
+        }
+
+        // Kirim data ke server jika ada produk
+        if (products.length > 0) {
+            save_to_database(products,kode_user);
+        } else {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Save Failed',
+                text: 'Tidak Ada Data Disimpan',
+                showConfirmButton: false,
+                timer: 2000 // Durasi tampil dalam milidetik
+            });
+        }
+    });
+
+    function save_to_database(products,kode_user) {
+        $('#loading_modal').modal('show');
+        setTimeout(function () {
+            $.ajax({
+                url: '{{ route('save_products') }}',
+                type: 'POST',
+                data: {
+                    _token: $('meta[name="csrf-token"]').attr('content'),
+                    products: products,
+                    kode_user:kode_user
+                },
+                success: function (response) {
+                    $('#loading_modal').modal('hide');
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Save Successful',
+                        text: 'Data Berhasil Disimpan dengan Nomor Invoice: ' + response.invoice_number,
+                        showConfirmButton: true, // Tampilkan tombol OK
+                        confirmButtonText: 'OK', // Ubah teks tombol jika diperlukan
+                        showDenyButton: true, // Show Deny button for Print PDF
+                        denyButtonText: 'Print PDF',
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // Callback setelah tombol OK ditekan
+                            success_call();
+                        }   else if (result.isDenied) {
+                            window.open('{{ route("generate_pdf", ":invoice_number") }}'.replace(':invoice_number', response.invoice_number), '_blank');
+                                success_call();
+                            }
+                    });
+                },
+                error: function (xhr, status, error) {
+                    console.log("Status: " + status);  // Menampilkan status HTTP
+                    console.log("Error: " + error);  // Menampilkan error message
+                    console.log(xhr.responseText);
+                    $('#loading_modal').modal('hide');
+                    alert('Failed to save data.');
+                }
+            });
+        }, 1200);
+    }
+    function success_call(){
+        $('#transaksi_table tbody').empty();
+        if(user_role_select != 'customer'){
+            $('#select_user_trans').val(null).trigger('change');
+            $("#kode_user_trans").val('');
+            $("#nama_user_trans").val('');
+        }
+        $('#grand_total').text(0);
+        grandTotal = 0;
+        // ### Redirect Hal Edit
+        $.ajax({
+            url: '{{ route('index_edit_transaksi') }}',
+            type: 'GET',
+            success: function(response) {
+                $('.master-page').html(response);
+            },
+            error: function() {
+                $('.master-page').html('<p>Error loading form.</p>');
+            }
+        });
+    }
+// ================================= End Of Submit Barang To DB =========================================
 // ==================================== Click Print Button ==============================================
 $(document).on('click', '#print_po_pdf_app', function() {
         var invoice_number = $(this).data("no-invoice");
