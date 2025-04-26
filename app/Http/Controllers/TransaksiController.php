@@ -552,6 +552,93 @@ class TransaksiController extends Controller
         ]);
     }
 
+    public function save_products_approved(Request $request){
+        // Ambil data produk dari request
+        $products = $request->input('products');
+        $no_po_approve = $request->input('no_po_approve');
+
+        // Ambil bulan dan tahun saat ini, format 'mY' misalnya '0225' untuk Februari 2025
+        $currentMonthYear = Carbon::now()->format('m') . substr(Carbon::now()->format('Y'), 2, 2);
+
+        // Ambil rcabang dari pengguna yang sedang login
+        $kode_user = Transusers::where('no_invoice', $no_po_approve)->value('user_kode');
+        $user_id = Transusers::where('no_invoice', $no_po_approve)->value('user_id');
+        $user_name = Transusers::where('no_invoice', $no_po_approve)->value('nama_cust');
+        $rcabang = Transactions::where('no_invoice', $no_po_approve)->pluck('rcabang')->first();
+
+        // Mulai transaksi
+        DB::beginTransaction();
+
+        try {
+            // Update Status PO ke 2 yang berarti tidak muncul lagi di aproved maupun di edit
+            DB::table('po_online')
+                ->where('no_invoice', $no_po_approve)
+                ->update(['status_po' => 2]);
+
+            // Ambil nomor urut terakhir untuk transaksi berdasarkan bulan dan tahun yang sama
+            $lastInvoice = Transusers::where('no_invoice', 'like', '%'.$currentMonthYear.'%')
+                                        ->orderBy('no_invoice', 'desc')
+                                        ->lockForUpdate()
+                                        ->first();
+
+            // Tentukan nomor urut berdasarkan nomor invoice terakhir
+            $nextInvoiceNumber = $lastInvoice ? (int) substr($lastInvoice->no_invoice, -5) + 1 : 1;
+
+            // Format nomor invoice dengan menambahkan prefix dan nomor urut
+            $invoiceNumber = 'POL-' . $currentMonthYear . str_pad($nextInvoiceNumber, 5, '0', STR_PAD_LEFT);
+
+            Transusers::create([
+                'no_invoice' => $invoiceNumber,
+                'user_id' => $user_id,
+                'nama_cust' => $user_name,
+                'user_kode' => $kode_user,
+            ]);
+
+            // Proses menyimpan data produk
+            foreach ($products as $product) {
+                // menghilangkan titik di total
+                // $cleaned_total = intval(str_replace('.', '', explode(',', $product['total'])[0]));
+                $total_net = $product['total'];
+                $ppn = $product['ppn_trans']; // contoh: 10
+                $dpp = round($total_net / (1 + ($ppn / 100)));
+                $ppn_rupiah = $total_net - $dpp;
+                $diskon_rupiah = ($product['diskon'] / 100) * $product['harga'];
+                Transactions::create([
+                    'no_invoice' => $invoiceNumber,  // Menyimpan nomor invoice
+                    'kd_brg' => $product['kd_barang'],
+                    'nama_brg' => $product['nama'],
+                    'harga' => $product['harga'],
+                    'qty_unit' => $product['unit'],
+                    'satuan' => $product['satuan'],
+                    'qty_order' => $product['jumlah'],
+                    'ppn' => $product['ppn_trans'],
+                    'rppn' => $ppn_rupiah,
+                    'dpp' => $total_net - $ppn_rupiah,
+                    'disc' => $product['diskon'],
+                    'rdisc' => $diskon_rupiah,
+                    'ndisc' => $product['diskon_rp'],
+                    'ttldisc' => ($diskon_rupiah + $product['diskon_rp']) * $product['jumlah'],
+                    'ttl_gross' => $product['jumlah'] * $product['harga'],
+                    'total' => $product['total'],
+                    'rcabang' => $rcabang,  // Menyimpan rcabang dari pengguna yang login
+                    'status_po' => 0,
+                    'history_inv' => $no_po_approve,
+                ]);
+            }
+
+            // Commit transaksi jika berhasil
+            DB::commit();
+
+            return response()->json(['message' => 'Products saved successfully!','invoice_number' => $invoiceNumber,], 200);
+        } catch (\Exception $e) {
+            // Rollback transaksi jika ada error
+            DB::rollBack();
+
+            // Kembalikan pesan error
+            return response()->json(['error' => 'Failed to save products: ' . $e->getMessage()], 500);
+        }
+    }
+
 }
 
 // Jaga Jaga Vesi Update Lama Tanpa Lock

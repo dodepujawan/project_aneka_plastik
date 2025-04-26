@@ -59,10 +59,13 @@ Route::prefix('transaksi')->middleware('auth')->group(function () {
     Route::get('/api/edit_transaksi/to_table', [TransaksiController::class, 'get_edit_transaksi_to_table'])->name('get_edit_transaksi_to_table');
     Route::post('update/products', [TransaksiController::class, 'update_products'])->name('update_products');
     Route::post('delete/products', [TransaksiController::class, 'delete_products'])->name('delete_products');
+    // Show Approved Transaksi
     Route::get('/approved', [TransaksiController::class, 'approved'])->name('approved_transaksi');
     Route::get('/api/filter_approved_invoice', [TransaksiController::class, 'filter_approved_invoice'])->name('filter_approved_invoice');
     Route::get('/api/po_approved', [TransaksiController::class, 'get_po_approved_det'])->name('get_po_approved_det');
+    Route::post('save/products_approved', [TransaksiController::class, 'save_products_approved'])->name('save_products_approved');
 });
+
 
 Route::prefix('home')->group(function () {
     Route::get('/', [HomeController::class, 'index'])->name('index')->middleware('auth');

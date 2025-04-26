@@ -457,22 +457,22 @@ $(document).on('click', '#po_table_refresh', function() {
 // ================================== End Of Show PO Detail Approved ===========================================
 // ================================= Submit Barang To DB =========================================
 $('#proses_table_transaksi_approved').on('click', function () {
-        const kode_user = $("#kode_user_trans").val();
+        const no_po_approve = $("#no_po_approve").val();
         const products = [];
         let is_valid = true; // Untuk memeriksa validasi secara keseluruhan
 
         // Loop melalui setiap baris di tabel
-        $('#transaksi_table tbody tr').each(function () {
+        $('#table_transaksi_list_po_app tbody tr').each(function () {
             const kd_barang = $(this).find('td:eq(1)').text(); // KD Barang
             const nama = $(this).find('td:eq(2)').text();      // Nama Barang
             const harga = $(this).find('td:eq(3)').text();     // Harga Barang
             const unit = $(this).find('td:eq(4)').text();      // Unit Barang
             const satuan = $(this).find('td:eq(5)').text();    // Satuan Barang
-            const jumlah = $(this).find('td:eq(6)').text();    // Jumlah (editable)
-            const diskon = $(this).find('td:eq(7)').text();    // Diskon (editable)
-            const diskon_rp = $(this).find('td:eq(8)').text();
-            const ppn_trans = $(this).find('td:eq(9)').text();
-            const total_text = $(this).find('td:eq(10)').text();     // Total
+            const jumlah = $(this).find('td:eq(7)').text();    // Jumlah (editable)
+            const diskon = $(this).find('td:eq(8)').text();    // Diskon (editable)
+            const diskon_rp = $(this).find('td:eq(9)').text();
+            const ppn_trans = $(this).find('td:eq(10)').text();
+            const total_text = $(this).find('td:eq(11)').text();     // Total
             const total = hapus_format(total_text);
             // Validasi jumlah: tidak boleh kosong, harus angka, dan lebih besar dari 0
             if (!jumlah || isNaN(jumlah) || parseFloat(jumlah) <= 0) {
@@ -525,25 +525,13 @@ $('#proses_table_transaksi_approved').on('click', function () {
                 return false; // Hentikan loop jika tidak valid
             }
 
-            if (kode_user === "") {
-                is_valid = false;
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Kode User Tidak Valid',
-                    text: 'Kode User tidak boleh kosong!',
-                    showConfirmButton: false,
-                    timer: 2000 // Durasi tampil dalam milidetik
-                });
-                return false; // Hentikan loop jika tidak valid
-            }
-
             // Masukkan ke array hanya jika KD Barang ada
             if (kd_barang) {
                 products.push({
                     kd_barang,
                     nama,
-                    harga,
-                    unit,
+                    harga: parseFloat(harga),
+                    unit: parseFloat(unit),
                     satuan,
                     jumlah: parseFloat(jumlah), // Pastikan formatnya angka
                     diskon: parseFloat(diskon), // Pastikan formatnya angka
@@ -561,7 +549,7 @@ $('#proses_table_transaksi_approved').on('click', function () {
 
         // Kirim data ke server jika ada produk
         if (products.length > 0) {
-            save_to_database(products,kode_user);
+            save_to_database(products,no_po_approve);
         } else {
             Swal.fire({
                 icon: 'warning',
@@ -573,16 +561,16 @@ $('#proses_table_transaksi_approved').on('click', function () {
         }
     });
 
-    function save_to_database(products,kode_user) {
+    function save_to_database(products,no_po_approve) {
         $('#loading_modal').modal('show');
         setTimeout(function () {
             $.ajax({
-                url: '{{ route('save_products') }}',
+                url: '{{ route('save_products_approved') }}',
                 type: 'POST',
                 data: {
                     _token: $('meta[name="csrf-token"]').attr('content'),
                     products: products,
-                    kode_user:kode_user
+                    no_po_approve:no_po_approve
                 },
                 success: function (response) {
                     $('#loading_modal').modal('hide');
@@ -615,14 +603,7 @@ $('#proses_table_transaksi_approved').on('click', function () {
         }, 1200);
     }
     function success_call(){
-        $('#transaksi_table tbody').empty();
-        if(user_role_select != 'customer'){
-            $('#select_user_trans').val(null).trigger('change');
-            $("#kode_user_trans").val('');
-            $("#nama_user_trans").val('');
-        }
-        $('#grand_total').text(0);
-        grandTotal = 0;
+        $('#table_transaksi_list_po_app tbody').empty();
         // ### Redirect Hal Edit
         $.ajax({
             url: '{{ route('index_edit_transaksi') }}',
