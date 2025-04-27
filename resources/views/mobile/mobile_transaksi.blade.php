@@ -167,37 +167,57 @@
     </div>
 </div>
 {{-- ### Form Inputan ### --}}
-<form action="" class="row mt-3">
-    <div class="col-lg-4 col-md-12 col-sm-12 mb-3">
-        <div class="d-flex align-items-center">
-        <button type="button" id="clear_select" class="btn btn-secondary btn-sm me-2 mr-2">
-            <i class="fa fa-eraser" aria-hidden="true"></i>
-        </button>
-        <select name="select_barang" id="select_barang" class="form-control">
-            <option></option>
-            <!-- Options untuk select dropdown -->
-        </select>
+<form action="" class="mt-3">
+    <div class="row">
+        <div class="col-lg-4 col-md-12 col-sm-12 mb-3">
+            <div class="d-flex align-items-center">
+            <button type="button" id="clear_select" class="btn btn-secondary btn-sm me-2 mr-2">
+                <i class="fa fa-eraser" aria-hidden="true"></i>
+            </button>
+            <select name="select_barang" id="select_barang" class="form-control">
+                <option></option>
+                <!-- Options untuk select dropdown -->
+            </select>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 col-sm-12 mb-3">
+            <select name="select_barang_satuan" id="select_barang_satuan" class="form-control">
+                <option value="">Pilih Satuan</option>
+            </select>
+        </div>
+        <div class="col-lg-3 col-md-6 col-sm-12 mb-3">
+            <input type="number" id="jumlah_trans" class="form-control" placeholder="Jumlah barang">
         </div>
     </div>
-    <div class="col-lg-3 col-md-6 col-sm-12 mb-3">
-        <select name="select_barang_satuan" id="select_barang_satuan" class="form-control">
-            <option value="">Pilih Satuan</option>
-        </select>
-    </div>
-    <div class="col-lg-3 col-md-6 col-sm-12 mb-3">
-        <input type="number" id="jumlah_trans" class="form-control" placeholder="Jumlah barang">
-    </div>
-    <div class="col-lg-2 col-md-6 col-sm-12 mb-3">
-        <div class="d-flex align-items-center">
-            @php
-                $user = Auth::user();
-                $allowed_roles = ['customer'];
-                $is_customer = in_array($user->roles, $allowed_roles);
-            @endphp
-        <input type="number" id="diskon_barang" class="form-control" placeholder="Disc %" {{ $is_customer ? 'readonly' : '' }}>
-        <button type="submit" class="btn btn-success btn-sm ms-2 ml-2">
-            {{-- <i class="fa fa-check" aria-hidden="true"></i> --}}Simpan
-        </button>
+    <div class="row">
+        <div class="col-lg-2 col-md-6 col-sm-12 mb-3">
+            <div class="d-flex align-items-center">
+                @php
+                    $user = Auth::user();
+                    $allowed_roles = ['customer'];
+                    $is_customer = in_array($user->roles, $allowed_roles);
+                @endphp
+            <input type="number" id="diskon_barang" class="form-control" placeholder="Disc %" {{ $is_customer ? 'readonly' : '' }}>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6 col-sm-12 mb-3">
+            <div class="d-flex align-items-center">
+                @php
+                    $user = Auth::user();
+                    $allowed_roles = ['customer'];
+                    $is_customer = in_array($user->roles, $allowed_roles);
+                @endphp
+            <input type="number" id="diskon_barang_rp" class="form-control" placeholder="Diskon RP" {{ $is_customer ? 'readonly' : '' }}>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6 col-sm-12 mb-3">
+            <div class="d-flex align-items-center" style="gap: 10px;">
+                <label for="ppn_trans" class="mb-0">PPN</label>
+                <input type="number" id="ppn_trans" class="form-control form-control-md" style="width: 150px;" placeholder="0" disabled>
+                <button type="submit" class="btn btn-success btn-sm ms-2 ml-2">
+                    {{-- <i class="fa fa-check" aria-hidden="true"></i> --}}Simpan
+                </button>
+            </div>
         </div>
     </div>
 </form>
@@ -373,16 +393,18 @@ $(document).ready(function(){
     // === fungsi enter next di form ===
     // ### Mencegah submit ketika Enter kecuali pada tombol submit (fungsi enter jadi next)
     $('form').on('keydown', 'input, select', function(e) {
-        if (e.keyCode == 13) {
-            e.preventDefault(); // Mencegah submit
+        if (e.keyCode === 13) {
+            e.preventDefault(); // Mencegah form langsung submit
+            // Dapatkan semua elemen fokusable (yang terlihat, tidak disabled, tidak readonly)
+            var focusable = $('form').find('input, select, button')
+                .filter(':visible:not([disabled]):not([readonly])');
 
-            // Pindah ke elemen input atau select berikutnya
-            var focusable = $('form').find('input, select, button').filter(':visible');
             var nextIndex = focusable.index(this) + 1;
+
             if (nextIndex < focusable.length) {
                 focusable.eq(nextIndex).focus();
             } else {
-                // Jika sudah sampai di elemen terakhir (submit button), submit form
+                // Submit form kalau sudah sampai elemen terakhir
                 $('form').submit();
             }
         }
@@ -469,6 +491,22 @@ $(document).ready(function(){
         });
 
 // =================== End of Trigger Select Satuan Barang When select_barang_satuan change =======================
+// =================== Pajak PPN ==========================
+    loadInputPajak();
+    function loadInputPajak(){
+        $.ajax({
+            url: '{{ route('get_pajak') }}',
+            type: 'GET',
+            success: function(response) {
+                let nilai_ppn = response.data.ppn;
+                $('#ppn_trans').val(nilai_ppn);
+            },
+            error: function() {
+                $('#ppn_trans').val('Error Loading');
+            }
+        });
+    }
+// =================== End Of Pajak PPN ==========================
 // ================================= Input Barang To Card ===========================================
     let grandTotal = 0;
 
@@ -488,21 +526,36 @@ $(document).ready(function(){
         updateCardNumbers();
     });
 
-    $('#transaksi_card_container').on('input', '.editable-jumlah, .editable-diskon', function() {
+    $('#transaksi_card_container').on('input', '.editable-jumlah, .editable-diskon, .editable-diskon-rp, .editable-ppn', function() {
         let card = $(this).closest('.transaksi-card');
 
         let harga = parseFloat(hapus_format(card.find('.harga-barang').text())) || 0;
         let jumlah = parseFloat(card.find('.editable-jumlah').text()) || 0;
         let diskon = parseFloat(card.find('.editable-diskon').text()) || 0;
+        let diskonrp = parseFloat(card.find('.editable-diskon-rp').text()) || 0;
+        let ppn = parseFloat(card.find('.editable-ppn').text()) || 0;
         let oldTotal = parseFloat(card.attr('data-total')) || 0;
 
+        // Hitung diskon dalam uang
         let diskon_uang = (diskon / 100) * harga;
-        let totalBaru = (harga - diskon_uang) * jumlah;
 
-        card.find('.total-text').text(format_ribuan(totalBaru));
-        card.attr('data-total', totalBaru);
+        // Harga setelah diskon dan diskon rupiah
+        let harga_setelah_diskon = harga - diskon_uang - diskonrp;
 
-        grandTotal = grandTotal - oldTotal + totalBaru;
+        // Total = harga setelah diskon * jumlah
+        let total = harga_setelah_diskon * jumlah;
+
+        // Hitung DPP dan PPN (PPN dihitung mundur)
+        let dpp = Math.round(total / (1 + ppn / 100));
+        let total_ppn = total - dpp;
+
+        // Update total di card
+        let gtotal = total; // Grand total per card
+        card.find('.total-text').text(format_ribuan(gtotal));
+        card.attr('data-total', gtotal);
+
+        // Update grand total semua card
+        grandTotal = grandTotal - oldTotal + gtotal;
         $('#grand_total').text(format_ribuan(grandTotal));
     });
 
@@ -517,6 +570,8 @@ $(document).ready(function(){
         let satuanBarang = $('#select_barang_satuan').val();
         let jumlahTrans = parseFloat($('#jumlah_trans').val()) || 0;
         let diskonBarang = parseFloat($('#diskon_barang').val()) || 0;
+        let diskonBarangRp = parseFloat($('#diskon_barang_rp').val()) || 0;
+        let ppnBarang = parseFloat($('#ppn_trans').val()) || 0;
 
         if (!kdBarang || !namaBarang || hargaBarang === 0 || jumlahTrans === 0) {
             Swal.fire({
@@ -530,12 +585,19 @@ $(document).ready(function(){
         }
 
         let diskon_dalam_uang = (diskonBarang / 100) * hargaBarang;
-        let total = (hargaBarang - diskon_dalam_uang) * jumlahTrans;
+        let harga_setelah_diskon = hargaBarang - diskon_dalam_uang - diskonBarangRp;
+        let total = harga_setelah_diskon * jumlahTrans;
+
+        // PPN dihitung mundur (seperti di Excel)
+        let dpp = Math.round(total / (1 + ppnBarang / 100));
+        let total_ppn = total - dpp;
+
+        let gtotal = total;
 
         let user_role_diskon = @json(Auth::user()->roles);
 
         let card = `
-            <div class="card mb-3 shadow-sm transaksi-card" data-total="${total}">
+            <div class="card mb-3 shadow-sm transaksi-card" data-total="${gtotal}">
                 <div class="card-body">
                     <div><strong>No:</strong> <span class="card-number"></span></div>
                     <div><strong>KD Barang:</strong> <span class="kd-barang">${kdBarang}</span></div>
@@ -545,7 +607,9 @@ $(document).ready(function(){
                     <div><strong>Satuan:</strong> <span class="satuan-barang">${satuanBarang}</span></div>
                     <div><strong>Jumlah:</strong> <span class="editable-jumlah" contenteditable="true">${jumlahTrans}</span></div>
                     <div><strong>Diskon:</strong> <span class="editable-diskon" ${user_role_diskon === 'customer' ? '' : 'contenteditable="true"'}>${diskonBarang}</span></div>
-                    <div><strong>Total:</strong> <span class="total-text">${format_ribuan(total)}</span></div>
+                    <div><strong>Diskon Rp:</strong> <span class="editable-diskon-rp" ${user_role_diskon === 'customer' ? '' : 'contenteditable="true"'}>${diskonBarangRp}</span></div>
+                    <div><strong>PPN:</strong> <span class="editable-ppn" ${user_role_diskon === 'admin' ? 'contenteditable="true"' : ''}>${ppnBarang}</span></div>
+                    <div><strong>Total:</strong> <span class="total-text">${format_ribuan(gtotal)}</span></div>
                     <button class="btn btn-sm btn-danger mt-2 delete-card"><i class="fa fa-trash"></i> Hapus</button>
                 </div>
             </div>
@@ -553,7 +617,7 @@ $(document).ready(function(){
         $('#transaksi_card_container').append(card);
         updateCardNumbers();
 
-        grandTotal += total;
+        grandTotal += gtotal;
         $('#grand_total').text(format_ribuan(grandTotal));
 
         this.reset();
@@ -562,6 +626,7 @@ $(document).ready(function(){
         $('#harga_barang').text('-');
         $('#unit_barang').text('-');
         $('#select_barang_satuan').html('<option value="">Pilih Satuan</option>');
+        loadInputPajak();
 
         setTimeout(function () {
             $('#select_barang').select2('open');
@@ -585,6 +650,8 @@ $(document).ready(function(){
             const satuan = card.find('.satuan-barang').text().trim();
             const jumlah = card.find('.editable-jumlah').text().trim();
             const diskon = card.find('.editable-diskon').text().trim();
+            const diskon_rp = card.find('.editable-diskon-rp').text().trim();
+            const ppn_trans = card.find('.editable-ppn').text().trim();
             const total = hapus_format(card.find('.total-text').text().trim());
 
             if (!jumlah || isNaN(jumlah) || parseFloat(jumlah) <= 0) {
@@ -600,6 +667,30 @@ $(document).ready(function(){
             }
 
             if (diskon === "" || isNaN(diskon)) {
+                is_valid = false;
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Diskon Tidak Valid',
+                    text: 'Diskon harus berupa angka, bisa 0!',
+                    showConfirmButton: false,
+                    timer: 2000
+                });
+                return false;
+            }
+
+            if (diskon_rp === "" || isNaN(diskon_rp)) {
+                is_valid = false;
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Diskon Tidak Valid',
+                    text: 'Diskon harus berupa angka, bisa 0!',
+                    showConfirmButton: false,
+                    timer: 2000
+                });
+                return false;
+            }
+
+            if (ppn_trans === "" || isNaN(ppn_trans)) {
                 is_valid = false;
                 Swal.fire({
                     icon: 'warning',
@@ -632,6 +723,8 @@ $(document).ready(function(){
                     satuan,
                     jumlah: parseFloat(jumlah),
                     diskon: parseFloat(diskon),
+                    diskon_rp: parseFloat(diskon_rp),
+                    ppn_trans: parseFloat(ppn_trans),
                     total: parseFloat(total)
                 });
             }
@@ -652,7 +745,7 @@ $(document).ready(function(){
         }
     });
 
-    function save_to_database(products, kode_user) {
+    function save_to_database(products,kode_user) {
         $('#loading_modal').modal('show');
         setTimeout(function () {
             $.ajax({

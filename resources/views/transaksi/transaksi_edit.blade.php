@@ -977,7 +977,7 @@ function get_barang_satuan_edit(kd_barang){
         // rumus diskon
         let diskon_dalam_uang = (diskonBarang / 100) * hargaBarang;
         let harga_setelah_diskon = hargaBarang - diskon_dalam_uang - diskonBarangRp;
-        let total = harga_setelah_diskon * jumlahTrans;
+        let total = harga_setelah_diskon * newJumlah;
 
         // PPN dihitung mundur (seperti di Excel)
         let dpp = Math.round(total / (1 + ppnBarang / 100));
