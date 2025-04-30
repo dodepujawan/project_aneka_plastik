@@ -468,6 +468,7 @@ $('#proses_table_transaksi_approved').on('click', function () {
             const harga = $(this).find('td:eq(3)').text();     // Harga Barang
             const unit = $(this).find('td:eq(4)').text();      // Unit Barang
             const satuan = $(this).find('td:eq(5)').text();    // Satuan Barang
+            const jumlah_order = $(this).find('td:eq(6)').text();    // Jumlah yang diorder
             const jumlah = $(this).find('td:eq(7)').text();    // Jumlah (editable)
             const diskon = $(this).find('td:eq(8)').text();    // Diskon (editable)
             const diskon_rp = $(this).find('td:eq(9)').text();
@@ -533,6 +534,7 @@ $('#proses_table_transaksi_approved').on('click', function () {
                     harga: parseFloat(harga),
                     unit: parseFloat(unit),
                     satuan,
+                    jumlah_order: parseFloat(jumlah_order),
                     jumlah: parseFloat(jumlah), // Pastikan formatnya angka
                     diskon: parseFloat(diskon), // Pastikan formatnya angka
                     diskon_rp: parseFloat(diskon_rp),

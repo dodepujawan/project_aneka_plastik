@@ -610,7 +610,7 @@ class TransaksiController extends Controller
                     'harga' => $product['harga'],
                     'qty_unit' => $product['unit'],
                     'satuan' => $product['satuan'],
-                    'qty_order' => $product['jumlah'],
+                    'qty_order' => $product['jumlah_order'] - $product['jumlah'],
                     'ppn' => $product['ppn_trans'],
                     'rppn' => $ppn_rupiah,
                     'dpp' => $total_net - $ppn_rupiah,
@@ -638,6 +638,12 @@ class TransaksiController extends Controller
             return response()->json(['error' => 'Failed to save products: ' . $e->getMessage()], 500);
         }
     }
+
+    // =================================== Transaksi Success ======================================
+    public function success_transaksi(){
+        return view('transaksi.success_transaksi');
+    }
+    // =================================== End Of Transaksi Success ======================================
 
 }
 

@@ -15,7 +15,7 @@
         <div class="col-md-3 mt-2">
             <button id="filterBtnHarga" class="btn btn-primary">Filter</button>
         </div>
-        <div class="col-md-3 mt-2">
+        <div class="col-md-3 mt-2 d-none">
             <button id="generatePdfBtn" class="btn btn-success">Print Pdf</button>
         </div>
     </div>

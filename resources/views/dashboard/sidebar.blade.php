@@ -49,6 +49,7 @@
                 <a class="collapse-item" id="main_transaksi_link" href="#">Input PO</a>
                 <a class="collapse-item" id="edit_transaksi_link" href="#">edit PO</a>
                 <a class="collapse-item" id="approved_transaksi_link" href="#">PO Disetujui</a>
+                <a class="collapse-item" id="success_transaksi_link" href="#">PO Sukses</a>
             </div>
         </div>
     </li>
@@ -65,6 +66,7 @@
                 <a class="collapse-item" id="main_transaksi_link_mobile" href="#">Input PO</a>
                 <a class="collapse-item" id="edit_transaksi_link_mobile" href="#">edit PO</a>
                 <a class="collapse-item" id="approved_transaksi_link_mobile" href="#">PO Disetujui</a>
+                <a class="collapse-item" id="success_transaksi_link_mobile" href="#">PO Sukses</a>
             </div>
         </div>
     </li>

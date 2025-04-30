@@ -64,6 +64,7 @@ Route::prefix('transaksi')->middleware('auth')->group(function () {
     Route::get('/api/filter_approved_invoice', [TransaksiController::class, 'filter_approved_invoice'])->name('filter_approved_invoice');
     Route::get('/api/po_approved', [TransaksiController::class, 'get_po_approved_det'])->name('get_po_approved_det');
     Route::post('save/products_approved', [TransaksiController::class, 'save_products_approved'])->name('save_products_approved');
+    Route::get('/success', [TransaksiController::class, 'success_transaksi'])->name('success_transaksi');
 });
 
 

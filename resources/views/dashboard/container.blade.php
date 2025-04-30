@@ -175,7 +175,7 @@ $(document).on('click', '.main-sidebar #edit_transaksi_link', function(e) {
         });
     }
 // ========================= End Of Edit Transaksi ======================================
-// ========================= Transaksi Sukses ======================================
+// ========================= Transaksi Approved ======================================
 $(document).on('click', '.main-sidebar #approved_transaksi_link', function(e) {
             e.preventDefault();
             load_approved_transaksilink();
@@ -184,6 +184,25 @@ $(document).on('click', '.main-sidebar #approved_transaksi_link', function(e) {
     function load_approved_transaksilink() {
         $.ajax({
             url: '{{ route('approved_transaksi') }}',
+            type: 'GET',
+            success: function(response) {
+                $('.master-page').html(response);
+            },
+            error: function() {
+                $('.master-page').html('<p>Error loading form.</p>');
+            }
+        });
+    }
+// ========================= End Of Transaksi Approved ======================================
+// ========================= Transaksi Sukses ======================================
+$(document).on('click', '.main-sidebar #success_transaksi_link', function(e) {
+            e.preventDefault();
+            load_approved_transaksilink();
+        });
+
+    function load_approved_transaksilink() {
+        $.ajax({
+            url: '{{ route('success_transaksi') }}',
             type: 'GET',
             success: function(response) {
                 $('.master-page').html(response);
@@ -232,7 +251,7 @@ $(document).on('click', '.main-sidebar #approved_transaksi_link', function(e) {
         });
     }
 // ========================= End Of Edit Transaksi Mobile ======================================
-// ========================= Transaksi Sukses Mobile ======================================
+// ========================= Transaksi Approved Mobile ======================================
 $(document).on('click', '.main-sidebar #approved_transaksi_link_mobile', function(e) {
             e.preventDefault();
             load_approved_transaksilink();
@@ -241,6 +260,25 @@ $(document).on('click', '.main-sidebar #approved_transaksi_link_mobile', functio
     function load_approved_transaksilink() {
         $.ajax({
             url: '{{ route('approved_transaksi') }}',
+            type: 'GET',
+            success: function(response) {
+                $('.master-page').html(response);
+            },
+            error: function() {
+                $('.master-page').html('<p>Error loading form.</p>');
+            }
+        });
+    }
+// ========================= End Of Transaksi Approved Mobile ======================================
+// ========================= Transaksi Sukses Mobile ======================================
+$(document).on('click', '.main-sidebar #success_transaksi_link_mobile', function(e) {
+            e.preventDefault();
+            load_approved_transaksilink();
+        });
+
+    function load_approved_transaksilink() {
+        $.ajax({
+            url: '{{ route('success_transaksi') }}',
             type: 'GET',
             success: function(response) {
                 $('.master-page').html(response);
