@@ -541,6 +541,7 @@ class TransaksiController extends Controller
                 'ppn',
                 'total'
             ])
+            ->where('status_po', 1)
             ->where('no_invoice', $no_invoice)
             ->get();
 
@@ -639,12 +640,107 @@ class TransaksiController extends Controller
         }
     }
 
-    // =================================== Transaksi Success ======================================
+// =================================== Transaksi Success ======================================
     public function success_transaksi(){
         return view('transaksi.success_transaksi');
     }
-    // =================================== End Of Transaksi Success ======================================
 
+    public function filter_success_invoice(Request $request){
+        if (!Auth::check()) {
+            return response()->json(['message' => 'Silakan login terlebih dahulu'], 401);
+        }
+
+        $query = DB::table('po_userby as a')
+            ->join('po_success as b', 'a.no_invoice', '=', 'b.no_invoice')
+            ->select(
+                'a.no_invoice',
+                DB::raw('DATE(a.created_at) as created_at'),
+                'a.user_id',
+                'a.user_kode',
+                DB::raw('SUM(b.total) as total')
+            )
+            // ->where('a.user_id', Auth::user()->user_id)
+            // ->where('a.user_kode', Auth::user()->user_kode)
+            ->whereNotNull('b.no_invoice')
+            ->groupBy('a.no_invoice', 'a.created_at', 'a.user_id', 'a.user_kode')
+            ->orderBy('a.created_at', 'desc');
+
+            $userRole = Auth::user()->roles;
+            if ($userRole === 'customer') {
+                $query->where('a.user_kode', Auth::user()->user_kode);
+            } elseif ($userRole === 'staff') {
+                $query->where('a.user_id', Auth::user()->user_id);
+            } elseif ($userRole === 'admin') {
+                // Tidak ada filter tambahan untuk admin, karena admin bisa melihat semua data
+            } else {
+                return response()->json(['message' => 'Anda tidak memiliki izin untuk mengakses data ini'], 403);
+            }
+
+            if ($request->has('startDate') && $request->startDate) {
+                $query->where('a.created_at', '>=', $request->startDate);
+            }
+
+            if ($request->has('endDate') && $request->endDate) {
+                $query->where('a.created_at', '<=', $request->endDate);
+            }
+
+            if ($request->has('searchText') && $request->searchText) {
+                $query->where(function($q) use ($request) {
+                    $userRole = Auth::user()->roles;
+                    $searchText = $request->searchText;
+
+                    // Cari berdasarkan no_invoice
+                    $q->where('a.no_invoice', 'like', '%' . $searchText . '%');
+
+                    // Tambahkan filter berdasarkan role
+                    if ($userRole === 'staff') {
+                        // Staff hanya bisa melihat data dengan user_kode mereka
+                        // $q->where('a.user_kode', Auth::user()->user_kode);
+                        $q->orWhere('a.user_kode', 'like', '%' . $searchText . '%');
+                    } elseif ($userRole === 'admin') {
+                        // Admin bisa melihat data dengan user_kode atau user_id mereka
+                        $q->orWhere('a.user_kode', 'like', '%' . $searchText . '%')
+                          ->orWhere('a.user_id', 'like', '%' . $searchText . '%');
+                    }
+                });
+            }
+
+        $order = $query->get();
+
+        return response()->json([
+            'data' => $order
+        ]);
+    }
+
+    public function get_po_success_det(Request $request){
+        $no_invoice = $request->input('no_invoice');
+        $query = DB::table('po_success')
+            ->select([
+                'no_invoice',
+                'kd_brg',
+                'nama_brg',
+                'harga',
+                'qty_unit',
+                'satuan',
+                'qty_order',
+                'qty_sup',
+                'disc',
+                'ndisc',
+                'ndisc',
+                'ppn',
+                'total'
+            ])
+            ->where('no_invoice', $no_invoice)
+            ->get();
+
+        $grandTotal = $query->sum('total');
+
+        return response()->json([
+            'data' => $query,
+            'grand_total' => $grandTotal
+        ]);
+    }
+// =================================== End Of Transaksi Success ======================================
 }
 
 // Jaga Jaga Vesi Update Lama Tanpa Lock

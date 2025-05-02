@@ -186,6 +186,7 @@ $(document).on('click', '.main-sidebar #approved_transaksi_link', function(e) {
             url: '{{ route('approved_transaksi') }}',
             type: 'GET',
             success: function(response) {
+                alert('appr');
                 $('.master-page').html(response);
             },
             error: function() {
@@ -195,16 +196,18 @@ $(document).on('click', '.main-sidebar #approved_transaksi_link', function(e) {
     }
 // ========================= End Of Transaksi Approved ======================================
 // ========================= Transaksi Sukses ======================================
-$(document).on('click', '.main-sidebar #success_transaksi_link', function(e) {
+    $(document).on('click', '.main-sidebar #success_transaksi_link', function(e) {
             e.preventDefault();
-            load_approved_transaksilink();
+
+            load_success_transaksilink();
         });
 
-    function load_approved_transaksilink() {
+    function load_success_transaksilink() {
         $.ajax({
             url: '{{ route('success_transaksi') }}',
             type: 'GET',
             success: function(response) {
+                alert('sccs');
                 $('.master-page').html(response);
             },
             error: function() {
@@ -273,10 +276,10 @@ $(document).on('click', '.main-sidebar #approved_transaksi_link_mobile', functio
 // ========================= Transaksi Sukses Mobile ======================================
 $(document).on('click', '.main-sidebar #success_transaksi_link_mobile', function(e) {
             e.preventDefault();
-            load_approved_transaksilink();
+            load_success_transaksilink();
         });
 
-    function load_approved_transaksilink() {
+    function load_success_transaksilink() {
         $.ajax({
             url: '{{ route('success_transaksi') }}',
             type: 'GET',
