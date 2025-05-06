@@ -272,6 +272,14 @@ h5 {
                 <tr>
                     <td colspan="10" class="text-right"><strong>Grand Total:</strong></td>
                     <td id="grand_total_edit">0</td>
+                    <tr>
+                        <td colspan="10" class="text-right"><strong>DPP :</strong></td>
+                        <td id="grand_total_dpp_edit">0</td>
+                    </tr>
+                    <tr>
+                        <td colspan="10" class="text-right"><strong>PPN :</strong></td>
+                        <td id="grand_total_ppn_edit">0</td>
+                    </tr>
                     {{-- <td id="grand_total_edit_mirror">0</td> --}}
                 </tr>
             </tfoot>
@@ -465,6 +473,8 @@ $(document).ready(function(){
 // ========================= End Of Input PO Main Transaksi ======================================
 // ================================= Click Edit Button ===========================================
     let grandTotal = 0;
+    let grandTotalDpp = 0;
+    let grandTotalPpn = 0;
     // console.log(grandTotal);
     $(document).on('click', '#transaksi_table_edit_field .edit-btn', function () {
         let no_invoice = $(this).data('no-invoice');
@@ -495,6 +505,10 @@ $(document).ready(function(){
                 response.data.forEach((item, index) => {
                     let total = item.total; // Menggunakan nilai total yang sudah ada dari database
                     grandTotal += total;// Menambahkan ke grand total
+                    let total_dpp = item.dpp;
+                    grandTotalDpp += total_dpp;
+                    let total_ppn = item.rppn;
+                    grandTotalPpn += total_ppn;
                     // console.log('TEST: ' + item.kd_brg); // Cek item.kd_brg
                     let total_order = format_ribuan(item.total);
                     $('#transaksi_table_edit tbody').append(`
@@ -507,15 +521,19 @@ $(document).ready(function(){
                             <td>${item.satuan}</td>
                             <td class="editable" contenteditable="true">${item.qty_order}</td>
                             <td class="editable" ${user_role_diskon === 'customer' ? '' : 'contenteditable="true"'}>${item.disc}</td>
-                            <td>${item.ndisc}</td>
+                            <td class="editable" ${user_role_diskon === 'customer' ? '' : 'contenteditable="true"'}>${item.ndisc}</td>
                             <td>${item.ppn}</td>
                             <td>${total_order}</td>
+                            <td class="d-none dpp-val">${item.dpp}</td>     <!-- DPP dari server -->
+                            <td class="d-none ppn-val">${item.rppn}</td>
                             <td><button type="button" class="btn btn-danger btn-sm delete-row"><i class="fa fa-trash" aria-hidden="true"></i></button></td>
                         </tr>
                     `);
                 });
-
+                // d-none dpp-val dan ppn-val untuk mengakali akumulasi jumlah dpp dan ppn
                 $('#grand_total_edit').text(format_ribuan(grandTotal));
+                $('#grand_total_dpp_edit').text(format_ribuan(grandTotalDpp));
+                $('#grand_total_ppn_edit').text(format_ribuan(grandTotalPpn));
                 $('#master_table_edit_field').hide();
                 $('.master_transaksi_field').show();
                 $('#select_user_trans_edit').val(null).trigger('change');
@@ -920,14 +938,21 @@ function get_barang_satuan_edit(kd_barang){
                 <td class="editable" ${user_role_diskon === 'customer' ? '' : 'contenteditable="true"'}>${diskonBarangRp}</td>
                 <td class="editable" ${user_role_diskon !== 'customer' && user_role_diskon !== 'staff' ? 'contenteditable="true"' : ''}>${ppnBarang}</td>
                 <td>${format_ribuan(gtotal)}</td>
+                <td class="d-none dpp-val">${dpp}</td>
+                <td class="d-none ppn-val">${total_ppn}</td>
                 <td><button type="button" class="btn btn-danger btn-sm delete-row"><i class="fa fa-trash" aria-hidden="true"></i></button></td>
             </tr>
         `;
+        // d-none dpp-val dan ppn-val untuk mengakali akumulasi jumlah dpp dan ppn
         $('#transaksi_table_edit tbody').append(newRow);
         updateRowNumbers();
 
         grandTotal += gtotal;
         $('#grand_total_edit').text(format_ribuan(grandTotal));
+        grandTotalDpp += dpp;
+        $('#grand_total_dpp_edit').text(format_ribuan(grandTotalDpp));
+        grandTotalPpn += total_ppn;
+        $('#grand_total_ppn_edit').text(format_ribuan(grandTotalPpn));
 
         this.reset();
         $('#select_barang_edit').val(null).trigger('change');
@@ -949,12 +974,21 @@ function get_barang_satuan_edit(kd_barang){
     $('#transaksi_table_edit').on('click', '.delete-row', function() {
         let row = $(this).closest('tr');
         let total_text = row.find('td:eq(10)').text();
-        let total =  parseFloat(hapus_format(total_text)) || 0;
+        let total = parseFloat(hapus_format(total_text)) || 0;
+
+        let dpp = parseFloat(row.find('.dpp-val').text()) || 0;
+        let total_ppn = parseFloat(row.find('.ppn-val').text()) || 0;
+
+        grandTotal -= total;
+        grandTotalDpp -= dpp;
+        grandTotalPpn -= total_ppn;
+
         row.remove();
         updateRowNumbers();
 
-        grandTotal -= total;
         $('#grand_total_edit').text(format_ribuan(grandTotal));
+        $('#grand_total_dpp_edit').text(format_ribuan(grandTotalDpp));
+        $('#grand_total_ppn_edit').text(format_ribuan(grandTotalPpn));
     });
 
     function updateRowNumbers() {
@@ -971,25 +1005,30 @@ function get_barang_satuan_edit(kd_barang){
         let diskonBarang = parseFloat(row.find('td:eq(7)').text()) || 0;
         let diskonBarangRp = parseFloat(row.find('td:eq(8)').text()) || 0;
         let ppnBarang = parseFloat(row.find('td:eq(9)').text()) || 0;
-        let oldTotal_text = row.find('td:eq(10)').text();
-        let oldTotal = parseFloat(hapus_format(oldTotal_text))|| 0;
 
-        // rumus diskon
+        let oldTotal = parseFloat(hapus_format(row.find('td:eq(10)').text())) || 0;
+        let oldDpp = parseFloat(row.find('.dpp-val').text()) || 0;
+        let oldPpn = parseFloat(row.find('.ppn-val').text()) || 0;
+
         let diskon_dalam_uang = (diskonBarang / 100) * hargaBarang;
         let harga_setelah_diskon = hargaBarang - diskon_dalam_uang - diskonBarangRp;
         let total = harga_setelah_diskon * newJumlah;
 
-        // PPN dihitung mundur (seperti di Excel)
         let dpp = Math.round(total / (1 + ppnBarang / 100));
         let total_ppn = total - dpp;
+        let gtotal = total;
 
-        let gtotal = total; // karena total sudah termasuk PPN
-        // row.find('td:eq(8)').text(total.toFixed(2)); -> untuk dapat .00
         row.find('td:eq(10)').text(format_ribuan(gtotal));
+        row.find('.dpp-val').text(dpp);        // update nilai DPP
+        row.find('.ppn-val').text(total_ppn);  // update nilai PPN
 
-        // Update grand total
         grandTotal = grandTotal - oldTotal + gtotal;
+        grandTotalDpp = grandTotalDpp - oldDpp + dpp;
+        grandTotalPpn = grandTotalPpn - oldPpn + total_ppn;
+
         $('#grand_total_edit').text(format_ribuan(grandTotal));
+        $('#grand_total_dpp_edit').text(format_ribuan(grandTotalDpp));
+        $('#grand_total_ppn_edit').text(format_ribuan(grandTotalPpn));
     });
 // =============================== End Of Input Barang To Table =========================================
 // =================================== Update Barang To DB ==============================================
@@ -1169,6 +1208,8 @@ function get_barang_satuan_edit(kd_barang){
     $('#reset_table_transaksi_edit').on('click', function(){
         let value_invo = $(this).val();
         grandTotal = 0;
+        grandTotalDpp = 0;
+        grandTotalPpn = 0;
         ajax_click_edit_button(value_invo);
     });
 // ================================= End Of Reset Tabel PO =========================================
@@ -1179,6 +1220,8 @@ function get_barang_satuan_edit(kd_barang){
 
     function return_table_edit(){
         grandTotal = 0;
+        grandTotalDpp = 0;
+        grandTotalPpn = 0;
         $('#transaksi_table_edit tbody').empty();
         $('.master_transaksi_field').hide();
         $('#transaksi_table_edit_field').DataTable().destroy();

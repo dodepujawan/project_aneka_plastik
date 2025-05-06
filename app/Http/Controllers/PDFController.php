@@ -35,6 +35,8 @@ class PDFController extends Controller
                 DB::raw('CAST(b.disc AS UNSIGNED) AS disc'),
                 DB::raw('CAST(b.ndisc AS UNSIGNED) AS ndisc'),
                 DB::raw('CAST(b.ppn AS UNSIGNED) AS ppn'),
+                DB::raw('CAST(b.rppn AS UNSIGNED) AS rppn'),
+                DB::raw('CAST(b.dpp AS UNSIGNED) AS dpp'),
                 DB::raw('CAST(b.total AS UNSIGNED) AS total'),
                 'b.rcabang'
             ])
@@ -74,6 +76,8 @@ class PDFController extends Controller
                 DB::raw('CAST(b.disc AS UNSIGNED) AS disc'),
                 DB::raw('CAST(b.ndisc AS UNSIGNED) AS ndisc'),
                 DB::raw('CAST(b.ppn AS UNSIGNED) AS ppn'),
+                DB::raw('CAST(b.rppn AS UNSIGNED) AS rppn'),
+                DB::raw('CAST(b.dpp AS UNSIGNED) AS dpp'),
                 DB::raw('CAST(b.total AS UNSIGNED) AS total'),
                 'b.rcabang'
             ])

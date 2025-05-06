@@ -223,6 +223,14 @@ h5 {
                 <td colspan="10" class="text-right"><strong>Grand Total:</strong></td>
                 <td id="grand_total">0</td>
             </tr>
+            <tr>
+                <td colspan="10" class="text-right"><strong>DPP :</strong></td>
+                <td id="grand_total_dpp">0</td>
+            </tr>
+            <tr>
+                <td colspan="10" class="text-right"><strong>PPN :</strong></td>
+                <td id="grand_total_ppn">0</td>
+            </tr>
         </tfoot>
         <tbody>
             <!-- Data akan diisi oleh DataTables -->
@@ -505,6 +513,8 @@ $(document).ready(function(){
 // =================== End Of Pajak PPN ==========================
 // ================================= Input Barang To Table ===========================================
     let grandTotal = 0;
+    let grandTotalDpp = 0;
+    let grandTotalPpn = 0;
     $('form').on('submit', function(event) {
         event.preventDefault();
 
@@ -558,14 +568,21 @@ $(document).ready(function(){
                 <td class="editable" ${user_role_diskon === 'customer' ? '' : 'contenteditable="true"'}>${diskonBarangRp}</td>
                 <td class="editable" ${user_role_diskon !== 'customer' && user_role_diskon !== 'staff' ? 'contenteditable="true"' : ''}>${ppnBarang}</td>
                 <td>${format_ribuan(gtotal)}</td>
+                <td class="d-none dpp-val">${dpp}</td>
+                <td class="d-none ppn-val">${total_ppn}</td>
                 <td><button type="button" class="btn btn-danger btn-sm delete-row"><i class="fa fa-trash" aria-hidden="true"></i></button></td>
             </tr>
         `;
+        // d-none dpp-val dan ppn-val untuk mengakali akumulasi jumlah dpp dan ppn
         $('#transaksi_table tbody').append(newRow);
         updateRowNumbers();
 
         grandTotal += gtotal;
         $('#grand_total').text(format_ribuan(grandTotal));
+        grandTotalDpp += dpp;
+        $('#grand_total_dpp').text(format_ribuan(grandTotalDpp));
+        grandTotalPpn += total_ppn;
+        $('#grand_total_ppn').text(format_ribuan(grandTotalPpn));
 
         this.reset();
         $('#select_barang').val(null).trigger('change');
@@ -587,12 +604,21 @@ $(document).ready(function(){
     $('#transaksi_table').on('click', '.delete-row', function() {
         let row = $(this).closest('tr');
         let total_text = row.find('td:eq(10)').text();
-        let total =  parseFloat(hapus_format(total_text)) || 0;
+        let total = parseFloat(hapus_format(total_text)) || 0;
+
+        let dpp = parseFloat(row.find('.dpp-val').text()) || 0;
+        let total_ppn = parseFloat(row.find('.ppn-val').text()) || 0;
+
+        grandTotal -= total;
+        grandTotalDpp -= dpp;
+        grandTotalPpn -= total_ppn;
+
         row.remove();
         updateRowNumbers();
 
-        grandTotal -= total;
         $('#grand_total').text(format_ribuan(grandTotal));
+        $('#grand_total_dpp').text(format_ribuan(grandTotalDpp));
+        $('#grand_total_ppn').text(format_ribuan(grandTotalPpn));
     });
 
     function updateRowNumbers() {
@@ -609,25 +635,30 @@ $(document).ready(function(){
         let diskonBarang = parseFloat(row.find('td:eq(7)').text()) || 0;
         let diskonBarangRp = parseFloat(row.find('td:eq(8)').text()) || 0;
         let ppnBarang = parseFloat(row.find('td:eq(9)').text()) || 0;
-        let oldTotal_text = row.find('td:eq(10)').text();
-        let oldTotal = parseFloat(hapus_format(oldTotal_text))|| 0;
 
+        let oldTotal = parseFloat(hapus_format(row.find('td:eq(10)').text())) || 0;
+        let oldDpp = parseFloat(row.find('.dpp-val').text()) || 0;
+        let oldPpn = parseFloat(row.find('.ppn-val').text()) || 0;
 
         let diskon_dalam_uang = (diskonBarang / 100) * hargaBarang;
         let harga_setelah_diskon = hargaBarang - diskon_dalam_uang - diskonBarangRp;
         let total = harga_setelah_diskon * newJumlah;
 
-        // PPN dihitung mundur (seperti di Excel)
         let dpp = Math.round(total / (1 + ppnBarang / 100));
         let total_ppn = total - dpp;
+        let gtotal = total;
 
-        let gtotal = total; // karena total sudah termasuk PPN
-        // row.find('td:eq(8)').text(total.toFixed(2)); -> untuk dapat .00
         row.find('td:eq(10)').text(format_ribuan(gtotal));
+        row.find('.dpp-val').text(dpp);        // update nilai DPP
+        row.find('.ppn-val').text(total_ppn);  // update nilai PPN
 
-        // Update grand total
         grandTotal = grandTotal - oldTotal + gtotal;
+        grandTotalDpp = grandTotalDpp - oldDpp + dpp;
+        grandTotalPpn = grandTotalPpn - oldPpn + total_ppn;
+
         $('#grand_total').text(format_ribuan(grandTotal));
+        $('#grand_total_dpp').text(format_ribuan(grandTotalDpp));
+        $('#grand_total_ppn').text(format_ribuan(grandTotalPpn));
     });
 // =============================== End Of Input Barang To Table =========================================
 // =================================== Submit Barang To DB ==============================================
@@ -798,6 +829,10 @@ $(document).ready(function(){
         }
         $('#grand_total').text(0);
         grandTotal = 0;
+        $('#grand_total_dpp').text(0);
+        grandTotalDpp = 0;
+        $('#grand_total_ppn').text(0);
+        grandTotalPpn = 0;
         // ### Redirect Hal Edit
         $.ajax({
             url: '{{ route('index_edit_transaksi') }}',

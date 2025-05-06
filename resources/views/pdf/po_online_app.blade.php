@@ -204,6 +204,14 @@
                     <td colspan="11" style="text-align: right;"><strong>Grand Total:</strong></td>
                     <td>{{ number_format($transaction->sum('total'), 0, ',', '.') }}</td>
                 </tr>
+                <tr>
+                    <td colspan="10" style="text-align: right;"><strong>DPP:</strong></td>
+                    <td>{{ number_format($transaction->sum('dpp'), 0, ',', '.') }}</td>
+                </tr>
+                <tr>
+                    <td colspan="10" style="text-align: right;"><strong>PPN:</strong></td>
+                    <td>{{ number_format($transaction->sum('rppn'), 0, ',', '.') }}</td>
+                </tr>
             </tfoot>
         </table>
     </div>
