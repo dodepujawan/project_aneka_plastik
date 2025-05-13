@@ -1,4 +1,7 @@
  <!-- Sidebar -->
+ @php
+    $user = Auth::user();
+@endphp
  <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion main-sidebar" id="accordionSidebar">
 
     <!-- Sidebar - Brand -->
@@ -46,8 +49,10 @@
         <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
             <div class="bg-white py-2 collapse-inner rounded">
                 <h6 class="collapse-header">Transaksi:</h6>
+                @if ($user->roles !== 'customer')
                 <a class="collapse-item" id="main_transaksi_link" href="#">Input PO</a>
                 <a class="collapse-item" id="edit_transaksi_link" href="#">edit PO</a>
+                @endif
                 <a class="collapse-item" id="approved_transaksi_link" href="#">PO Disetujui</a>
                 <a class="collapse-item" id="success_transaksi_link" href="#">PO Sukses</a>
             </div>
@@ -63,8 +68,10 @@
         <div id="collapseFour" class="collapse" aria-labelledby="headingFour" data-parent="#accordionSidebar">
             <div class="bg-white py-2 collapse-inner rounded">
                 <h6 class="collapse-header">Transaksi:</h6>
+                @if ($user->roles !== 'customer')
                 <a class="collapse-item" id="main_transaksi_link_mobile" href="#">Input PO</a>
                 <a class="collapse-item" id="edit_transaksi_link_mobile" href="#">edit PO</a>
+                @endif
                 <a class="collapse-item" id="approved_transaksi_link_mobile" href="#">PO Disetujui</a>
                 <a class="collapse-item" id="success_transaksi_link_mobile" href="#">PO Sukses</a>
             </div>

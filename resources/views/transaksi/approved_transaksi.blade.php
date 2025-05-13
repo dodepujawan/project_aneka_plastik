@@ -127,7 +127,12 @@
             </tbody>
         </table>
         <div class="button-container" style="display: flex; justify-content: flex-end; gap: 10px;">
+            @php
+                $user = Auth::user();
+            @endphp
+            @if ($user->roles !== 'customer')
             <button type="button" class="btn btn-primary mt-2 mb-2" id="proses_table_transaksi_approved"><i class="fas fa-save"> Proses</i></button>
+            @endif
             <button type="button" class="btn btn-warning mt-2 mb-2" id="return_table_transaksi_approved"><i class="fas fa-undo"> List Menu</i></button>
         </div>
     </div>
@@ -465,7 +470,8 @@ $('#proses_table_transaksi_approved').on('click', function () {
         $('#table_transaksi_list_po_app tbody tr').each(function () {
             const kd_barang = $(this).find('td:eq(1)').text(); // KD Barang
             const nama = $(this).find('td:eq(2)').text();      // Nama Barang
-            const harga = $(this).find('td:eq(3)').text();     // Harga Barang
+            const harga_get = $(this).find('td:eq(3)').text();     // Harga Barang
+            const harga = hapus_format(harga_get);
             const unit = $(this).find('td:eq(4)').text();      // Unit Barang
             const satuan = $(this).find('td:eq(5)').text();    // Satuan Barang
             const jumlah_order = $(this).find('td:eq(6)').text();    // Jumlah yang diorder

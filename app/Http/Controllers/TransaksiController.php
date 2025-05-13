@@ -620,7 +620,7 @@ class TransaksiController extends Controller
                     'disc' => $product['diskon'],
                     'rdisc' => $diskon_rupiah,
                     'ndisc' => $product['diskon_rp'],
-                    'ttldisc' => ($diskon_rupiah + $product['diskon_rp']) * $product['jumlah'],
+                    'ttldisc' => round(($diskon_rupiah + $product['diskon_rp']) * $product['jumlah']),
                     'ttl_gross' => $product['jumlah'] * $product['harga'],
                     'total' => $product['total'],
                     'rcabang' => $rcabang,  // Menyimpan rcabang dari pengguna yang login
@@ -653,7 +653,7 @@ class TransaksiController extends Controller
         }
 
         $query = DB::table('po_userby as a')
-            ->join('po_success as b', 'a.no_invoice', '=', 'b.no_invoice')
+            ->join('po_online as b', 'a.no_invoice', '=', 'b.no_invoice')
             ->select(
                 'a.no_invoice',
                 DB::raw('DATE(a.created_at) as created_at'),
@@ -661,9 +661,9 @@ class TransaksiController extends Controller
                 'a.user_kode',
                 DB::raw('SUM(b.total) as total')
             )
-            // ->where('a.user_id', Auth::user()->user_id)
-            // ->where('a.user_kode', Auth::user()->user_kode)
-            ->whereNotNull('b.no_invoice')
+            ->where('b.status_po', '!=', 0)
+            ->where('b.qty_sup', '!=', 0)
+            // ->whereNotNull('b.no_invoice')
             ->groupBy('a.no_invoice', 'a.created_at', 'a.user_id', 'a.user_kode')
             ->orderBy('a.created_at', 'desc');
 
@@ -716,7 +716,7 @@ class TransaksiController extends Controller
 
     public function get_po_success_det(Request $request){
         $no_invoice = $request->input('no_invoice');
-        $query = DB::table('po_success')
+        $query = DB::table('po_online')
             ->select([
                 'no_invoice',
                 'kd_brg',
