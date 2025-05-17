@@ -214,10 +214,10 @@
             <div class="d-flex align-items-center" style="gap: 10px;">
                 <label for="ppn_trans" class="mb-0">PPN</label>
                 <input type="number" id="ppn_trans" class="form-control form-control-md" style="width: 150px;" placeholder="0" disabled>
-                <button type="submit" class="btn btn-success btn-sm ms-2 ml-2">
-                    {{-- <i class="fa fa-check" aria-hidden="true"></i> --}}Simpan
-                </button>
             </div>
+            <button type="submit" class="btn btn-success btn-sm ms-2 ml-2 mt-3">
+                    {{-- <i class="fa fa-check" aria-hidden="true"></i> --}}Simpan
+            </button>
         </div>
     </div>
 </form>

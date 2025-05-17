@@ -9,6 +9,7 @@ use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\TransaksiController;
 use App\Http\Controllers\MobileController;
 use App\Http\Controllers\PajakController;
+use App\Http\Controllers\QrScannerController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -93,8 +94,8 @@ Route::prefix('pdf')->group(function () {
     Route::get('/generate-list-harga-pdf-node', [PDFController::class, 'generate_list_harga_pdf_node'])->name('generate_list_harga_pdf_node');
 });
 
-Route::prefix('harga')->group(function () {
-    Route::get('/list-harga', [HargaController::class, 'list_harga'])->name('list_harga')->middleware('auth');
+Route::prefix('harga')->middleware('auth')->group(function () {
+    Route::get('/list-harga', [HargaController::class, 'list_harga'])->name('list_harga');
     Route::get('/api/filter_list_harga', [HargaController::class, 'filter_list_harga'])->name('filter_list_harga');
 });
 
@@ -106,6 +107,11 @@ Route::prefix('mobile')->middleware('auth')->group(function () {
 Route::prefix('pajak')->middleware('auth')->group(function () {
     Route::get('/get-pajak', [PajakController::class, 'get_pajak'])->name('get_pajak');
     Route::post('/edit/show', [PajakController::class, 'update_pajak'])->name('update_pajak');
+});
+
+Route::prefix('qris')->middleware('auth')->group(function () {
+    Route::get('/index', [QrScannerController::class, 'index_qris'])->name('index_qris');
+    Route::post('/user/qris', [QrScannerController::class, 'cek_user_qr'])->name('cek_user_qr');
 });
 
 Route::post('/broadcasting/auth', function () {

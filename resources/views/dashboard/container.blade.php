@@ -311,6 +311,25 @@ $(document).on('click', '.main-sidebar #list_harga_link', function(e) {
         });
     }
 // ========================= End Of List Harga ======================================
+// ========================= Qris ======================================
+$(document).on('click', '.main-sidebar #qris_link', function(e) {
+            e.preventDefault();
+            loadQrislink();
+        });
+
+    function loadQrislink() {
+        $.ajax({
+            url: '{{ route('index_qris') }}',
+            type: 'GET',
+            success: function(response) {
+                $('.master-page').html(response);
+            },
+            error: function() {
+                $('.master-page').html('<p>Error loading form.</p>');
+            }
+        });
+    }
+// ========================= Qris ======================================
 // ########################### End Of SIDEBAR ROOM #####################################
 
 });

@@ -262,10 +262,10 @@
                     <div class="d-flex align-items-center" style="gap: 10px;">
                         <label for="ppn_trans_edit" class="mb-0">PPN</label>
                         <input type="number" id="ppn_trans_edit" class="form-control form-control-md" style="width: 150px;" placeholder="0" disabled>
-                        <button type="submit" class="btn btn-success btn-sm ms-2 ml-2">
-                            {{-- <i class="fa fa-check" aria-hidden="true"></i> --}}Simpan
-                        </button>
                     </div>
+                    <button type="submit" class="btn btn-success btn-sm ms-2 ml-2 mt-3">
+                            {{-- <i class="fa fa-check" aria-hidden="true"></i> --}}Simpan
+                    </button>
                 </div>
             </div>
         </form>
@@ -514,10 +514,10 @@ $(document).ready(function(){
                             <div><strong>Diskon:</strong>
                                 <span class="editable-diskon" ${user_role_diskon === 'customer' ? '' : 'contenteditable="true"'}>${diskon}</span>
                             </div>
-                            <div><strong>Diskon:</strong>
+                            <div><strong>Diskon Rp:</strong>
                                 <span class="editable-diskon-rp" ${user_role_diskon === 'customer' ? '' : 'contenteditable="true"'}>${diskonrp}</span>
                             </div>
-                            <div><strong>Diskon:</strong>
+                            <div><strong>PPN:</strong>
                                 <span class="editable-ppn" ${user_role_diskon === 'customer' ? '' : 'contenteditable="true"'}>${ppn}</span>
                             </div>
                             <div><strong>Total:</strong> <span class="total-text">${format_ribuan(total)}</span></div>
@@ -935,10 +935,10 @@ $(document).ready(function(){
                     <div><strong>Diskon:</strong>
                         <span class="editable-diskon" ${user_role_diskon === 'customer' ? '' : 'contenteditable="true"'}>${diskonBarang}</span>
                     </div>
-                    <div><strong>Diskon:</strong>
+                    <div><strong>Diskon Rp:</strong>
                         <span class="editable-diskon-rp" ${user_role_diskon === 'customer' ? '' : 'contenteditable="true"'}>${diskonBarangRp}</span>
                     </div>
-                    <div><strong>Diskon:</strong>
+                    <div><strong>PPN:</strong>
                         <span class="editable-ppn" ${user_role_diskon === 'admin' ? 'contenteditable="true"' : ''}>${ppnBarang}</span>
                     </div>
                     <div><strong>Total:</strong> <span class="total-text">${format_ribuan(gtotal)}</span></div>
