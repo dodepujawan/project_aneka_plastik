@@ -35,7 +35,41 @@
         <div id="qrcode"></div>
     </div>
 
-
+    <div id="master_table_qris" class="container hide-important">
+        <h3>Halaman Edit PO</h3>
+        <div class="button-container" style="display: flex; justify-content: flex-start; gap: 10px;">
+            <button type="button" class="btn mt-2 mb-2" id="po_table_qris_refresh" style="background-color: rgba(0, 123, 255, 0.5); border-color: rgba(0, 123, 255, 0.5); color: white;"><i class="fas fa-undo"> Refresh</i></button>
+            <button type="button" class="btn mt-2 mb-2" id="po_table_qris_input" style="background-color: rgba(16, 247, 16, 0.5); border-color: rgba(78, 242, 78, 0.5); color: white;"><i class="fas fa-pencil-alt">Show Scanner</i></button>
+        </div>
+        <div class="mt-3 table-container table-responsive table-responsive-set">
+            <table id="qris_table_sales" class="display table table-bordered mb-2 style-table hide-important">
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Kode Customer</th>
+                        <th>Nama Customer</th>
+                        <th>Tgl Submit</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+            <table id="qris_table_admin" class="display table table-bordered mb-2 style-table hide-important">
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Kode Sales</th>
+                        <th>Nama sales</th>
+                        <th>Kode Customer</th>
+                        <th>Nama Customer</th>
+                        <th>Tgl Submit</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+    </div>
     <div id="qr_scanner" class="hide-important d-flex flex-column align-items-center">
         <h1>QR Code Scanner</h1>
         <video id="previewKamera"></video>
@@ -47,7 +81,7 @@
         <div>
             <button id="startBtn" class="scanner btn btn-success">Mulai Scan</button>
             <button id="stopBtn" class="scanner btn btn-danger" disabled>Stop Scan</button>
-            <button id="generateBtn" class="scanner btn btn-primary">Cek Kode</button>
+            <button id="generateBtn" class="scanner btn btn-primary">Submit Kode</button>
         </div>
     </div>
 </div>
@@ -75,8 +109,55 @@ $(document).ready(function() {
         });
     }
     // ======================== End of QR Code Conventer ====================================
+    // =========================== Table Qris =======================================
+    if(user_role_select == 'staff'){
+        $("#master_table_qris").removeClass("hide-important");
+        $("#qris_table_sales").removeClass("hide-important");
+        const adminTable = $('#qris_table_admin').DataTable({
+            processing: true,
+            serverSide: false, // <--- client-side
+            ajax: {
+                url: '{{ route("qris_list") }}', // Sesuaikan dengan route kamu
+                type: 'GET',
+            },
+            columns: [
+                {
+                    data: null,
+                    render: (data, type, row, meta) => meta.row + 1
+                },
+                { data: 'customer_id' },
+                { data: 'customer_name' },
+                { data: 'created_at' },
+            ]
+        });
+    }
+    if(user_role_select == 'admin'){
+        $("#master_table_qris").removeClass("hide-important");
+        $("#qris_table_admin").removeClass("hide-important");
+        const adminTable = $('#qris_table_admin').DataTable({
+            processing: true,
+            serverSide: false, // <--- client-side
+            ajax: {
+                url: '{{ route("qris_list") }}', // Sesuaikan dengan route kamu
+                type: 'GET',
+            },
+            columns: [
+                {
+                    data: null,
+                    render: (data, type, row, meta) => meta.row + 1
+                },
+                { data: 'user_id' },
+                { data: 'sales_name' },
+                { data: 'customer_id' },
+                { data: 'customer_name' },
+                { data: 'created_at' },
+            ]
+        });
+    }
+    // ======================== End of Table Qris ====================================
     // =========================== QR Scanner ======================================
-    if(user_role_select != 'customer'){
+    $('#po_table_qris_input').on('click', function () {
+        $("#master_table_qris").addClass("hide-important");
         $("#qr_scanner").removeClass("hide-important");
         let selectedDeviceId = null;
         let isScanning = false;
@@ -198,7 +279,7 @@ $(document).ready(function() {
                 stopScanner();
             }
         });
-    }
+    });
     // ============================== End of QR Scanner ============================
     // ============================== Submit QR Code ============================
     $('#generateBtn').on('click', function () {
@@ -244,9 +325,40 @@ $(document).ready(function() {
             success: function (res) {
                 if (res.status === 'ok') {
                     $('#hasilscan').val("");
-                    stopScanner();
-                    alert("✅ User valid: " + res.user_id);
-                    // lanjutkan proses jika perlu...
+                    function stopScanner() {
+                        if (!isScanning) return;
+
+                        codeReader.reset();
+                        isScanning = false;
+                        $preview.hide();
+                        $startBtn.prop('disabled', false);
+                        $stopBtn.prop('disabled', true);
+                        console.log("Scanner stopped");
+                    }
+                    $.ajax({
+                        url: '{{ route('simpan_kode_qris') }}', // buat route ini di web.php
+                        method: 'POST',
+                        data: {
+                            _token: '{{ csrf_token() }}',
+                            cust_id: res.user_id,
+                        },
+                        success: function (response) {
+                            alert("Kode Qris berhasil disimpan!");
+                            $.ajax({
+                                url: '{{ route('index_qris') }}',
+                                type: 'GET',
+                                success: function(response) {
+                                    $('.master-page').html(response);
+                                },
+                                error: function() {
+                                    $('.master-page').html('<p>Error loading form.</p>');
+                                }
+                            });
+                        },
+                        error: function () {
+                            alert("Gagal menyimpan kode customer.");
+                        }
+                    });
                 } else {
                     alert("❌ User tidak ditemukan.");
                 }

@@ -112,6 +112,8 @@ Route::prefix('pajak')->middleware('auth')->group(function () {
 Route::prefix('qris')->middleware('auth')->group(function () {
     Route::get('/index', [QrScannerController::class, 'index_qris'])->name('index_qris');
     Route::post('/user/qris', [QrScannerController::class, 'cek_user_qr'])->name('cek_user_qr');
+    Route::post('/simpan-kode-qris', [QrScannerController::class, 'simpan_kode_qris'])->name('simpan_kode_qris');
+    Route::get('/qris/list', [QrScannerController::class, 'qris_list'])->name('qris_list');
 });
 
 Route::post('/broadcasting/auth', function () {
