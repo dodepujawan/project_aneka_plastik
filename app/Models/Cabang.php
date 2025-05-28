@@ -9,6 +9,7 @@ class Cabang extends Model
 {
     use HasFactory;
     protected $fillable = [
+        'lokal_id',
         'cabang_id',
         'nama',
         'alamat',

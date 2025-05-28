@@ -14,6 +14,7 @@
                 <thead>
                     <tr>
                         <th>ID Cabang</th>
+                        <th>ID Lokal</th>
                         <th>Nama Cabang</th>
                         <th>Alamat</th>
                         <th>No telepon</th>
@@ -57,6 +58,10 @@
                         <label><i class="fa fa-key"></i> Nomor Telepon</label>
                         <input type="text" name="telp_cabang" id="telp_cabang" class="form-control" placeholder="Telepon Number" required="">
                     </div>
+                    <div class="form-group">
+                        <label><i class="fa fa-user"></i> ID Lokal</label>
+                        <input type="text" name="id_lokal" id="id_lokal" class="form-control" placeholder="ID Lokal">
+                    </div>
                     <button type="submit" class="btn btn-primary btn-block"><i class="fa fa-user" id="update_cabang"></i> Update</button>
                 </form>
             </div>
@@ -77,6 +82,7 @@ $(document).ready(function() {
         },
         columns: [
             { data: 'cabang_id', name: 'cabang_id' },
+            { data: 'lokal_id', name: 'lokal_id' },
             { data: 'nama', name: 'nama' },
             { data: 'alamat', name: 'alamat' },
             { data: 'telp', name: 'telp' },
@@ -103,6 +109,7 @@ $(document).ready(function() {
                 $('#nama_cabang').val(data.nama);
                 $('#alamat_cabang').val(data.alamat);
                 $('#telp_cabang').val(data.telp);
+                $('#id_lokal').val(data.lokal_id);
                 // Tampilkan form
                 $('#formtable_cabang').hide();
                 $('#formedit_cabang').removeClass('d-none');

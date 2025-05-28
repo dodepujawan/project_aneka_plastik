@@ -22,6 +22,10 @@
                 <label><i class="fa fa-key"></i> Nomor Telepon</label>
                 <input type="text" name="telp_cabang" id="telp_cabang" class="form-control" placeholder="Telepon Number" required="">
             </div>
+            <div class="form-group">
+                <label><i class="fa fa-user"></i> ID Lokal</label>
+                <input type="text" name="id_lokal" id="id_lokal" class="form-control" placeholder="ID Local" required="">
+            </div>
             <button type="submit" class="btn btn-primary btn-block"><i class="fa fa-user" id="submit_cabang"></i> Register</button>
         </form>
     </div>
@@ -63,7 +67,8 @@ $(document).ready(function() {
                 nama_cabang: $('#nama_cabang').val(),
                 alamat_cabang: $('#alamat_cabang').val(),
                 telp_cabang: $('#telp_cabang').val(),
-                cabang_id: $('#id_cabang').val() // Pastikan untuk mengirim cabang_id di sini
+                cabang_id: $('#id_cabang').val(), // Pastikan untuk mengirim cabang_id di sini
+                lokal_id: $('#id_lokal').val()
             },
             success: function(response) {
                 $('#message_cabang').html('<p>' + response.pesan + '</p>');

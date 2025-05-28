@@ -43,6 +43,7 @@ class CabangController extends Controller
             $newCabangId = $role . str_pad($newNumber, 3, '0', STR_PAD_LEFT);
 
             Cabang::create([
+                'lokal_id' => $request->lokal_id,
                 'cabang_id' => $newCabangId,
                 'nama' => $request->nama_cabang,
                 'alamat' => $request->alamat_cabang,
@@ -136,6 +137,7 @@ class CabangController extends Controller
             $cabang->nama = $request->nama_cabang;
             $cabang->alamat = $request->alamat_cabang;
             $cabang->telp = $request->telp_cabang;
+            $cabang->lokal_id = $request->id_lokal;
             $cabang->save();
 
             return response()->json(['status' => 'success', 'message' => 'Cabang updated successfully.']);

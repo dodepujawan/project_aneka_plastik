@@ -33,10 +33,11 @@
     <div id="qr_code" class="hide-important d-flex flex-column align-items-center">
         <h2>Generate QR Code</h2>
         <div id="qrcode"></div>
+        <h3 class="align-items-center mt-3" id="qr_text"></h3>
     </div>
 
     <div id="master_table_qris" class="container hide-important">
-        <h3>Halaman Edit PO</h3>
+        <h3>Halaman Qris</h3>
         <div class="button-container" style="display: flex; justify-content: flex-start; gap: 10px;">
             <button type="button" class="btn mt-2 mb-2" id="po_table_qris_refresh" style="background-color: rgba(0, 123, 255, 0.5); border-color: rgba(0, 123, 255, 0.5); color: white;"><i class="fas fa-undo"> Refresh</i></button>
             <button type="button" class="btn mt-2 mb-2" id="po_table_qris_input" style="background-color: rgba(16, 247, 16, 0.5); border-color: rgba(78, 242, 78, 0.5); color: white;"><i class="fas fa-pencil-alt">Show Scanner</i></button>
@@ -107,6 +108,15 @@ $(document).ready(function() {
             width: 200,
             height: 200,
         });
+
+        // Bagian QR Text
+        const todayNew = new Date();
+        const dd = String(todayNew.getDate()).padStart(2, '0');
+        const mm = String(todayNew.getMonth() + 1).padStart(2, '0'); // bulan 0-based
+        const yyyy = todayNew.getFullYear();
+
+        const formattedDate = `${dd}-${mm}-${yyyy}`;
+        $('#qr_text').text(`Valid sampai Tgl ${formattedDate}`);
     }
     // ======================== End of QR Code Conventer ====================================
     // =========================== Table Qris =======================================
@@ -215,6 +225,8 @@ $(document).ready(function() {
             $stopBtn.prop('disabled', true);
             console.log("Scanner stopped");
         }
+        // membuat jadi fungsi global
+        window.stopScanner = stopScanner;
 
         // Inisialisasi kamera
         function initCameras() {
@@ -325,16 +337,7 @@ $(document).ready(function() {
             success: function (res) {
                 if (res.status === 'ok') {
                     $('#hasilscan').val("");
-                    function stopScanner() {
-                        if (!isScanning) return;
-
-                        codeReader.reset();
-                        isScanning = false;
-                        $preview.hide();
-                        $startBtn.prop('disabled', false);
-                        $stopBtn.prop('disabled', true);
-                        console.log("Scanner stopped");
-                    }
+                    window.stopScanner();
                     $.ajax({
                         url: '{{ route('simpan_kode_qris') }}', // buat route ini di web.php
                         method: 'POST',
