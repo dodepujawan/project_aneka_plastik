@@ -165,6 +165,8 @@ $(document).ready(function() {
             $('#transaksi_table_success_field').DataTable().clear().destroy();
         }
         table = $('#transaksi_table_success_field').DataTable({
+            processing: true,
+            serverSide: true,
             ajax: {
                 url: '{{ route("filter_success_invoice") }}',
                 data: function(d) {
@@ -242,6 +244,8 @@ $(document).ready(function() {
             $('#transaksi_table_success_field_staff').DataTable().clear().destroy();
         }
         table = $('#transaksi_table_success_field_staff').DataTable({
+            processing: true,
+            serverSide: true,
             ajax: {
                 url: '{{ route("filter_success_invoice") }}',
                 data: function(d) {
@@ -320,6 +324,8 @@ $(document).ready(function() {
             $('#transaksi_table_success_field_admin').DataTable().clear().destroy();
         }
         table = $('#transaksi_table_success_field_admin').DataTable({
+            processing: true,
+            serverSide: true,
             ajax: {
                 url: '{{ route("filter_success_invoice") }}',
                 data: function(d) {

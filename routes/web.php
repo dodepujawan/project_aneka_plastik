@@ -114,6 +114,7 @@ Route::prefix('qris')->middleware('auth')->group(function () {
     Route::post('/user/qris', [QrScannerController::class, 'cek_user_qr'])->name('cek_user_qr');
     Route::post('/simpan-kode-qris', [QrScannerController::class, 'simpan_kode_qris'])->name('simpan_kode_qris');
     Route::get('/qris/list', [QrScannerController::class, 'qris_list'])->name('qris_list');
+    Route::delete('/qris/delete/{id}', [QrScannerController::class, 'delete_qris'])->name('delete_qris');
 });
 
 Route::post('/broadcasting/auth', function () {

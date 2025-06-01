@@ -652,6 +652,10 @@ class TransaksiController extends Controller
             return response()->json(['message' => 'Silakan login terlebih dahulu'], 401);
         }
 
+        $start = $request->input('start');   // posisi awal data
+        $length = $request->input('length'); // berapa baris per halaman
+        $draw = $request->input('draw');     // digunakan untuk menjaga sinkronisasi DataTables
+
         $query = DB::table('po_userby as a')
             ->join('po_online as b', 'a.no_invoice', '=', 'b.no_invoice')
             ->select(
@@ -707,11 +711,19 @@ class TransaksiController extends Controller
                 });
             }
 
-        $order = $query->get();
+        $totalFiltered = $query->count(); // sebelum paginate, total hasil filter
+
+        $data = $query->offset($start)
+                    ->limit($length)
+                    ->get();
 
         return response()->json([
-            'data' => $order
+            'draw' => intval($draw),
+            'recordsTotal' => $totalFiltered, // jumlah semua data yang difilter
+            'recordsFiltered' => $totalFiltered,
+            'data' => $data
         ]);
+
     }
 
     public function get_po_success_det(Request $request){

@@ -47,12 +47,12 @@ class QrScannerController extends Controller
 
         return response()->json(['message' => 'Kode Customer berhasil disimpan.']);
     }
-    public function qris_list(Request $request)
-    {
+    public function qris_list(Request $request){
         $data = DB::table('qris_lokasi_sales as a')
         ->leftJoin('users as b', 'a.user_id', '=', 'b.user_id')
         ->leftJoin('users as c', 'a.customer_id', '=', 'c.user_id')
         ->select(
+            'a.id',
             'a.user_id',
             'b.name as sales_name',
             'a.customer_id',
@@ -67,5 +67,31 @@ class QrScannerController extends Controller
             'recordsFiltered' => $data->count(),
             'data' => $data,
         ]);
+    }
+    public function delete_qris($id){
+        $user = Auth::user(); // pastikan user sudah login (gunakan sanctum/session)
+        $qris = QrisLokasiSales::find($id);
+
+        if ($user->role === 'customer') {
+            return response()->json(['message' => 'Maaf anda belum bisa menjalankan perintah ini.'], 404);
+        }
+
+        if (!$qris) {
+            return response()->json(['message' => 'Data tidak ditemukan.'], 404);
+        }
+
+        if ($user->role === 'staff') {
+            // Hitung selisih jam dari created_at
+            $createdAt = Carbon::parse($qris->created_at)->timezone('Asia/Makassar');
+            $now = Carbon::now('Asia/Makassar');
+
+            if ($now->diffInHours($createdAt) > 24) {
+                return response()->json(['message' => 'Tidak bisa menghapus data yang lebih dari 24 jam.'], 403);
+            }
+        }
+
+        $qris->delete();
+
+        return response()->json(['message' => 'Data berhasil dihapus.']);
     }
 }

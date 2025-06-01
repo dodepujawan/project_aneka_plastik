@@ -50,6 +50,7 @@
                         <th>Kode Customer</th>
                         <th>Nama Customer</th>
                         <th>Tgl Submit</th>
+                        <th>Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -64,6 +65,7 @@
                         <th>Kode Customer</th>
                         <th>Nama Customer</th>
                         <th>Tgl Submit</th>
+                        <th>Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -82,7 +84,7 @@
         <div>
             <button id="startBtn" class="scanner btn btn-success">Mulai Scan</button>
             <button id="stopBtn" class="scanner btn btn-danger" disabled>Stop Scan</button>
-            <button id="generateBtn" class="scanner btn btn-primary">Submit Kode</button>
+            {{-- <button id="generateBtn" class="scanner btn btn-primary">Submit Kode</button> --}}
         </div>
     </div>
 </div>
@@ -138,6 +140,20 @@ $(document).ready(function() {
                 { data: 'customer_id' },
                 { data: 'customer_name' },
                 { data: 'created_at' },
+                {
+                    data: null,
+                    render: function (data, type, row) {
+                        const createdAt = moment.tz(row.created_at, 'DD-MM-YYYY HH:mm', 'Asia/Makassar');
+                        const now = moment.tz('Asia/Makassar');
+                        const diffHours = now.diff(createdAt, 'hours');
+
+                        if (diffHours <= 24) {
+                            return `<button class="btn btn-danger btn-delete" data-id="${row.id}"><i class="fa fa-trash"></i></button>`;
+                        } else {
+                            return `<button class="btn btn-secondary" disabled><i class="fa fa-trash"></i></button>`;
+                        }
+                    }
+                }
             ]
         });
     }
@@ -161,6 +177,12 @@ $(document).ready(function() {
                 { data: 'customer_id' },
                 { data: 'customer_name' },
                 { data: 'created_at' },
+                {
+                    data: null,
+                    render: function (data, type, row) {
+                        return `<button class="btn btn-delete btn-danger" data-id="${row.id}"><i class="fa fa-trash"></i></button>`;
+                    }
+                }
             ]
         });
     }
@@ -189,6 +211,7 @@ $(document).ready(function() {
 
                     console.log("Base64:", encodedBase64);
                     $hasilscan.val(encodedBase64);
+                    submit_qris(encodedBase64);
                     // HasilScan Biasa
                     // console.log(result.text);
                     // $hasilscan.val(result.text);
@@ -294,8 +317,8 @@ $(document).ready(function() {
     });
     // ============================== End of QR Scanner ============================
     // ============================== Submit QR Code ============================
-    $('#generateBtn').on('click', function () {
-        const base64Scan = $('#hasilscan').val();
+    function submit_qris(encodedBase64){
+        const base64Scan = encodedBase64;
 
         if (!base64Scan.trim()) {
             alert("Silakan scan QR code terlebih dahulu.");
@@ -346,31 +369,109 @@ $(document).ready(function() {
                             cust_id: res.user_id,
                         },
                         success: function (response) {
-                            alert("Kode Qris berhasil disimpan!");
-                            $.ajax({
-                                url: '{{ route('index_qris') }}',
-                                type: 'GET',
-                                success: function(response) {
-                                    $('.master-page').html(response);
-                                },
-                                error: function() {
-                                    $('.master-page').html('<p>Error loading form.</p>');
-                                }
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil!.',
+                                text: 'Kode Qris berhasil disimpan!',
+                                showConfirmButton: false,
+                                timer: 2000,
+                            }).then(() => {
+                                $.ajax({
+                                    url: '{{ route('index_qris') }}',
+                                    type: 'GET',
+                                    success: function(response) {
+                                        $('.master-page').html(response);
+                                    },
+                                    error: function() {
+                                        $('.master-page').html('<p>Error loading form.</p>');
+                                    }
+                                });
                             });
+
                         },
                         error: function () {
-                            alert("Gagal menyimpan kode customer.");
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Save Failed',
+                                text: "Gagal menyimpan kode customer.",
+                                showConfirmButton: false,
+                                timer: 2000 // Durasi tampil dalam milidetik
+                            });
                         }
                     });
                 } else {
-                    alert("❌ User tidak ditemukan.");
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Not Found',
+                        text: "❌ User tidak ditemukan.",
+                        showConfirmButton: false,
+                        timer: 2000 // Durasi tampil dalam milidetik
+                    });
                 }
             },
             error: function () {
-                alert("Terjadi kesalahan saat menghubungi server.");
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Server Failed',
+                    text: "Terjadi kesalahan saat menghubungi server.",
+                    showConfirmButton: false,
+                    timer: 2000 // Durasi tampil dalam milidetik
+                });
+            }
+        });
+    };
+    // ========================= End of Submit QR Code =====================================
+    // =========================== Delete QR Code =======================================
+    $('#qris_table_sales, #qris_table_admin').on('click', '.btn-delete', function () {
+        let deleteUrl = '{{ route("delete_qris", ["id" => ":id"]) }}';
+        const id = $(this).data('id');
+        const url = deleteUrl.replace(':id', id);
+        let row = $(this).closest('tr');
+
+        Swal.fire({
+            title: 'Yakin ingin menghapus?',
+            text: "Data yang sudah dihapus tidak bisa dikembalikan.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#aaa',
+            confirmButtonText: 'Ya, hapus!',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: url,
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function (res) {
+                        // Hapus baris langsung (pesimistik)
+                        if(user_role_select == 'staff'){
+                            $('#qris_table_sales').DataTable().row(row).remove().draw(false);
+                        }else{
+                            $('#qris_table_admin').DataTable().row(row).remove().draw(false);
+                        }
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil!',
+                            text: res.message || 'Data berhasil dihapus.',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                    },
+                    error: function (err) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Oops!',
+                            text: err.responseJSON?.message || 'Gagal menghapus data.',
+                        });
+                    }
+                });
             }
         });
     });
-    // ========================= End of Submit QR Code =====================================
+    // =========================== End of Delete QR Code =======================================
 });
 </script>
