@@ -78,6 +78,20 @@
         </div>
     </li>
 
+    <li class="nav-item d-block">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseSix"
+            aria-expanded="true" aria-controls="collapseSix">
+            <i class="fas fa-receipt"></i>
+            <span>Faktur</span>
+        </a>
+        <div id="collapseSix" class="collapse" aria-labelledby="headingSix" data-parent="#accordionSidebar">
+            <div class="bg-white py-2 collapse-inner rounded">
+                <h6 class="collapse-header">Faktur:</h6>
+                <a class="collapse-item" id="faktur_online_link" href="#">Faktur</a>
+            </div>
+        </div>
+    </li>
+
     @php
         $user = Auth::user();
         $allowedRoles = ['programmer', 'admin', 'staff'];

@@ -7,6 +7,7 @@ use App\Http\Controllers\LoginController;
 use App\Http\Controllers\PDFController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\TransaksiController;
+use App\Http\Controllers\FakturController;
 use App\Http\Controllers\MobileController;
 use App\Http\Controllers\PajakController;
 use App\Http\Controllers\QrScannerController;
@@ -70,6 +71,10 @@ Route::prefix('transaksi')->middleware('auth')->group(function () {
     Route::get('/api/po_success', [TransaksiController::class, 'get_po_success_det'])->name('get_po_success_det');
 });
 
+Route::prefix('faktur')->middleware('auth')->group(function () {
+    Route::get('/', [FakturController::class, 'index'])->name('index_faktur');
+
+});
 
 Route::prefix('home')->group(function () {
     Route::get('/', [HomeController::class, 'index'])->name('index')->middleware('auth');

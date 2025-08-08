@@ -186,7 +186,7 @@ $(document).on('click', '.main-sidebar #approved_transaksi_link', function(e) {
             url: '{{ route('approved_transaksi') }}',
             type: 'GET',
             success: function(response) {
-                alert('appr');
+                // alert('appr');
                 $('.master-page').html(response);
             },
             error: function() {
@@ -207,7 +207,7 @@ $(document).on('click', '.main-sidebar #approved_transaksi_link', function(e) {
             url: '{{ route('success_transaksi') }}',
             type: 'GET',
             success: function(response) {
-                alert('sccs');
+                // alert('sccs');
                 $('.master-page').html(response);
             },
             error: function() {
@@ -216,6 +216,27 @@ $(document).on('click', '.main-sidebar #approved_transaksi_link', function(e) {
         });
     }
 // ========================= End Of Transaksi Sukses ======================================
+// =============================== Faktur ========================================
+    $(document).on('click', '.main-sidebar #faktur_online_link', function(e) {
+            e.preventDefault();
+
+            load_faktur_link();
+        });
+
+    function load_faktur_link() {
+        $.ajax({
+            url: '{{ route('index_faktur') }}',
+            type: 'GET',
+            success: function(response) {
+                // alert('sccs');
+                $('.master-page').html(response);
+            },
+            error: function() {
+                $('.master-page').html('<p>Error loading form.</p>');
+            }
+        });
+    }
+// ============================== End Of Faktur =======================================
 // ========================= Main Transaksi Mobile ======================================
     $(document).on('click', '.main-sidebar #main_transaksi_link_mobile', function(e) {
         e.preventDefault();
