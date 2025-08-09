@@ -14,6 +14,7 @@ class FakturUser extends Model
         'user_id',
         'nama_cust',
         'user_kode',
+        'no_invoice',
         'created_at',
         'updated_at',
     ];

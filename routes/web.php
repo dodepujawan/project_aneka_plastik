@@ -73,7 +73,9 @@ Route::prefix('transaksi')->middleware('auth')->group(function () {
 
 Route::prefix('faktur')->middleware('auth')->group(function () {
     Route::get('/', [FakturController::class, 'index'])->name('index_faktur');
-
+    Route::get('/api/filter_faktur', [FakturController::class, 'filter_no_faktur'])->name('filter_no_faktur');
+    Route::get('/api/edit_faktur', [FakturController::class, 'get_edit_faktur_data'])->name('get_edit_faktur_data');
+    Route::get('/api/edit_faktur/admin', [FakturController::class, 'get_edit_faktur_data_admin'])->middleware('role:admin,staff')->name('get_edit_faktur_data_admin');
 });
 
 Route::prefix('home')->group(function () {
