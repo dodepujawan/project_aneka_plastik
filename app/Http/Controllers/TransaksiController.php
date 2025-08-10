@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Transactions;
 use App\Models\Transusers;
+use App\Models\Faktur;
+use App\Models\FakturUser;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -132,6 +134,7 @@ class TransaksiController extends Controller
                     'total' => $product['total'],
                     'rcabang' => $rcabang,  // Menyimpan rcabang dari pengguna yang login
                     'status_po' => 0,
+                    'status_faktur' => 0,
                 ]);
             }
 
@@ -192,6 +195,7 @@ class TransaksiController extends Controller
             // ->where('a.user_id', Auth::user()->user_id)
             ->where('a.user_kode', Auth::user()->user_kode)
             ->where('b.status_po', 0)
+            ->where('b.status_faktur', 0)
             ->groupBy('a.no_invoice', 'a.created_at')
             ->orderBy('a.created_at', 'desc')
             ->get();
@@ -219,6 +223,7 @@ class TransaksiController extends Controller
                 DB::raw('SUM(b.total) as total')
             )
             ->where('b.status_po', 0)
+            ->where('b.status_faktur', 0)
             ->groupBy('a.id','a.no_invoice', 'a.created_at', 'a.user_kode', 'c.NAMACUST', 'a.user_id')
             // ->orderBy('a.id', 'desc');
             ->orderBy('a.created_at', 'desc');
@@ -368,6 +373,7 @@ class TransaksiController extends Controller
                     'total' => $cleaned_total,
                     'rcabang' => $rcabang,
                     'status_po' => 0,
+                    'status_faktur' => 0,
                     'created_at' => $transactionsCreatedAt,
                     'updated_at' => Carbon::now(),
                 ]);
@@ -438,6 +444,84 @@ class TransaksiController extends Controller
 
             // Kembalikan pesan error
             return response()->json(['error' => 'Failed to delete products: ' . $e->getMessage()], 500);
+        }
+    }
+
+     public function save_faktur(Request $request){
+        $invoiceNumber = $request->input('invoice_number');
+
+        DB::beginTransaction();
+        try {
+            // Ambil data transaksi dari no_invoice
+            $transaksiList = Transactions::where('no_invoice', $invoiceNumber)->get();
+
+            if ($transaksiList->isEmpty()) {
+                return response()->json(['error' => 'Transaksi tidak ditemukan'], 404);
+            }
+
+            // Buat nomor faktur (format: FAK-<mY><5digit>)
+            $currentMonthYear = Carbon::now()->format('m') . substr(Carbon::now()->format('Y'), 2, 2);
+            $lastFaktur = Faktur::where('no_faktur', 'like', '%'.$currentMonthYear.'%')
+                                ->orderBy('no_faktur', 'desc')
+                                ->lockForUpdate()
+                                ->first();
+
+            $nextFakturNumber = $lastFaktur ? (int) substr($lastFaktur->no_faktur, -5) + 1 : 1;
+            $fakturNumber = 'FAK-' . $currentMonthYear . str_pad($nextFakturNumber, 5, '0', STR_PAD_LEFT);
+
+            // Simpan ke tabel faktur_online
+            foreach ($transaksiList as $t) {
+                Faktur::create([
+                    'no_faktur' => $fakturNumber,
+                    'kd_brg' => $t->kd_brg,
+                    'nama_brg' => $t->nama_brg,
+                    'qty_order' => $t->qty_order,
+                    'qty_unit' => $t->qty_unit,
+                    'satuan' => $t->satuan,
+                    'harga' => $t->harga,
+                    'ttl_gross' => $t->ttl_gross,
+                    'ppn' => $t->ppn,
+                    'rppn' => $t->rppn,
+                    'dpp' => $t->dpp,
+                    'disc' => $t->disc,
+                    'rdisc' => $t->rdisc,
+                    'ndisc' => $t->ndisc,
+                    'ttldisc' => $t->ttldisc,
+                    'total' => $t->total,
+                    'rcabang' => $t->rcabang,
+                    'history_inv' => $invoiceNumber,
+                ]);
+            }
+
+            // Simpan ke tabel faktur_userby
+            $transUser = Transusers::where('no_invoice', $invoiceNumber)->first();
+            if ($transUser) {
+                FakturUser::create([
+                    'no_faktur' => $fakturNumber,
+                    'user_id' => $transUser->user_id,
+                    'nama_cust' => $transUser->nama_cust,
+                    'user_kode' => $transUser->user_kode,
+                    'no_invoice' => $invoiceNumber,
+                ]);
+            }
+
+            // Update status_faktur di transactions
+            Transactions::where('no_invoice', $invoiceNumber)->update([
+                'status_faktur' => 1
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Faktur berhasil dibuat',
+                'no_faktur' => $fakturNumber
+            ], 200);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ], 500);
         }
     }
 
@@ -625,6 +709,7 @@ class TransaksiController extends Controller
                     'total' => $product['total'],
                     'rcabang' => $rcabang,  // Menyimpan rcabang dari pengguna yang login
                     'status_po' => 0,
+                    'status_faktur' => 0,
                     'history_inv' => $no_po_approve,
                 ]);
             }

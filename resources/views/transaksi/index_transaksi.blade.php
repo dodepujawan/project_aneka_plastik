@@ -795,20 +795,56 @@ $(document).ready(function(){
                     Swal.fire({
                         icon: 'success',
                         title: 'Save Successful',
-                        text: 'Data Berhasil Disimpan dengan Nomor Invoice: ' + response.invoice_number,
-                        showConfirmButton: true, // Tampilkan tombol OK
-                        confirmButtonText: 'OK', // Ubah teks tombol jika diperlukan
-                        showDenyButton: true, // Show Deny button for Print PDF
-                        denyButtonText: 'Print PDF',
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            // Callback setelah tombol OK ditekan
-                            success_call();
-                        }   else if (result.isDenied) {
-                            window.open('{{ route("generate_pdf", ":invoice_number") }}'.replace(':invoice_number', response.invoice_number), '_blank');
+                        html: `
+                            <p>Data Berhasil Disimpan dengan Nomor Invoice: <b>${response.invoice_number}</b></p>
+                            <div style="margin-top:20px;">
+                                <button id="btn-ok" class="swal2-confirm swal2-styled" style="background-color:#3085d6;">OK</button>
+                                <button id="btn-pdf" class="swal2-confirm swal2-styled" style="background-color:#6c757d;">Show PDF</button>
+                                <button id="btn-struk" class="swal2-confirm swal2-styled" style="background-color:#28a745;">Print Struk</button>
+                            </div>
+                        `,
+                        showConfirmButton: false, // matikan tombol default
+                        didOpen: () => {
+                            // Event listener untuk tombol OK
+                            document.getElementById('btn-ok').addEventListener('click', () => {
                                 success_call();
-                            }
+                                Swal.close();
+                            });
+
+                            // Event listener untuk tombol Print PDF
+                            document.getElementById('btn-pdf').addEventListener('click', () => {
+                                window.open('{{ route("generate_pdf", ":invoice_number") }}'.replace(':invoice_number', response.invoice_number), '_blank');
+                                success_call();
+                                Swal.close();
+                            });
+
+                            // Event listener untuk tombol Print Struk
+                            document.getElementById('btn-struk').addEventListener('click', () => {
+                                Swal.close();
+                                $('#loading_modal').modal('show');
+                                setTimeout(function () {
+                                    save_faktur(response.invoice_number);
+                                }, 1200);
+                            });
+                        }
                     });
+                    // Swal.fire({
+                    //     icon: 'success',
+                    //     title: 'Save Successful',
+                    //     text: 'Data Berhasil Disimpan dengan Nomor Invoice: ' + response.invoice_number,
+                    //     showConfirmButton: true, // Tampilkan tombol OK
+                    //     confirmButtonText: 'OK', // Ubah teks tombol jika diperlukan
+                    //     showDenyButton: true, // Show Deny button for Print PDF
+                    //     denyButtonText: 'Print PDF',
+                    // }).then((result) => {
+                    //     if (result.isConfirmed) {
+                    //         // Callback setelah tombol OK ditekan
+                    //         success_call();
+                    //     }   else if (result.isDenied) {
+                    //         window.open('{{ route("generate_pdf", ":invoice_number") }}'.replace(':invoice_number', response.invoice_number), '_blank');
+                    //             success_call();
+                    //         }
+                    // });
                 },
                 error: function (xhr, status, error) {
                     console.log("Status: " + status);  // Menampilkan status HTTP
@@ -846,6 +882,40 @@ $(document).ready(function(){
         });
     }
 // ================================= End Of Submit Barang To DB =========================================
+// ==================================== Submit to Faktur ============================================
+function save_faktur(invoice_number) {
+    $.ajax({
+        url: '{{ route("save_faktur") }}',
+        type: 'POST',
+        data: {
+            invoice_number: invoice_number,
+            _token: '{{ csrf_token() }}'
+        },
+        success: function(res) {
+            console.log("Faktur berhasil:", res.no_faktur);
+            success_call();
+            $('#loading_modal').modal('hide');
+        },
+        error: function(xhr) {
+            console.error("Status:", xhr.status);
+            console.error("Response Text:", xhr.responseText);
+            console.error("Error:", xhr);
+
+            // Kalau Laravel kirim JSON error, bisa parse biar rapi
+            try {
+                let json = JSON.parse(xhr.responseText);
+                console.error("Laravel error message:", json.message);
+                console.error("Laravel error trace:", json);
+            } catch(e) {
+                console.warn("Bukan JSON, tampilkan raw text di atas.");
+            }
+
+            alert('Gagal membuat faktur. Lihat console browser untuk detail.');
+        }
+    });
+}
+
+// ================================= End Of Submit to Faktur =========================================
 // ============================== Number Formating =====================================
     function hapus_format(angka) {
         // Menghapus titik pemisah ribuan

@@ -30,6 +30,7 @@ class Transactions extends Model
         'total',
         'rcabang',
         'status_po',
+        'status_faktur',
         'history_inv',
         'created_at',
         'updated_at',

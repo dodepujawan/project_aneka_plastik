@@ -54,6 +54,8 @@ Route::prefix('transaksi')->middleware('auth')->group(function () {
     Route::post('save/products', [TransaksiController::class, 'save_products'])->name('save_products');
     Route::get('/api/barangs/satuan', [TransaksiController::class, 'get_barang_satuan'])->name('get_barang_satuan');
     Route::get('/api/barangs/selected', [TransaksiController::class, 'get_barang_selected'])->name('get_barang_selected');
+    // Bagian Faktur
+    Route::post('/save-faktur', [TransaksiController::class, 'save_faktur'])->name('save_faktur');
     // Show Edit Transaksi
     Route::get('/edit/show', [TransaksiController::class, 'index_edit'])->name('index_edit_transaksi');
     Route::get('/api/edit_transaksi', [TransaksiController::class, 'get_edit_transaksi_data'])->name('get_edit_transaksi_data');
@@ -74,8 +76,6 @@ Route::prefix('transaksi')->middleware('auth')->group(function () {
 Route::prefix('faktur')->middleware('auth')->group(function () {
     Route::get('/', [FakturController::class, 'index'])->name('index_faktur');
     Route::get('/api/filter_faktur', [FakturController::class, 'filter_no_faktur'])->name('filter_no_faktur');
-    Route::get('/api/edit_faktur', [FakturController::class, 'get_edit_faktur_data'])->name('get_edit_faktur_data');
-    Route::get('/api/edit_faktur/admin', [FakturController::class, 'get_edit_faktur_data_admin'])->middleware('role:admin,staff')->name('get_edit_faktur_data_admin');
 });
 
 Route::prefix('home')->group(function () {

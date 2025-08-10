@@ -36,7 +36,7 @@ class FakturController extends Controller
             // ->where('b.status_po', '!=', 0)
             // ->where('b.qty_sup', '!=', 0)
             // ->whereNotNull('b.no_invoice')
-            ->groupBy('a.no_invoice', 'a.created_at', 'a.user_id', 'a.user_kode')
+            ->groupBy('a.no_faktur', 'a.created_at', 'a.user_id', 'a.user_kode')
             ->orderBy('a.created_at', 'desc');
 
             $userRole = Auth::user()->roles;
@@ -94,59 +94,4 @@ class FakturController extends Controller
 
     }
 
-    public function get_edit_faktur_data(Request $request){
-        $data = DB::table('faktur_userby as a')
-            ->leftJoin('faktur_online as b', 'a.no_faktur', '=', 'b.no_faktur')
-            ->select(
-                'a.no_faktur',
-                DB::raw('DATE(a.created_at) as created_at'), // Gunakan DATE untuk mengambil tanggal saja
-                DB::raw('SUM(b.total) as total')
-            )
-            // ->where('a.user_id', Auth::user()->user_id)
-            ->where('a.user_kode', Auth::user()->user_kode)
-            // ->where('b.status_po', 0)
-            ->groupBy('a.no_faktur', 'a.created_at')
-            ->orderBy('a.created_at', 'desc')
-            ->get();
-
-        return response()->json([
-            'draw' => $request->draw,
-            'recordsTotal' => $data->count(),
-            'recordsFiltered' => $data->count(),
-            'data' => $data,
-        ]);
-    }
-
-    public function get_edit_faktur_data_admin(Request $request){
-        $user = Auth::user();
-
-        $query = DB::table('faktur_userby as a')
-            ->leftJoin('faktur_online as b', 'a.no_faktur', '=', 'b.no_faktur')
-            ->leftJoin('mcustomer as c', 'a.user_kode', '=', 'c.CUSTOMER')
-            ->select(
-                'a.no_faktur',
-                DB::raw('DATE(a.created_at) as created_at'),
-                'a.user_id',
-                'a.user_kode',
-                'c.NAMACUST as nama_cust',
-                DB::raw('SUM(b.total) as total')
-            )
-            // ->where('b.status_po', 0)
-            ->groupBy('a.id','a.no_faktur', 'a.created_at', 'a.user_kode', 'c.NAMACUST', 'a.user_id')
-            // ->orderBy('a.id', 'desc');
-            ->orderBy('a.created_at', 'desc');
-
-        if ($user->roles != 'admin') {
-            $query->where('a.user_id', $user->user_id);
-        }
-
-        $data = $query->get();
-
-        return response()->json([
-            'draw' => $request->draw,
-            'recordsTotal' => $data->count(),
-            'recordsFiltered' => $data->count(),
-            'data' => $data,
-        ]);
-    }
 }

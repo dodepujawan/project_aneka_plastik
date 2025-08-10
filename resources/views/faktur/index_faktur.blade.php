@@ -185,7 +185,7 @@ $(document).ready(function() {
                     name: 'no',
                     render: (data, type, row, meta) => meta.row + 1, // Nomor otomatis
                 },
-                { data: 'no_invoice', name: 'no_invoice' },
+                { data: 'no_faktur', name: 'no_faktur' },
                 { data: 'created_at', name: 'created_at' },
                 {
                     data: 'total',
@@ -193,12 +193,12 @@ $(document).ready(function() {
                     render: $.fn.dataTable.render.number(',', '.', 2, 'Rp ') // Format angka jadi Rupiah
                 },
                 {
-                    data: 'no_invoice',
+                    data: 'no_faktur',
                     orderable: false,
                     render: (data, type, row) => {
                         return `
                             <div style="display: flex; justify-content: center; gap: 0.5rem;">
-                                <button class="btn btn-sm btn-primary edit-btn show_po_app_success" data-no-invoice="${row.no_invoice}" style="margin-right: 0;">
+                                <button class="btn btn-sm btn-primary edit-btn show_faktur_app_success" data-no-invoice="${row.no_invoice}" style="margin-right: 0;">
                                     <i class="fa fa-search"></i>
                                 </button>
                                 <button class="btn btn-sm btn-success print-btn" id="print_po_pdf_app" data-no-invoice="${row.no_invoice}">
@@ -247,7 +247,7 @@ $(document).ready(function() {
             processing: true,
             serverSide: true,
             ajax: {
-                url: '{{ route("filter_success_invoice") }}',
+                url: '{{ route("filter_no_faktur") }}',
                 data: function(d) {
                     d.startDate = $('#startDateAppFaktur').val();
                     d.endDate = $('#endDateAppFaktur').val();
@@ -264,7 +264,7 @@ $(document).ready(function() {
                     name: 'no',
                     render: (data, type, row, meta) => meta.row + 1, // Nomor otomatis
                 },
-                { data: 'no_invoice', name: 'no_invoice' },
+                { data: 'no_faktur', name: 'no_faktur' },
                 { data: 'user_kode', name: 'user_kode' },
                 { data: 'created_at', name: 'created_at' },
                 {
@@ -273,12 +273,12 @@ $(document).ready(function() {
                     render: $.fn.dataTable.render.number(',', '.', 2, 'Rp ') // Format angka jadi Rupiah
                 },
                 {
-                    data: 'no_invoice',
+                    data: 'no_faktur',
                     orderable: false,
                     render: (data, type, row) => {
                         return `
                             <div style="display: flex; justify-content: center; gap: 0.5rem;">
-                                <button class="btn btn-sm btn-primary edit-btn show_po_app_success" data-no-invoice="${row.no_invoice}" style="margin-right: 0;">
+                                <button class="btn btn-sm btn-primary edit-btn show_faktur_app_success" data-no-invoice="${row.no_invoice}" style="margin-right: 0;">
                                     <i class="fa fa-search"></i>
                                 </button>
                                 <button class="btn btn-sm btn-success print-btn" id="print_po_pdf_app" data-no-invoice="${row.no_invoice}">
@@ -327,7 +327,7 @@ $(document).ready(function() {
             processing: true,
             serverSide: true,
             ajax: {
-                url: '{{ route("filter_success_invoice") }}',
+                url: '{{ route("filter_no_faktur") }}',
                 data: function(d) {
                     d.startDate = $('#startDateAppFaktur').val();
                     d.endDate = $('#endDateAppFaktur').val();
@@ -344,7 +344,7 @@ $(document).ready(function() {
                     name: 'no',
                     render: (data, type, row, meta) => meta.row + 1, // Nomor otomatis
                 },
-                { data: 'no_invoice', name: 'no_invoice' },
+                { data: 'no_faktur', name: 'no_faktur' },
                 { data: 'user_kode', name: 'user_kode' },
                 { data: 'user_id', name: 'user_id' },
                 { data: 'created_at', name: 'created_at' },
@@ -354,12 +354,12 @@ $(document).ready(function() {
                     render: $.fn.dataTable.render.number(',', '.', 2, 'Rp ') // Format angka jadi Rupiah
                 },
                 {
-                    data: 'no_invoice',
+                    data: 'no_faktur',
                     orderable: false,
                     render: (data, type, row) => {
                         return `
                             <div style="display: flex; justify-content: center; gap: 0.5rem;">
-                                <button class="btn btn-sm btn-primary edit-btn show_po_app_success" data-no-invoice="${row.no_invoice}" style="margin-right: 0;">
+                                <button class="btn btn-sm btn-primary edit-btn show_faktur_app_success" data-no-invoice="${row.no_invoice}" style="margin-right: 0;">
                                     <i class="fa fa-search"></i>
                                 </button>
                                 <button class="btn btn-sm btn-success print-btn" id="print_po_pdf_app" data-no-invoice="${row.no_invoice}">
@@ -411,7 +411,7 @@ $(document).on('click', '#po_table_refresh_faktur', function() {
 });
 // ===================================== End Of Refresh Table ==============================================
 // ===================================== Show PO Detail Approved ==============================================
-    $(document).on('click', '.show_po_app_success', function() {
+    $(document).on('click', '.show_faktur_app_success', function() {
         let no_po = $(this).data('no-invoice');
         $.ajax({
             url: '{{ route("get_po_success_det") }}',
