@@ -893,6 +893,9 @@ function save_faktur(invoice_number) {
         },
         success: function(res) {
             console.log("Faktur berhasil:", res.no_faktur);
+            // Cetak ke RawBT
+            let encodedStruk = encodeURIComponent(res.struk_text);
+            window.location.href = "rawbt://print?text=" + encodedStruk;
             success_call();
             $('#loading_modal').modal('hide');
         },
