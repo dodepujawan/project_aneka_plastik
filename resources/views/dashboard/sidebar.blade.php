@@ -40,7 +40,8 @@
     </div>
 
     <!-- Nav Item - Pages Collapse Menu -->
-    <li class="nav-item d-none d-md-block">
+    {{-- <li class="nav-item nav-item d-none d-md-block"> --}}
+    <li class="nav-item">
         <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseTwo"
             aria-expanded="true" aria-controls="collapseTwo">
             <i class="fas fa-shopping-cart"></i>
@@ -59,7 +60,8 @@
         </div>
     </li>
 
-    <li class="nav-item d-block d-md-none">
+    {{-- <li class="nav-item d-block d-md-none"> --}}
+    <li class="nav-item d-none">
         <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseFour"
             aria-expanded="true" aria-controls="collapseFour">
             <i class="fa fa-mobile"></i>
