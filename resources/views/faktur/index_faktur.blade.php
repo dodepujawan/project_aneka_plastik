@@ -488,29 +488,204 @@ $(document).on('click', '#po_table_refresh_faktur', function() {
         });
     });
 // ================================= End Of Click Print PDF Button ===========================================
-// ==================================== Click Print Struk Button ==============================================
-    $(document).on('click', '#print_table_faktur', function() {
-        var faktur_number = $('#no_faktur').val();
+// =================================== Update Print Struk To DB ==============================================
+    $('#print_table_faktur').on('click', function () {
+        const products = [];
+        let value_invo = $('#no_faktur').val();
+        let is_valid = true; // Untuk memeriksa validasi secara keseluruhan
 
-        // Show SweetAlert confirmation
-        Swal.fire({
-            title: 'Are you sure?',
-            text: `Apakah Ingin Print Faktur: ${faktur_number} ?`,
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonText: 'Ya Print !',
-            cancelButtonText: 'Batal',
-            customClass: {
-                cancelButton: 'btn-danger'
+        // Loop melalui setiap baris di tabel
+        $('#table_transaksi_list_po_app_faktur tbody tr').each(function () {
+            const kd_barang = $(this).find('td:eq(1)').text(); // KD Barang
+            const nama = $(this).find('td:eq(2)').text();      // Nama Barang
+            const harga = $(this).find('td:eq(3)').text();     // Harga Barang
+            const unit = $(this).find('td:eq(4)').text();      // Unit Barang
+            const satuan = $(this).find('td:eq(5)').text();    // Satuan Barang
+            const jumlah = $(this).find('td:eq(6)').text();    // Jumlah (editable)
+            const diskon = $(this).find('td:eq(7)').text();    // Diskon (editable)
+            const diskon_rp = $(this).find('td:eq(8)').text();
+            const ppn_trans = $(this).find('td:eq(9)').text();
+            const total_text = $(this).find('td:eq(10)').text();     // Total
+            const total = hapus_format(total_text);
+
+            // Validasi jumlah: tidak boleh kosong, harus angka, dan lebih besar dari 0
+            if (!jumlah || isNaN(jumlah) || parseFloat(jumlah) <= 0) {
+                is_valid = false;
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Jumlah Tidak Valid',
+                    text: 'Jumlah harus berupa angka dan lebih besar dari 0 di salah satu baris!',
+                    showConfirmButton: false,
+                    timer: 2000 // Durasi tampil dalam milidetik
+                });
+                return false; // Hentikan loop jika tidak valid
             }
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // If user confirms, open the PDF
-                alert('fakur_printed');
+
+            // Validasi diskon: harus angka (boleh 0)
+            if (diskon === "" || diskon.trim() === "" || isNaN(diskon)) {
+                is_valid = false;
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Diskon Tidak Valid',
+                    text: 'Diskon harus berupa angka, bisa 0, dan tidak boleh kosong!',
+                    showConfirmButton: false,
+                    timer: 2000 // Durasi tampil dalam milidetik
+                });
+                return false; // Hentikan loop jika tidak valid
+            }
+
+             // Validasi diskon: harus angka (boleh 0)
+             if (diskon_rp === "" || diskon_rp.trim() === "" || isNaN(diskon_rp)) {
+                is_valid = false;
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Diskon Tidak Valid',
+                    text: 'Diskon harus berupa angka, bisa 0, dan tidak boleh kosong!',
+                    showConfirmButton: false,
+                    timer: 2000 // Durasi tampil dalam milidetik
+                });
+                return false; // Hentikan loop jika tidak valid
+            }
+
+            if (ppn_trans === "" || ppn_trans.trim() === "" || isNaN(ppn_trans)) {
+                is_valid = false;
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'PPN Tidak Valid',
+                    text: 'PPN harus berupa angka, bisa 0, dan tidak boleh kosong!',
+                    showConfirmButton: false,
+                    timer: 2000 // Durasi tampil dalam milidetik
+                });
+                return false; // Hentikan loop jika tidak valid
+            }
+
+            // Masukkan ke array hanya jika KD Barang ada
+            if (kd_barang) {
+                products.push({
+                    kd_barang,
+                    nama,
+                    harga: parseFloat(harga),
+                    unit,
+                    satuan,
+                    jumlah: parseFloat(jumlah), // Pastikan formatnya angka
+                    diskon: parseFloat(diskon), // Pastikan formatnya angka
+                    diskon_rp: parseFloat(diskon_rp),
+                    ppn_trans: parseFloat(ppn_trans),
+                    total: parseFloat(total) // Bersihkan format jika ada titik
+                });
             }
         });
+
+        // Pastikan validasi lolos sebelum mengirim data ke server
+        if (!is_valid) {
+            return; // Hentikan eksekusi jika validasi gagal
+        }
+
+        // Kirim data ke server jika ada produk
+        if (products.length > 0) {
+            save_to_database_edit(products,value_invo);
+        } else {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Save Failed',
+                text: 'Tidak Ada Data Disimpan',
+                showConfirmButton: false,
+                timer: 2000 // Durasi tampil dalam milidetik
+            });
+        }
     });
-// ================================= End Of Click Print Struk Button ===========================================
+
+    function save_to_database_edit(products,value_invo) {
+        $('#loading_modal').modal('show');
+        setTimeout(function () {
+            $.ajax({
+                url: '{{ route('update_faktur') }}', // Endpoint Laravel
+                type: 'POST',
+                data: {
+                    _token: $('meta[name="csrf-token"]').attr('content'), // CSRF Token
+                    products: products,
+                    value_invo: value_invo
+                },
+                success: function (response) {
+                    save_faktur(value_invo);
+                    // $('#transaksi_table_edit tbody').empty();
+                    // $('#grand_total_edit').text(0);
+                },
+                error: function (xhr, status, error) {
+                    $('#loading_modal').modal('hide');
+                    console.log("Status: " + status);  // Menampilkan status HTTP
+                    console.log("Error: " + error);  // Menampilkan error message
+                    console.log(xhr.responseText);
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Save Failed',
+                        text: xhr.responseText,
+                        showConfirmButton: false,
+                        timer: 2000 // Durasi tampil dalam milidetik
+                    });
+                    // alert('Failed to save data.');
+                }
+            });
+        }, 1200);
+    }
+// ================================= End Of Print Struk To DB =========================================
+// ==================================== Submit to Faktur ============================================
+    function save_faktur(value_invo) {
+        $.ajax({
+            url: '{{ route("save_faktur") }}',
+            type: 'POST',
+            data: {
+                value_invo: value_invo,
+                _token: '{{ csrf_token() }}'
+            },
+            success: function(res) {
+                console.log("Faktur berhasil:", value_invo);
+                // Cetak ke RawBT
+                let encodedStruk = encodeURIComponent(value_invo);
+                window.location.href = "rawbt://print?text=" + encodedStruk;
+
+                $('#loading_modal').modal('hide');
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Print Successul',
+                    text: 'Data Berhasil Dicetak dengan Nomor Faktur: ' + value_invo,
+                    showConfirmButton: true,
+                    confirmButtonText: 'OK',
+                }).then(() => {
+                     // ### Redirect Hal Faktur
+                    $.ajax({
+                        url: '{{ route('index_faktur') }}',
+                        type: 'GET',
+                        success: function(response) {
+                            $('.master-page').html(response);
+                        },
+                        error: function() {
+                            $('.master-page').html('<p>Error loading form.</p>');
+                        }
+                    });
+                });
+
+            },
+            error: function(xhr) {
+                console.error("Status:", xhr.status);
+                console.error("Response Text:", xhr.responseText);
+                console.error("Error:", xhr);
+
+                // Kalau Laravel kirim JSON error, bisa parse biar rapi
+                try {
+                    let json = JSON.parse(xhr.responseText);
+                    console.error("Laravel error message:", json.message);
+                    console.error("Laravel error trace:", json);
+                } catch(e) {
+                    console.warn("Bukan JSON, tampilkan raw text di atas.");
+                }
+
+                alert('Gagal membuat faktur. Lihat console browser untuk detail.');
+            }
+        });
+    }
+// ================================= End Of Submit to Faktur =========================================
 // ================================= Return Tabel PO =========================================
     $('#return_table_faktur').on('click', function(){
         $("#formtable_po").show();

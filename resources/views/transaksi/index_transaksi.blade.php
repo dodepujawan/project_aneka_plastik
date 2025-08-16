@@ -894,52 +894,51 @@ $(document).ready(function(){
     }
 // ================================= End Of Submit Barang To DB =========================================
 // ==================================== Submit to Faktur ============================================
-function save_faktur(invoice_number) {
-    $.ajax({
-        url: '{{ route("save_faktur") }}',
-        type: 'POST',
-        data: {
-            invoice_number: invoice_number,
-            _token: '{{ csrf_token() }}'
-        },
-        success: function(res) {
-            console.log("Faktur berhasil:", res.no_faktur);
-            // Cetak ke RawBT
-            let encodedStruk = encodeURIComponent(res.struk_text);
-            window.location.href = "rawbt://print?text=" + encodedStruk;
-            success_call();
-            $('#loading_modal').modal('hide');
-            // ### Redirect Hal Faktur
-            $.ajax({
-                url: '{{ route('index_faktur') }}',
-                type: 'GET',
-                success: function(response) {
-                    $('.master-page').html(response);
-                },
-                error: function() {
-                    $('.master-page').html('<p>Error loading form.</p>');
+    function save_faktur(invoice_number) {
+        $.ajax({
+            url: '{{ route("save_faktur") }}',
+            type: 'POST',
+            data: {
+                invoice_number: invoice_number,
+                _token: '{{ csrf_token() }}'
+            },
+            success: function(res) {
+                console.log("Faktur berhasil:", res.no_faktur);
+                // Cetak ke RawBT
+                let encodedStruk = encodeURIComponent(res.struk_text);
+                window.location.href = "rawbt://print?text=" + encodedStruk;
+                success_call();
+                $('#loading_modal').modal('hide');
+                // ### Redirect Hal Faktur
+                $.ajax({
+                    url: '{{ route('index_faktur') }}',
+                    type: 'GET',
+                    success: function(response) {
+                        $('.master-page').html(response);
+                    },
+                    error: function() {
+                        $('.master-page').html('<p>Error loading form.</p>');
+                    }
+                });
+            },
+            error: function(xhr) {
+                console.error("Status:", xhr.status);
+                console.error("Response Text:", xhr.responseText);
+                console.error("Error:", xhr);
+
+                // Kalau Laravel kirim JSON error, bisa parse biar rapi
+                try {
+                    let json = JSON.parse(xhr.responseText);
+                    console.error("Laravel error message:", json.message);
+                    console.error("Laravel error trace:", json);
+                } catch(e) {
+                    console.warn("Bukan JSON, tampilkan raw text di atas.");
                 }
-            });
-        },
-        error: function(xhr) {
-            console.error("Status:", xhr.status);
-            console.error("Response Text:", xhr.responseText);
-            console.error("Error:", xhr);
 
-            // Kalau Laravel kirim JSON error, bisa parse biar rapi
-            try {
-                let json = JSON.parse(xhr.responseText);
-                console.error("Laravel error message:", json.message);
-                console.error("Laravel error trace:", json);
-            } catch(e) {
-                console.warn("Bukan JSON, tampilkan raw text di atas.");
+                alert('Gagal membuat faktur. Lihat console browser untuk detail.');
             }
-
-            alert('Gagal membuat faktur. Lihat console browser untuk detail.');
-        }
-    });
-}
-
+        });
+    }
 // ================================= End Of Submit to Faktur =========================================
 // ============================== Number Formating =====================================
     function hapus_format(angka) {
