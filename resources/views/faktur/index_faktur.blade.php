@@ -126,7 +126,7 @@
             </tbody>
         </table>
         <div class="button-container" style="display: flex; justify-content: flex-end; gap: 10px;">
-            <button type="button" class="btn btn-primary mt-2 mb-2" id="proses_table_faktur"><i class="fas fa-save"> Proses</i></button>
+            <button type="button" class="btn btn-success mt-2 mb-2" id="print_table_faktur"><i class="fas fa-print"> Print</i></button>
             <button type="button" class="btn btn-warning mt-2 mb-2" id="return_table_faktur"><i class="fas fa-undo"> List Menu</i></button>
         </div>
     </div>
@@ -198,10 +198,10 @@ $(document).ready(function() {
                     render: (data, type, row) => {
                         return `
                             <div style="display: flex; justify-content: center; gap: 0.5rem;">
-                                <button class="btn btn-sm btn-primary edit-btn show_faktur_app_success" data-no-invoice="${row.no_invoice}" style="margin-right: 0;">
+                                <button class="btn btn-sm btn-primary edit-btn show_faktur_app_success" data-no-invoice="${row.no_faktur}" style="margin-right: 0;">
                                     <i class="fa fa-search"></i>
                                 </button>
-                                <button class="btn btn-sm btn-success print-btn" id="print_po_pdf_app" data-no-invoice="${row.no_invoice}">
+                                <button class="btn btn-sm btn-success print-btn" id="print_faktur_pdf_app" data-no-invoice="${row.no_faktur}">
                                     <i class="fa fa-print"></i>
                                 </button>
                             </div>
@@ -278,10 +278,10 @@ $(document).ready(function() {
                     render: (data, type, row) => {
                         return `
                             <div style="display: flex; justify-content: center; gap: 0.5rem;">
-                                <button class="btn btn-sm btn-primary edit-btn show_faktur_app_success" data-no-invoice="${row.no_invoice}" style="margin-right: 0;">
+                                <button class="btn btn-sm btn-primary edit-btn show_faktur_app_success" data-no-invoice="${row.no_faktur}" style="margin-right: 0;">
                                     <i class="fa fa-search"></i>
                                 </button>
-                                <button class="btn btn-sm btn-success print-btn" id="print_po_pdf_app" data-no-invoice="${row.no_invoice}">
+                                <button class="btn btn-sm btn-success print-btn" id="print_faktur_pdf_app" data-no-invoice="${row.no_faktur}">
                                     <i class="fa fa-print"></i>
                                 </button>
                             </div>
@@ -359,10 +359,10 @@ $(document).ready(function() {
                     render: (data, type, row) => {
                         return `
                             <div style="display: flex; justify-content: center; gap: 0.5rem;">
-                                <button class="btn btn-sm btn-primary edit-btn show_faktur_app_success" data-no-invoice="${row.no_invoice}" style="margin-right: 0;">
+                                <button class="btn btn-sm btn-primary edit-btn show_faktur_app_success" data-no-invoice="${row.no_faktur}" style="margin-right: 0;">
                                     <i class="fa fa-search"></i>
                                 </button>
-                                <button class="btn btn-sm btn-success print-btn" id="print_po_pdf_app" data-no-invoice="${row.no_invoice}">
+                                <button class="btn btn-sm btn-success print-btn" id="print_faktur_pdf_app" data-no-invoice="${row.no_faktur}">
                                     <i class="fa fa-print"></i>
                                 </button>
                             </div>
@@ -414,18 +414,18 @@ $(document).on('click', '#po_table_refresh_faktur', function() {
     $(document).on('click', '.show_faktur_app_success', function() {
         let no_po = $(this).data('no-invoice');
         $.ajax({
-            url: '{{ route("get_po_success_det") }}',
+            url: '{{ route("get_faktur_det") }}',
             type: 'GET',
             data: {
-                no_invoice: no_po
+                no_faktur: no_po
             },
             success: function(response) {
                 var tableBody = $('#table_transaksi_list_po_app_faktur tbody');
                 tableBody.empty();
 
                 var grandTotal = 0;
-                $('#no_faktur').val(response.data[0].no_invoice);
-                console.log('test :' + response.data[0].no_invoice);
+                $('#no_faktur').val(response.data[0].no_faktur);
+                console.log('test :' + response.data[0].no_faktur);
 
                 $.each(response.data, function(index, item) {
                     var row = $('<tr></tr>');
@@ -436,7 +436,7 @@ $(document).on('click', '#po_table_refresh_faktur', function() {
                     row.append('<td>' + format_ribuan(item.harga) + '</td>');
                     row.append('<td>' + item.qty_unit + '</td>');
                     row.append('<td>' + item.satuan + '</td>');
-                    row.append('<td>' + item.qty_sup + '</td>');
+                    row.append('<td>' + item.qty_order + '</td>');
                     row.append('<td>' + item.disc + '</td>');
                     row.append('<td>' + item.ndisc + '</td>');
                     row.append('<td>' + item.ppn + '</td>');
@@ -450,6 +450,13 @@ $(document).on('click', '#po_table_refresh_faktur', function() {
                 $('#grand_total_faktur').text(format_ribuan(response.grand_total));
                 $("#formtable_po").hide();
                 $("#table_transaksi_po_app_faktur").show();
+
+                // Hide button if needed
+                if (response.hide_print) {
+                    $("#print_table_faktur").hide();
+                } else {
+                    $("#print_table_faktur").show();
+                }
             },
             error: function(xhr, status, error) {
                 console.error("Terjadi kesalahan:", error);
@@ -458,14 +465,14 @@ $(document).on('click', '#po_table_refresh_faktur', function() {
     });
 
 // ================================== End Of Show PO Detail Approved ===========================================
-// ==================================== Click Print Button ==============================================
-$(document).on('click', '#print_po_pdf_app', function() {
-        var invoice_number = $(this).data("no-invoice");
+// ==================================== Click Print PDF Button ==============================================
+    $(document).on('click', '#print_faktur_pdf_app', function() {
+        var faktur_number = $(this).data("no-invoice");
 
         // Show SweetAlert confirmation
         Swal.fire({
             title: 'Are you sure?',
-            text: `Apakah Ingin Print PO: ${invoice_number} ?`,
+            text: `Apakah Ingin Print Faktur: ${faktur_number} ?`,
             icon: 'question',
             showCancelButton: true,
             confirmButtonText: 'Ya Print !',
@@ -476,11 +483,34 @@ $(document).on('click', '#print_po_pdf_app', function() {
         }).then((result) => {
             if (result.isConfirmed) {
                 // If user confirms, open the PDF
-                window.open('{{ route("generate_pdf_approved", ":invoice_number") }}'.replace(':invoice_number', invoice_number), '_blank');
+                window.open('{{ route("generate_faktur_pdf", ":faktur_number") }}'.replace(':faktur_number', faktur_number), '_blank');
             }
         });
     });
-// ================================= End Of Click Print Button ===========================================
+// ================================= End Of Click Print PDF Button ===========================================
+// ==================================== Click Print Struk Button ==============================================
+    $(document).on('click', '#print_table_faktur', function() {
+        var faktur_number = $('#no_faktur').val();
+
+        // Show SweetAlert confirmation
+        Swal.fire({
+            title: 'Are you sure?',
+            text: `Apakah Ingin Print Faktur: ${faktur_number} ?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Ya Print !',
+            cancelButtonText: 'Batal',
+            customClass: {
+                cancelButton: 'btn-danger'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // If user confirms, open the PDF
+                alert('fakur_printed');
+            }
+        });
+    });
+// ================================= End Of Click Print Struk Button ===========================================
 // ================================= Return Tabel PO =========================================
     $('#return_table_faktur').on('click', function(){
         $("#formtable_po").show();

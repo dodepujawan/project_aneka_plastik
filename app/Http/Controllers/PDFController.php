@@ -54,6 +54,7 @@ class PDFController extends Controller
         $mpdf->WriteHTML($html);
         $mpdf->Output('PO_online_' . $invoice_number . '.pdf', 'I');
     }
+
     public function generate_pdf_approved($invoice_number){
         $transaction = DB::table('po_userby as a')
             ->leftJoin('po_online as b', DB::raw('a.no_invoice COLLATE utf8mb4_unicode_ci'), '=', 'b.no_invoice')
@@ -121,5 +122,44 @@ class PDFController extends Controller
         return response()->json(['message' => 'Diproses'], 200);
     }
 
+    public function generate_faktur_pdf($faktur_number){
+        $transaction = DB::table('faktur_userby as a')
+            ->leftJoin('faktur_online as b', DB::raw('a.no_faktur COLLATE utf8mb4_unicode_ci'), '=', 'b.no_faktur')
+            ->leftJoin('mcustomer as c', DB::raw('a.user_kode COLLATE utf8mb4_unicode_ci'), '=', 'c.CUSTOMER')
+            ->leftJoin('users as d', DB::raw('a.user_id COLLATE utf8mb4_unicode_ci'), '=', 'd.user_id')
+            ->select([
+                'a.no_faktur',
+                'a.user_id',
+                DB::raw('DATE_FORMAT(a.created_at, "%d-%m-%Y") AS created_at'),
+                'a.user_kode',
+                'b.kd_brg',
+                'b.nama_brg',
+                'c.NAMACUST as nama_cust',
+                'd.name',
+                DB::raw('CAST(b.qty_order AS UNSIGNED) AS qty_order'),
+                DB::raw('CAST(b.qty_unit AS UNSIGNED) AS qty_unit'),
+                'b.satuan',
+                DB::raw('CAST(b.harga AS UNSIGNED) AS harga'),
+                DB::raw('CAST(b.disc AS UNSIGNED) AS disc'),
+                DB::raw('CAST(b.ndisc AS UNSIGNED) AS ndisc'),
+                DB::raw('CAST(b.ppn AS UNSIGNED) AS ppn'),
+                DB::raw('CAST(b.rppn AS UNSIGNED) AS rppn'),
+                DB::raw('CAST(b.dpp AS UNSIGNED) AS dpp'),
+                DB::raw('CAST(b.total AS UNSIGNED) AS total'),
+                'b.rcabang'
+            ])
+            ->where('a.no_faktur', $faktur_number)
+            ->get();
+
+        if (!$transaction) {
+            return redirect()->route('error_page')->with('message', 'Faktur not found');
+        }
+
+        $html = view('pdf.faktur_online', compact('transaction'))->render();
+
+        $mpdf = new \Mpdf\Mpdf();
+        $mpdf->WriteHTML($html);
+        $mpdf->Output('Faktur_online_' . $faktur_number . '.pdf', 'I');
+    }
 
 }

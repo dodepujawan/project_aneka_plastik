@@ -809,6 +809,17 @@ $(document).ready(function(){
                             document.getElementById('btn-ok').addEventListener('click', () => {
                                 success_call();
                                 Swal.close();
+                                // ### Redirect Hal Edit
+                                $.ajax({
+                                    url: '{{ route('index_edit_transaksi') }}',
+                                    type: 'GET',
+                                    success: function(response) {
+                                        $('.master-page').html(response);
+                                    },
+                                    error: function() {
+                                        $('.master-page').html('<p>Error loading form.</p>');
+                                    }
+                                });
                             });
 
                             // Event listener untuk tombol Print PDF
@@ -816,6 +827,17 @@ $(document).ready(function(){
                                 window.open('{{ route("generate_pdf", ":invoice_number") }}'.replace(':invoice_number', response.invoice_number), '_blank');
                                 success_call();
                                 Swal.close();
+                                // ### Redirect Hal Edit
+                                $.ajax({
+                                    url: '{{ route('index_edit_transaksi') }}',
+                                    type: 'GET',
+                                    success: function(response) {
+                                        $('.master-page').html(response);
+                                    },
+                                    error: function() {
+                                        $('.master-page').html('<p>Error loading form.</p>');
+                                    }
+                                });
                             });
 
                             // Event listener untuk tombol Print Struk
@@ -869,17 +891,6 @@ $(document).ready(function(){
         grandTotalDpp = 0;
         $('#grand_total_ppn').text(0);
         grandTotalPpn = 0;
-        // ### Redirect Hal Edit
-        $.ajax({
-            url: '{{ route('index_edit_transaksi') }}',
-            type: 'GET',
-            success: function(response) {
-                $('.master-page').html(response);
-            },
-            error: function() {
-                $('.master-page').html('<p>Error loading form.</p>');
-            }
-        });
     }
 // ================================= End Of Submit Barang To DB =========================================
 // ==================================== Submit to Faktur ============================================
@@ -898,6 +909,17 @@ function save_faktur(invoice_number) {
             window.location.href = "rawbt://print?text=" + encodedStruk;
             success_call();
             $('#loading_modal').modal('hide');
+            // ### Redirect Hal Faktur
+            $.ajax({
+                url: '{{ route('index_faktur') }}',
+                type: 'GET',
+                success: function(response) {
+                    $('.master-page').html(response);
+                },
+                error: function() {
+                    $('.master-page').html('<p>Error loading form.</p>');
+                }
+            });
         },
         error: function(xhr) {
             console.error("Status:", xhr.status);

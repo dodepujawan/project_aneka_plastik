@@ -76,6 +76,8 @@ Route::prefix('transaksi')->middleware('auth')->group(function () {
 Route::prefix('faktur')->middleware('auth')->group(function () {
     Route::get('/', [FakturController::class, 'index'])->name('index_faktur');
     Route::get('/api/filter_faktur', [FakturController::class, 'filter_no_faktur'])->name('filter_no_faktur');
+    Route::get('/api/faktur_det', [FakturController::class, 'get_faktur_det'])->name('get_faktur_det');
+
 });
 
 Route::prefix('home')->group(function () {
@@ -99,6 +101,7 @@ Route::prefix('pdf')->group(function () {
     Route::get('/generate-pdf/approved/{invoice_number}', [PDFController::class, 'generate_pdf_approved'])->name('generate_pdf_approved');
     Route::post('/generate-list-harga-pdf', [PDFController::class, 'generate_list_harga_pdf'])->name('generate_list_harga_pdf');
     Route::get('/generate-list-harga-pdf-node', [PDFController::class, 'generate_list_harga_pdf_node'])->name('generate_list_harga_pdf_node');
+    Route::get('/generate-faktur-pdf/{faktur_number}', [PDFController::class, 'generate_faktur_pdf'])->name('generate_faktur_pdf');
 });
 
 Route::prefix('harga')->middleware('auth')->group(function () {

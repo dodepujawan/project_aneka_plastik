@@ -94,4 +94,48 @@ class FakturController extends Controller
 
     }
 
+    public function get_faktur_det(Request $request){
+        $no_faktur = $request->input('no_faktur');
+        $role = auth()->user()->roles;
+        $query = DB::table('faktur_online')
+            ->select([
+                'no_faktur',
+                'kd_brg',
+                'nama_brg',
+                'harga',
+                'qty_unit',
+                'satuan',
+                'qty_order',
+                'disc',
+                'ndisc',
+                'ndisc',
+                'ppn',
+                'total',
+                'created_at'
+            ])
+            ->where('no_faktur', $no_faktur)
+            ->get();
+
+        $grandTotal = $query->sum('total');
+
+        // Default Hide Button
+        $hidePrint = false; // default: tampilkan tombol
+
+        if (strtolower($role) !== 'admin' && $query->isNotEmpty()) {
+            $createdAt = Carbon::parse($query[0]->created_at);
+            $now = Carbon::now();
+            $hoursDiff = $createdAt->diffInHours($now);
+
+            if ($hoursDiff > 24) {
+                $hidePrint = true; // tombol di-hide kalau bukan admin & sudah 24 jam
+            }
+        }
+
+        return response()->json([
+            'data' => $query,
+            'grand_total' => $grandTotal,
+            'hide_print' => $hidePrint
+        ]);
+    }
+
 }
