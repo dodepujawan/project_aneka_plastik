@@ -338,13 +338,14 @@ class FakturController extends Controller
             DB::commit();
 
             // Ambil ulang data untuk struk
-            $items = Faktur::where('no_faktur', $fakturNumber)->get();
+            $items = Faktur::where('no_faktur', $noFaktur)->get();
 
             // Format struk sederhana (bisa tambah ESC/POS command biar lebih rapi)
-            $struk = "TOKO ANEKA PLASTIK\n";
+            $struk = "\n";
+            $struk .= "TOKO ANEKA PLASTIK\n";
             $struk .= "Jl. Hasannudin No.51 Singaraja\n";
             $struk .= "-----------------------------\n";
-            $struk .= "No Faktur : {$fakturNumber}\n";
+            $struk .= "No Faktur : {$noFaktur}\n";
             // $struk .= "Tanggal   : " . now()->format('d-m-Y H:i') . "\n";
             $struk .= "Tanggal   : " . $items->first()->created_at->format('d-m-Y H:i') . "\n";
             $struk .= "-----------------------------\n";

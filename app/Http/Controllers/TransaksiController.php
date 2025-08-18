@@ -516,7 +516,8 @@ class TransaksiController extends Controller
             $items = Faktur::where('no_faktur', $fakturNumber)->get();
 
             // Format struk sederhana (bisa tambah ESC/POS command biar lebih rapi)
-            $struk = "TOKO ANEKA PLASTIK\n";
+            $struk = "\n";
+            $struk .= "TOKO ANEKA PLASTIK\n";
             $struk .= "Jl. Hasannudin No.51 Singaraja\n";
             $struk .= "-----------------------------\n";
             $struk .= "No Faktur : {$fakturNumber}\n";
