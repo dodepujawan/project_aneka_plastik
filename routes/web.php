@@ -76,7 +76,7 @@ Route::prefix('transaksi')->middleware('auth')->group(function () {
 Route::prefix('faktur')->middleware('auth')->group(function () {
     Route::get('/', [FakturController::class, 'index'])->name('index_faktur');
     Route::get('/api/filter_faktur', [FakturController::class, 'filter_no_faktur'])->name('filter_no_faktur');
-    Route::get('/api/faktur_det', [FakturController::class, 'get_faktur_det'])->name('get_faktur_det');
+    Route::get('/api/get_faktur_to_table', [FakturController::class, 'get_faktur_to_table'])->name('get_faktur_to_table');
     Route::post('update/faktur', [FakturController::class, 'update_faktur'])->name('update_faktur');
 });
 

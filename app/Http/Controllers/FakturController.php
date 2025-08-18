@@ -96,55 +96,87 @@ class FakturController extends Controller
 
     }
 
-    public function get_faktur_det(Request $request){
-        $no_faktur = $request->input('no_faktur');
-        $role = auth()->user()->roles;
-        $query = DB::table('faktur_online')
-            ->select([
-                'no_faktur',
-                'kd_brg',
-                'nama_brg',
-                'harga',
-                'qty_unit',
-                'satuan',
-                'qty_order',
-                'disc',
-                'ndisc',
-                'ndisc',
-                'ppn',
-                'total',
-                'created_at'
-            ])
-            ->where('no_faktur', $no_faktur)
-            ->get();
+    // public function get_faktur_det(Request $request){
+    //     $no_faktur = $request->input('no_faktur');
+    //     $role = auth()->user()->roles;
+    //     $query = DB::table('faktur_online')
+    //         ->select([
+    //             'no_faktur',
+    //             'kd_brg',
+    //             'nama_brg',
+    //             'harga',
+    //             'qty_unit',
+    //             'satuan',
+    //             'qty_order',
+    //             'disc',
+    //             'ndisc',
+    //             'ndisc',
+    //             'ppn',
+    //             'total',
+    //             'created_at'
+    //         ])
+    //         ->where('no_faktur', $no_faktur)
+    //         ->get();
 
-        $grandTotal = $query->sum('total');
+    //     $grandTotal = $query->sum('total');
 
-        // Default Hide Button
-        $hidePrint = false; // default: tampilkan tombol
+    //     // Default Hide Button
+    //     $hidePrint = false; // default: tampilkan tombol
 
-        if (strtolower($role) !== 'admin' && $query->isNotEmpty()) {
-            $createdAt = Carbon::parse($query[0]->created_at);
-            $now = Carbon::now();
-            $hoursDiff = $createdAt->diffInHours($now);
+    //     if (strtolower($role) !== 'admin' && $query->isNotEmpty()) {
+    //         $createdAt = Carbon::parse($query[0]->created_at);
+    //         $now = Carbon::now();
+    //         $hoursDiff = $createdAt->diffInHours($now);
 
-            if ($hoursDiff > 24) {
-                $hidePrint = true; // tombol di-hide kalau bukan admin & sudah 24 jam
-            }
-        }
+    //         if ($hoursDiff > 24) {
+    //             $hidePrint = true; // tombol di-hide kalau bukan admin & sudah 24 jam
+    //         }
+    //     }
 
-        return response()->json([
-            'data' => $query,
-            'grand_total' => $grandTotal,
-            'hide_print' => $hidePrint
-        ]);
+    //     return response()->json([
+    //         'data' => $query,
+    //         'grand_total' => $grandTotal,
+    //         'hide_print' => $hidePrint
+    //     ]);
+    // }
+
+    public function get_faktur_to_table(Request $request){
+        $no_invoice = $request->no_invoice;
+
+        $data = DB::table('faktur_userby as a')
+        ->leftJoin('faktur_online as b', 'a.no_faktur', '=', 'b.no_faktur')
+        ->leftJoin('mcustomer as c', 'a.user_kode', '=', 'c.CUSTOMER')
+        ->select(
+            'a.no_faktur',
+            'a.created_at',
+            'a.user_kode',
+            'b.kd_brg',
+            'b.nama_brg',
+            'c.NAMACUST as nama_cust',
+            DB::raw('CAST(b.qty_order AS UNSIGNED) AS qty_order'),
+            DB::raw('CAST(b.qty_unit AS UNSIGNED) AS qty_unit'),
+            'b.satuan',
+            DB::raw('CAST(b.harga AS UNSIGNED) AS harga'),
+            DB::raw('CAST(b.disc AS UNSIGNED) AS disc'),
+            DB::raw('CAST(b.ndisc AS UNSIGNED) AS ndisc'),
+            DB::raw('CAST(b.ppn AS UNSIGNED) AS ppn'),
+            DB::raw('CAST(b.rppn AS UNSIGNED) AS rppn'),
+            DB::raw('CAST(b.dpp AS UNSIGNED) AS dpp'),
+            DB::raw('CAST(b.total AS UNSIGNED) AS total'),
+            'b.rcabang'
+        )
+        // ->where('a.user_id', Auth::user()->user_id)
+        ->where('a.no_faktur', $no_invoice)
+        ->get();
+
+        return response()->json(['data' => $data]);
     }
 
     // ###  Update Faktur
     public function update_faktur(Request $request){
         $products = $request->input('products');
         $noFaktur = $request->input('value_invo');
-        // $kodeUser = $request->input('kode_user');
+        $kodeUser = $request->input('kode_user');
         $noInvoice = Faktur::where('no_faktur', $noFaktur)->value('history_inv');
 
         $rcabang = Auth::user()->rcabang;
@@ -220,7 +252,7 @@ class FakturController extends Controller
                 'no_invoice' => $noInvoice,
                 'user_id' => $user_id_prev,
                 'nama_cust' => $user_name_prev,
-                'user_kode' => $user_kode_prev,
+                'user_kode' => $kodeUser,
                 'created_at' => $created_at_transusers,
                 'updated_at' => Carbon::now(),
             ]);
@@ -264,7 +296,7 @@ class FakturController extends Controller
                 'no_faktur' => $noFaktur,
                 'user_id' => $user_id_prev,
                 'nama_cust' => $user_name_prev,
-                'user_kode' => $user_kode_faktur,
+                'user_kode' => $kodeUser,
                 'created_at' => $created_at_faktur,
                 'updated_at' => Carbon::now(),
             ]);
@@ -312,5 +344,4 @@ class FakturController extends Controller
             return response()->json(['error' => 'Failed to update products: ' . $e->getMessage()], 500);
         }
     }
-
 }
