@@ -337,7 +337,40 @@ class FakturController extends Controller
 
             DB::commit();
 
-            return response()->json(['message' => 'Products updated successfully!'], 200);
+            // Ambil ulang data untuk struk
+            $items = Faktur::where('no_faktur', $fakturNumber)->get();
+
+            // Format struk sederhana (bisa tambah ESC/POS command biar lebih rapi)
+            $struk = "TOKO ANEKA PLASTIK\n";
+            $struk .= "Jl. Hasannudin No.51 Singaraja\n";
+            $struk .= "-----------------------------\n";
+            $struk .= "No Faktur : {$fakturNumber}\n";
+            // $struk .= "Tanggal   : " . now()->format('d-m-Y H:i') . "\n";
+            $struk .= "Tanggal   : " . $items->first()->created_at->format('d-m-Y H:i') . "\n";
+            $struk .= "-----------------------------\n";
+
+            foreach ($items as $i) {
+                $nama = substr($i->nama_brg, 0, 20);
+                $struk .= sprintf(
+                    "%-20s %3d x %8s\n",
+                    $nama,
+                    $i->qty_order,
+                    number_format($i->harga, 0, ',', '.')
+                );
+            }
+
+            $total = $items->sum('total');
+            $struk .= "-----------------------------\n";
+            $struk .= sprintf("TOTAL: %24s\n", number_format($total, 0, ',', '.'));
+            $struk .= "PPN : " . number_format($items->sum('rppn'), 0, ',', '.') . "\n";
+            $struk .= "DPP : " . number_format($items->sum('dpp'), 0, ',', '.') . "\n";
+            $struk .= "-----------------------------\n";
+            $struk .= "Terima kasih\n\n\n";
+
+            return response()->json([
+                'message' => 'Products updated successfully!',
+                'struk_text' => $struk
+            ], 200);
         } catch (\Exception $e) {
             DB::rollBack();
 

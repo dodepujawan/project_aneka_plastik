@@ -280,7 +280,7 @@
             </table>
         </div>
         <div class="button-container" style="display: flex; justify-content: flex-end; gap: 10px;">
-            <button type="submit" class="btn btn-primary mt-2 mb-2" id="save_table_transaksi_faktur"><i class="fas fa-save"> Proses</i></button>
+            <button type="submit" class="btn btn-success mt-2 mb-2" id="save_table_transaksi_faktur"><i class="fas fa-print"> Struk</i></button>
             <button type="submit" class="btn btn-info mt-2 mb-2" id="reset_table_transaksi_faktur"><i class="fas fa-sync-alt"> Reset</i></button>
         </div>
     </div>
@@ -1171,7 +1171,7 @@ function get_barang_satuan_edit(kd_barang){
                     kode_user: kode_user
                 },
                 success: function (response) {
-                    let encodedStruk = encodeURIComponent(value_invo);
+                    let encodedStruk = encodeURIComponent(response.struk_text);
                     window.location.href = "rawbt://print?text=" + encodedStruk;
                     $('#loading_modal').modal('hide');
                     // Swal.fire({
