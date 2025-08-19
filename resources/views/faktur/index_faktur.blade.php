@@ -83,30 +83,10 @@
                 <thead>
                     <tr>
                         <th>No</th>
-                        <th>No PO</th>
-                        <th>Tgl PO</th>
-                        <th>Total PO</th>
-                        <th>Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                </tbody>
-                <tfoot>
-                    <tr>
-                        <th colspan="3" style="text-align:right">Grand Total:</th>
-                        <th id="grand_total_appr_faktur">Rp 0</th>
-                        <th></th>
-                    </tr>
-                </tfoot>
-            </table>
-            <table id="transaksi_table_faktur_field_staff" class="display table table-bordered mb-2 style-table" style="display: none;">
-                <thead>
-                    <tr>
-                        <th>No</th>
-                        <th>No PO</th>
-                        <th>Customer Kode</th>
-                        <th>Tgl PO</th>
-                        <th>Total PO</th>
+                        <th>No Faktur</th>
+                        <th>Tgl Faktur</th>
+                        <th>No Invoice</th>
+                        <th>Total PFakturs</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
@@ -120,15 +100,15 @@
                     </tr>
                 </tfoot>
             </table>
-            <table id="transaksi_table_faktur_field_admin" class="display table table-bordered mb-2 style-table" style="display: none;">
+            <table id="transaksi_table_faktur_field_staff" class="display table table-bordered mb-2 style-table" style="display: none;">
                 <thead>
                     <tr>
                         <th>No</th>
-                        <th>No PO</th>
+                        <th>No Faktur</th>
                         <th>Customer Kode</th>
-                        <th>Sales Kode</th>
-                        <th>Tgl PO</th>
-                        <th>Total PO</th>
+                        <th>Tgl Faktur</th>
+                        <th>No Invoice</th>
+                        <th>Total Faktur</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
@@ -137,6 +117,29 @@
                 <tfoot>
                     <tr>
                         <th colspan="5" style="text-align:right">Grand Total:</th>
+                        <th id="grand_total_appr_faktur">Rp 0</th>
+                        <th></th>
+                    </tr>
+                </tfoot>
+            </table>
+            <table id="transaksi_table_faktur_field_admin" class="display table table-bordered mb-2 style-table" style="display: none;">
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>No Faktur</th>
+                        <th>Customer Kode</th>
+                        <th>Sales Kode</th>
+                        <th>Tgl Faktur</th>
+                        <th>No Invoice</th>
+                        <th>Total Faktur</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <th colspan="6" style="text-align:right">Grand Total:</th>
                         <th id="grand_total_appr_faktur">Rp 0</th>
                         <th></th>
                     </tr>
@@ -308,9 +311,11 @@ $(document).ready(function() {
         }else if(user_role_select_app == 'staff'){
             $("#transaksi_table_faktur_field_staff").show();
             transaksi_table_faktur_field_staff();
+            select_user_list_edit();
         }else{
             $("#transaksi_table_faktur_field_admin").show();
             transaksi_table_faktur_field_admin();
+            select_user_list_edit();
         }
     }
 
@@ -341,86 +346,7 @@ $(document).ready(function() {
                 },
                 { data: 'no_faktur', name: 'no_faktur' },
                 { data: 'created_at', name: 'created_at' },
-                {
-                    data: 'total',
-                    name: 'total',
-                    render: $.fn.dataTable.render.number(',', '.', 2, 'Rp ') // Format angka jadi Rupiah
-                },
-                {
-                    data: 'no_faktur',
-                    orderable: false,
-                    render: (data, type, row) => {
-                        return `
-                            <div style="display: flex; justify-content: center; gap: 0.5rem;">
-                                <button class="btn btn-sm btn-primary edit-btn show_faktur_app_success" data-no-invoice="${row.no_faktur}" style="margin-right: 0;">
-                                    <i class="fa fa-search"></i>
-                                </button>
-                                <button class="btn btn-sm btn-success print-btn" id="print_faktur_pdf_app" data-no-invoice="${row.no_faktur}">
-                                    <i class="fa fa-print"></i>
-                                </button>
-                            </div>
-                        `;
-                    },
-                },
-            ],
-            footerCallback: function (row, data, start, end, display) {
-                let api = this.api();
-
-                // Calculate the total for current page
-                let pageTotal = api
-                    .column(3)
-                    .data()
-                    .reduce((a, b) => parseFloat(a) + parseFloat(b), 0);
-
-                // Update footer
-                $(api.column(3).footer()).html(
-                    'Rp ' + $.fn.dataTable.render.number(',', '.', 2, '').display(pageTotal)
-                );
-            },
-            searching: false,
-            paging: true,
-            info: false,
-            scrollY: '100vh',  // Menambahkan scrolling vertikal
-            scrollCollapse: true,
-            scrollX: true,
-            stateSave: true, // untuk kembali ke halaman sebelumnya
-            fixedHeader: {
-                header: true,
-                footer: false
-            }
-        });
-            $('#filterBtnAppFaktur').on('click', function() {
-                table.ajax.reload();
-            });
-    }
-    function transaksi_table_faktur_field_staff() {
-        if ($.fn.dataTable.isDataTable('#transaksi_table_faktur_field_staff')) {
-            $('#transaksi_table_faktur_field_staff').DataTable().clear().destroy();
-        }
-        table = $('#transaksi_table_faktur_field_staff').DataTable({
-            processing: true,
-            serverSide: true,
-            ajax: {
-                url: '{{ route("filter_no_faktur") }}',
-                data: function(d) {
-                    d.startDate = $('#startDateAppFaktur').val();
-                    d.endDate = $('#endDateAppFaktur').val();
-                    d.searchText = $('#searchBoxAppFaktur').val();
-                },
-                dataSrc: function(json) {
-                    console.log('Server Response:', json);
-                    return json.data;
-                }
-            },
-            columns:[
-                {
-                    data: null,
-                    name: 'no',
-                    render: (data, type, row, meta) => meta.row + 1, // Nomor otomatis
-                },
-                { data: 'no_faktur', name: 'no_faktur' },
-                { data: 'user_kode', name: 'user_kode' },
-                { data: 'created_at', name: 'created_at' },
+                { data: 'history_inv', name: 'history_inv' },
                 {
                     data: 'total',
                     name: 'total',
@@ -473,11 +399,11 @@ $(document).ready(function() {
                 table.ajax.reload();
             });
     }
-    function transaksi_table_faktur_field_admin() {
-        if ($.fn.dataTable.isDataTable('#transaksi_table_faktur_field_admin')) {
-            $('#transaksi_table_faktur_field_admin').DataTable().clear().destroy();
+    function transaksi_table_faktur_field_staff() {
+        if ($.fn.dataTable.isDataTable('#transaksi_table_faktur_field_staff')) {
+            $('#transaksi_table_faktur_field_staff').DataTable().clear().destroy();
         }
-        table = $('#transaksi_table_faktur_field_admin').DataTable({
+        table = $('#transaksi_table_faktur_field_staff').DataTable({
             processing: true,
             serverSide: true,
             ajax: {
@@ -500,8 +426,8 @@ $(document).ready(function() {
                 },
                 { data: 'no_faktur', name: 'no_faktur' },
                 { data: 'user_kode', name: 'user_kode' },
-                { data: 'user_id', name: 'user_id' },
                 { data: 'created_at', name: 'created_at' },
+                { data: 'history_inv', name: 'history_inv' },
                 {
                     data: 'total',
                     name: 'total',
@@ -535,6 +461,88 @@ $(document).ready(function() {
 
                 // Update footer
                 $(api.column(5).footer()).html(
+                    'Rp ' + $.fn.dataTable.render.number(',', '.', 2, '').display(pageTotal)
+                );
+            },
+            searching: false,
+            paging: true,
+            info: false,
+            scrollY: '100vh',  // Menambahkan scrolling vertikal
+            scrollCollapse: true,
+            scrollX: true,
+            stateSave: true, // untuk kembali ke halaman sebelumnya
+            fixedHeader: {
+                header: true,
+                footer: false
+            }
+        });
+            $('#filterBtnAppFaktur').on('click', function() {
+                table.ajax.reload();
+            });
+    }
+    function transaksi_table_faktur_field_admin() {
+        if ($.fn.dataTable.isDataTable('#transaksi_table_faktur_field_admin')) {
+            $('#transaksi_table_faktur_field_admin').DataTable().clear().destroy();
+        }
+        table = $('#transaksi_table_faktur_field_admin').DataTable({
+            processing: true,
+            serverSide: true,
+            ajax: {
+                url: '{{ route("filter_no_faktur") }}',
+                data: function(d) {
+                    d.startDate = $('#startDateAppFaktur').val();
+                    d.endDate = $('#endDateAppFaktur').val();
+                    d.searchText = $('#searchBoxAppFaktur').val();
+                },
+                dataSrc: function(json) {
+                    console.log('Server Response:', json);
+                    return json.data;
+                }
+            },
+            columns:[
+                {
+                    data: null,
+                    name: 'no',
+                    render: (data, type, row, meta) => meta.row + 1, // Nomor otomatis
+                },
+                { data: 'no_faktur', name: 'no_faktur' },
+                { data: 'user_kode', name: 'user_kode' },
+                { data: 'user_id', name: 'user_id' },
+                { data: 'created_at', name: 'created_at' },
+                { data: 'history_inv', name: 'history_inv' },
+                {
+                    data: 'total',
+                    name: 'total',
+                    render: $.fn.dataTable.render.number(',', '.', 2, 'Rp ') // Format angka jadi Rupiah
+                },
+                {
+                    data: 'no_faktur',
+                    orderable: false,
+                    render: (data, type, row) => {
+                        return `
+                            <div style="display: flex; justify-content: center; gap: 0.5rem;">
+                                <button class="btn btn-sm btn-primary edit-btn show_faktur_app_success" data-no-invoice="${row.no_faktur}" style="margin-right: 0;">
+                                    <i class="fa fa-search"></i>
+                                </button>
+                                <button class="btn btn-sm btn-success print-btn" id="print_faktur_pdf_app" data-no-invoice="${row.no_faktur}">
+                                    <i class="fa fa-print"></i>
+                                </button>
+                            </div>
+                        `;
+                    },
+                },
+            ],
+            footerCallback: function (row, data, start, end, display) {
+                let api = this.api();
+
+                // Calculate the total for current page
+                let pageTotal = api
+                    .column(6)
+                    .data()
+                    .reduce((a, b) => parseFloat(a) + parseFloat(b), 0);
+
+                // Update footer
+                $(api.column(6).footer()).html(
                     'Rp ' + $.fn.dataTable.render.number(',', '.', 2, '').display(pageTotal)
                 );
             },
@@ -626,6 +634,21 @@ $(document).on('click', '#po_table_refresh_faktur', function() {
                     $('#formtable_po').hide();
                     $('.master_faktur_field').show();
                     $('#select_user_trans_faktur').val(null).trigger('change');
+                    // Fungsi Hide BUtton Within 24 hours
+                    const userRole = @json(Auth::user()->roles);
+                    let firstCreatedAt = response.data.length > 0 ? response.data[0].created_at : null;
+                    if (firstCreatedAt) {
+                        // pastikan format valid ISO + offset timezone
+                        let created = new Date(firstCreatedAt.replace(' ', 'T') + "+08:00");
+                        let now = new Date();
+                        let diffHours = Math.abs(now - created) / 36e5;
+                        console.log("Created:", created, "Now:", now, "Diff:", diffHours);
+                        if (userRole.toLowerCase() !== 'admin' && diffHours > 24) {
+                            $('#save_table_transaksi_faktur').hide();
+                        } else {
+                            $('#save_table_transaksi_faktur').show();
+                        }
+                    }
                     select2_call();
                 },
                 error: function (xhr, status, error) {
@@ -1256,204 +1279,6 @@ function get_barang_satuan_edit(kd_barang){
         });
     });
 // ================================= End Of Click Print PDF Button ===========================================
-// =================================== Update Print Struk To DB ==============================================
-    // $('#print_table_faktur').on('click', function () {
-    //     const products = [];
-    //     let value_invo = $('#no_faktur').val();
-    //     let is_valid = true; // Untuk memeriksa validasi secara keseluruhan
-
-    //     // Loop melalui setiap baris di tabel
-    //     $('#table_transaksi_list_po_app_faktur tbody tr').each(function () {
-    //         const kd_barang = $(this).find('td:eq(1)').text(); // KD Barang
-    //         const nama = $(this).find('td:eq(2)').text();      // Nama Barang
-    //         const harga = $(this).find('td:eq(3)').text();     // Harga Barang
-    //         const unit = $(this).find('td:eq(4)').text();      // Unit Barang
-    //         const satuan = $(this).find('td:eq(5)').text();    // Satuan Barang
-    //         const jumlah = $(this).find('td:eq(6)').text();    // Jumlah (editable)
-    //         const diskon = $(this).find('td:eq(7)').text();    // Diskon (editable)
-    //         const diskon_rp = $(this).find('td:eq(8)').text();
-    //         const ppn_trans = $(this).find('td:eq(9)').text();
-    //         const total_text = $(this).find('td:eq(10)').text();     // Total
-    //         const total = hapus_format(total_text);
-
-    //         // Validasi jumlah: tidak boleh kosong, harus angka, dan lebih besar dari 0
-    //         if (!jumlah || isNaN(jumlah) || parseFloat(jumlah) <= 0) {
-    //             is_valid = false;
-    //             Swal.fire({
-    //                 icon: 'warning',
-    //                 title: 'Jumlah Tidak Valid',
-    //                 text: 'Jumlah harus berupa angka dan lebih besar dari 0 di salah satu baris!',
-    //                 showConfirmButton: false,
-    //                 timer: 2000 // Durasi tampil dalam milidetik
-    //             });
-    //             return false; // Hentikan loop jika tidak valid
-    //         }
-
-    //         // Validasi diskon: harus angka (boleh 0)
-    //         if (diskon === "" || diskon.trim() === "" || isNaN(diskon)) {
-    //             is_valid = false;
-    //             Swal.fire({
-    //                 icon: 'warning',
-    //                 title: 'Diskon Tidak Valid',
-    //                 text: 'Diskon harus berupa angka, bisa 0, dan tidak boleh kosong!',
-    //                 showConfirmButton: false,
-    //                 timer: 2000 // Durasi tampil dalam milidetik
-    //             });
-    //             return false; // Hentikan loop jika tidak valid
-    //         }
-
-    //          // Validasi diskon: harus angka (boleh 0)
-    //          if (diskon_rp === "" || diskon_rp.trim() === "" || isNaN(diskon_rp)) {
-    //             is_valid = false;
-    //             Swal.fire({
-    //                 icon: 'warning',
-    //                 title: 'Diskon Tidak Valid',
-    //                 text: 'Diskon harus berupa angka, bisa 0, dan tidak boleh kosong!',
-    //                 showConfirmButton: false,
-    //                 timer: 2000 // Durasi tampil dalam milidetik
-    //             });
-    //             return false; // Hentikan loop jika tidak valid
-    //         }
-
-    //         if (ppn_trans === "" || ppn_trans.trim() === "" || isNaN(ppn_trans)) {
-    //             is_valid = false;
-    //             Swal.fire({
-    //                 icon: 'warning',
-    //                 title: 'PPN Tidak Valid',
-    //                 text: 'PPN harus berupa angka, bisa 0, dan tidak boleh kosong!',
-    //                 showConfirmButton: false,
-    //                 timer: 2000 // Durasi tampil dalam milidetik
-    //             });
-    //             return false; // Hentikan loop jika tidak valid
-    //         }
-
-    //         // Masukkan ke array hanya jika KD Barang ada
-    //         if (kd_barang) {
-    //             products.push({
-    //                 kd_barang,
-    //                 nama,
-    //                 harga: parseFloat(harga),
-    //                 unit,
-    //                 satuan,
-    //                 jumlah: parseFloat(jumlah), // Pastikan formatnya angka
-    //                 diskon: parseFloat(diskon), // Pastikan formatnya angka
-    //                 diskon_rp: parseFloat(diskon_rp),
-    //                 ppn_trans: parseFloat(ppn_trans),
-    //                 total: parseFloat(total) // Bersihkan format jika ada titik
-    //             });
-    //         }
-    //     });
-
-    //     // Pastikan validasi lolos sebelum mengirim data ke server
-    //     if (!is_valid) {
-    //         return; // Hentikan eksekusi jika validasi gagal
-    //     }
-
-    //     // Kirim data ke server jika ada produk
-    //     if (products.length > 0) {
-    //         save_to_database_edit(products,value_invo);
-    //     } else {
-    //         Swal.fire({
-    //             icon: 'warning',
-    //             title: 'Save Failed',
-    //             text: 'Tidak Ada Data Disimpan',
-    //             showConfirmButton: false,
-    //             timer: 2000 // Durasi tampil dalam milidetik
-    //         });
-    //     }
-    // });
-
-    // function save_to_database_edit(products,value_invo) {
-    //     $('#loading_modal').modal('show');
-    //     setTimeout(function () {
-    //         $.ajax({
-    //             url: '{{ route('update_faktur') }}', // Endpoint Laravel
-    //             type: 'POST',
-    //             data: {
-    //                 _token: $('meta[name="csrf-token"]').attr('content'), // CSRF Token
-    //                 products: products,
-    //                 value_invo: value_invo
-    //             },
-    //             success: function (response) {
-    //                 save_faktur(value_invo);
-    //                 // $('#transaksi_table_faktur tbody').empty();
-    //                 // $('#grand_total_faktur').text(0);
-    //             },
-    //             error: function (xhr, status, error) {
-    //                 $('#loading_modal').modal('hide');
-    //                 console.log("Status: " + status);  // Menampilkan status HTTP
-    //                 console.log("Error: " + error);  // Menampilkan error message
-    //                 console.log(xhr.responseText);
-    //                 Swal.fire({
-    //                     icon: 'warning',
-    //                     title: 'Save Failed',
-    //                     text: xhr.responseText,
-    //                     showConfirmButton: false,
-    //                     timer: 2000 // Durasi tampil dalam milidetik
-    //                 });
-    //                 // alert('Failed to save data.');
-    //             }
-    //         });
-    //     }, 1200);
-    // }
-// ================================= End Of Print Struk To DB =========================================
-// ==================================== Submit to Faktur ============================================
-    function save_faktur(value_invo) {
-        $.ajax({
-            url: '{{ route("save_faktur") }}',
-            type: 'POST',
-            data: {
-                value_invo: value_invo,
-                _token: '{{ csrf_token() }}'
-            },
-            success: function(res) {
-                console.log("Faktur berhasil:", value_invo);
-                // Cetak ke RawBT
-                let encodedStruk = encodeURIComponent(value_invo);
-                window.location.href = "rawbt://print?text=" + encodedStruk;
-
-                $('#loading_modal').modal('hide');
-
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Print Successul',
-                    text: 'Data Berhasil Dicetak dengan Nomor Faktur: ' + value_invo,
-                    showConfirmButton: true,
-                    confirmButtonText: 'OK',
-                }).then(() => {
-                     // ### Redirect Hal Faktur
-                    $.ajax({
-                        url: '{{ route('index_faktur') }}',
-                        type: 'GET',
-                        success: function(response) {
-                            $('.master-page').html(response);
-                        },
-                        error: function() {
-                            $('.master-page').html('<p>Error loading form.</p>');
-                        }
-                    });
-                });
-
-            },
-            error: function(xhr) {
-                console.error("Status:", xhr.status);
-                console.error("Response Text:", xhr.responseText);
-                console.error("Error:", xhr);
-
-                // Kalau Laravel kirim JSON error, bisa parse biar rapi
-                try {
-                    let json = JSON.parse(xhr.responseText);
-                    console.error("Laravel error message:", json.message);
-                    console.error("Laravel error trace:", json);
-                } catch(e) {
-                    console.warn("Bukan JSON, tampilkan raw text di atas.");
-                }
-
-                alert('Gagal membuat faktur. Lihat console browser untuk detail.');
-            }
-        });
-    }
-// ================================= End Of Submit to Faktur =========================================
 // ================================= Return Tabel PO =========================================
     $('#return_table_faktur').on('click', function(){
         $("#formtable_po").show();

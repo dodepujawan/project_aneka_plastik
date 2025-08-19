@@ -33,12 +33,13 @@ class FakturController extends Controller
                 DB::raw('DATE(a.created_at) as created_at'),
                 'a.user_id',
                 'a.user_kode',
+                'b.history_inv',
                 DB::raw('SUM(b.total) as total')
             )
             // ->where('b.status_po', '!=', 0)
             // ->where('b.qty_sup', '!=', 0)
             // ->whereNotNull('b.no_invoice')
-            ->groupBy('a.no_faktur', 'a.created_at', 'a.user_id', 'a.user_kode')
+            ->groupBy('a.no_faktur', 'a.created_at', 'a.user_id', 'a.user_kode', 'b.history_inv')
             ->orderBy('a.created_at', 'desc');
 
             $userRole = Auth::user()->roles;
@@ -67,6 +68,7 @@ class FakturController extends Controller
 
                     // Cari berdasarkan no_invoice
                     $q->where('a.no_faktur', 'like', '%' . $searchText . '%');
+                    $q->orWhere('b.history_inv', 'like', '%' . $searchText . '%');
 
                     // Tambahkan filter berdasarkan role
                     if ($userRole === 'staff') {
