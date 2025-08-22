@@ -1206,124 +1206,136 @@ function get_barang_satuan_edit(kd_barang){
     }
 
 // ================================= End Of Update Barang To DB =========================================
-// =================================== Cetak Faktur ==============================================
+// =================================== CETAK FAKTUR ==============================================
     $('#cetak_table_transaksi_edit').on('click', function () {
         const kode_user = $("#kode_user_trans_edit").val();
-        const products = [];
-        let value_invo = $(this).val();
-        let is_valid = true; // Untuk memeriksa validasi secara keseluruhan
-        alert(value_invo);
-        // Loop melalui setiap baris di tabel
-        $('#transaksi_table_edit tbody tr').each(function () {
-            const kd_barang = $(this).find('td:eq(1)').text(); // KD Barang
-            const nama = $(this).find('td:eq(2)').text();      // Nama Barang
-            const harga = $(this).find('td:eq(3)').text();     // Harga Barang
-            const unit = $(this).find('td:eq(4)').text();      // Unit Barang
-            const satuan = $(this).find('td:eq(5)').text();    // Satuan Barang
-            const jumlah = $(this).find('td:eq(6)').text();    // Jumlah (editable)
-            const diskon = $(this).find('td:eq(7)').text();    // Diskon (editable)
-            const diskon_rp = $(this).find('td:eq(8)').text();
-            const ppn_trans = $(this).find('td:eq(9)').text();
-            const total_text = $(this).find('td:eq(10)').text();     // Total
-            const total = hapus_format(total_text);
+        // 🔹 SweetAlert Konfirmasi dulu
+        Swal.fire({
+            title: 'Apakah Anda yakin?',
+            text: "Ingin menyimpan dan mencetak faktur ini?",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, simpan & cetak',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // --- Mulai proses validasi + simpan ---
+                const products = [];
+                let value_invo = $(this).val();
+                let is_valid = true; // Untuk memeriksa validasi secara keseluruhan
+                // Loop melalui setiap baris di tabel
+                $('#transaksi_table_edit tbody tr').each(function () {
+                    const kd_barang = $(this).find('td:eq(1)').text(); // KD Barang
+                    const nama = $(this).find('td:eq(2)').text();      // Nama Barang
+                    const harga = $(this).find('td:eq(3)').text();     // Harga Barang
+                    const unit = $(this).find('td:eq(4)').text();      // Unit Barang
+                    const satuan = $(this).find('td:eq(5)').text();    // Satuan Barang
+                    const jumlah = $(this).find('td:eq(6)').text();    // Jumlah (editable)
+                    const diskon = $(this).find('td:eq(7)').text();    // Diskon (editable)
+                    const diskon_rp = $(this).find('td:eq(8)').text();
+                    const ppn_trans = $(this).find('td:eq(9)').text();
+                    const total_text = $(this).find('td:eq(10)').text();     // Total
+                    const total = hapus_format(total_text);
 
-            // Validasi jumlah: tidak boleh kosong, harus angka, dan lebih besar dari 0
-            if (!jumlah || isNaN(jumlah) || parseFloat(jumlah) <= 0) {
-                is_valid = false;
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Jumlah Tidak Valid',
-                    text: 'Jumlah harus berupa angka dan lebih besar dari 0 di salah satu baris!',
-                    showConfirmButton: false,
-                    timer: 2000 // Durasi tampil dalam milidetik
-                });
-                return false; // Hentikan loop jika tidak valid
-            }
+                    // Validasi jumlah: tidak boleh kosong, harus angka, dan lebih besar dari 0
+                    if (!jumlah || isNaN(jumlah) || parseFloat(jumlah) <= 0) {
+                        is_valid = false;
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Jumlah Tidak Valid',
+                            text: 'Jumlah harus berupa angka dan lebih besar dari 0 di salah satu baris!',
+                            showConfirmButton: false,
+                            timer: 2000 // Durasi tampil dalam milidetik
+                        });
+                        return false; // Hentikan loop jika tidak valid
+                    }
 
-            // Validasi diskon: harus angka (boleh 0)
-            if (diskon === "" || diskon.trim() === "" || isNaN(diskon)) {
-                is_valid = false;
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Diskon Tidak Valid',
-                    text: 'Diskon harus berupa angka, bisa 0, dan tidak boleh kosong!',
-                    showConfirmButton: false,
-                    timer: 2000 // Durasi tampil dalam milidetik
-                });
-                return false; // Hentikan loop jika tidak valid
-            }
+                    // Validasi diskon: harus angka (boleh 0)
+                    if (diskon === "" || diskon.trim() === "" || isNaN(diskon)) {
+                        is_valid = false;
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Diskon Tidak Valid',
+                            text: 'Diskon harus berupa angka, bisa 0, dan tidak boleh kosong!',
+                            showConfirmButton: false,
+                            timer: 2000 // Durasi tampil dalam milidetik
+                        });
+                        return false; // Hentikan loop jika tidak valid
+                    }
 
-             // Validasi diskon: harus angka (boleh 0)
-             if (diskon_rp === "" || diskon_rp.trim() === "" || isNaN(diskon_rp)) {
-                is_valid = false;
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Diskon Tidak Valid',
-                    text: 'Diskon harus berupa angka, bisa 0, dan tidak boleh kosong!',
-                    showConfirmButton: false,
-                    timer: 2000 // Durasi tampil dalam milidetik
-                });
-                return false; // Hentikan loop jika tidak valid
-            }
+                    // Validasi diskon: harus angka (boleh 0)
+                    if (diskon_rp === "" || diskon_rp.trim() === "" || isNaN(diskon_rp)) {
+                        is_valid = false;
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Diskon Tidak Valid',
+                            text: 'Diskon harus berupa angka, bisa 0, dan tidak boleh kosong!',
+                            showConfirmButton: false,
+                            timer: 2000 // Durasi tampil dalam milidetik
+                        });
+                        return false; // Hentikan loop jika tidak valid
+                    }
 
-            if (ppn_trans === "" || ppn_trans.trim() === "" || isNaN(ppn_trans)) {
-                is_valid = false;
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'PPN Tidak Valid',
-                    text: 'PPN harus berupa angka, bisa 0, dan tidak boleh kosong!',
-                    showConfirmButton: false,
-                    timer: 2000 // Durasi tampil dalam milidetik
-                });
-                return false; // Hentikan loop jika tidak valid
-            }
+                    if (ppn_trans === "" || ppn_trans.trim() === "" || isNaN(ppn_trans)) {
+                        is_valid = false;
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'PPN Tidak Valid',
+                            text: 'PPN harus berupa angka, bisa 0, dan tidak boleh kosong!',
+                            showConfirmButton: false,
+                            timer: 2000 // Durasi tampil dalam milidetik
+                        });
+                        return false; // Hentikan loop jika tidak valid
+                    }
 
-            if (kode_user === "") {
-                is_valid = false;
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Kode User Tidak Valid',
-                    text: 'Kode User tidak boleh kosong!',
-                    showConfirmButton: false,
-                    timer: 2000 // Durasi tampil dalam milidetik
-                });
-                return false; // Hentikan loop jika tidak valid
-            }
+                    if (kode_user === "") {
+                        is_valid = false;
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Kode User Tidak Valid',
+                            text: 'Kode User tidak boleh kosong!',
+                            showConfirmButton: false,
+                            timer: 2000 // Durasi tampil dalam milidetik
+                        });
+                        return false; // Hentikan loop jika tidak valid
+                    }
 
-            // Masukkan ke array hanya jika KD Barang ada
-            if (kd_barang) {
-                products.push({
-                    kd_barang,
-                    nama,
-                    harga,
-                    unit,
-                    satuan,
-                    jumlah: parseFloat(jumlah), // Pastikan formatnya angka
-                    diskon: parseFloat(diskon), // Pastikan formatnya angka
-                    diskon_rp: parseFloat(diskon_rp),
-                    ppn_trans: parseFloat(ppn_trans),
-                    total: parseFloat(total) // Bersihkan format jika ada titik
+                    // Masukkan ke array hanya jika KD Barang ada
+                    if (kd_barang) {
+                        products.push({
+                            kd_barang,
+                            nama,
+                            harga,
+                            unit,
+                            satuan,
+                            jumlah: parseFloat(jumlah), // Pastikan formatnya angka
+                            diskon: parseFloat(diskon), // Pastikan formatnya angka
+                            diskon_rp: parseFloat(diskon_rp),
+                            ppn_trans: parseFloat(ppn_trans),
+                            total: parseFloat(total) // Bersihkan format jika ada titik
+                        });
+                    }
                 });
+
+                // Pastikan validasi lolos sebelum mengirim data ke server
+                if (!is_valid) {
+                    return; // Hentikan eksekusi jika validasi gagal
+                }
+
+                // Kirim data ke server jika ada produk
+                if (products.length > 0) {
+                    save_to_database_faktur(value_invo);
+                } else {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Save Failed',
+                        text: 'Tidak Ada Data Disimpan',
+                        showConfirmButton: false,
+                        timer: 2000 // Durasi tampil dalam milidetik
+                    });
+                }
             }
         });
-
-        // Pastikan validasi lolos sebelum mengirim data ke server
-        if (!is_valid) {
-            return; // Hentikan eksekusi jika validasi gagal
-        }
-
-        // Kirim data ke server jika ada produk
-        if (products.length > 0) {
-            save_to_database_faktur(value_invo);
-        } else {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Save Failed',
-                text: 'Tidak Ada Data Disimpan',
-                showConfirmButton: false,
-                timer: 2000 // Durasi tampil dalam milidetik
-            });
-        }
     });
 
     function save_to_database_faktur(value_invo) {
@@ -1369,7 +1381,7 @@ function get_barang_satuan_edit(kd_barang){
             });
         }, 1200);
     }
-// ================================= End Of Cetak Faktur =========================================
+// ================================= End Of CETAK FAKTUR =========================================
 // ==================================== Reset Tabel PO ============================================
     $('#reset_table_transaksi_edit').on('click', function(){
         let value_invo = $(this).val();
