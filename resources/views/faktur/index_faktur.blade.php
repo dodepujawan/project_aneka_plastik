@@ -284,6 +284,7 @@
         </div>
         <div class="button-container" style="display: flex; justify-content: flex-end; gap: 10px;">
             <button type="submit" class="btn btn-success mt-2 mb-2" id="save_table_transaksi_faktur"><i class="fas fa-print"> Struk</i></button>
+            <button type="submit" class="btn btn-danger mt-2 mb-2" id="delete_table_transaksi_faktur"><i class="fas fa-trash"> Delete</i></button>
             <button type="submit" class="btn btn-info mt-2 mb-2" id="reset_table_transaksi_faktur"><i class="fas fa-sync-alt"> Reset</i></button>
         </div>
     </div>
@@ -594,6 +595,7 @@ $(document).on('click', '#po_table_refresh_faktur', function() {
                     $('#no_po_faktur').val('Faktur No : '+get_no_nvoice);
                     $('#save_table_transaksi_faktur').val(get_no_nvoice);
                     $('#reset_table_transaksi_faktur').val(get_no_nvoice);
+                    $('#delete_table_transaksi_faktur').val(get_no_nvoice);
                     $("#kode_user_trans_faktur").val(response.data[0].user_kode);
                     $("#nama_user_trans_faktur").val(response.data[0].nama_cust);
                     let user_role_diskon = @json(Auth::user()->roles);
@@ -649,6 +651,9 @@ $(document).on('click', '#po_table_refresh_faktur', function() {
                             $('#save_table_transaksi_faktur').show();
                         }
                     }
+                    if (userRole.toLowerCase() !== 'admin') {
+                            $('#delete_table_transaksi_faktur').hide();
+                        }
                     select2_call();
                 },
                 error: function (xhr, status, error) {
@@ -1245,6 +1250,67 @@ function get_barang_satuan_edit(kd_barang){
     }
 
 // ================================= End Of Update Barang To DB =========================================
+// =================================== Delete Faktur ==============================================
+    $('#delete_table_transaksi_faktur').on('click', function () {
+        let value_invo = $(this).val();
+
+        Swal.fire({
+            title: 'Yakin hapus?',
+            text: "Data faktur dan transaksi terkait akan dihapus permanen!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Ya, hapus!',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '{{ route("delete_faktur", ":no_faktur") }}'.replace(':no_faktur', value_invo),
+                    type: 'DELETE',
+                    data: {
+                        _token: '{{ csrf_token() }}'
+                    },
+                    success: function (response) {
+                        if(response.status === 'success'){
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil!',
+                                text: response.message,
+                                timer: 2000,
+                                showConfirmButton: false
+                            }).then(() => {
+                                 $.ajax({
+                                    url: '{{ route('index_faktur') }}',
+                                    type: 'GET',
+                                    success: function(response) {
+                                        $('.master-page').html(response);
+                                    },
+                                    error: function() {
+                                        $('.master-page').html('<p>Error loading form.</p>');
+                                    }
+                                });
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal!',
+                                text: response.message
+                            });
+                        }
+                    },
+                    error: function (xhr) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: 'Terjadi kesalahan: ' + xhr.responseJSON.message
+                        });
+                    }
+                });
+            }
+        });
+    });
+// =================================== End Of Delete Faktur ==============================================
 // ==================================== Reset Tabel PO ============================================
     $('#reset_table_transaksi_faktur').on('click', function(){
 

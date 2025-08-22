@@ -380,4 +380,32 @@ class FakturController extends Controller
             return response()->json(['error' => 'Failed to update products: ' . $e->getMessage()], 500);
         }
     }
+
+    public function delete_faktur($no_faktur){
+        try {
+            // Ambil data faktur dulu
+            $faktur = Faktur::where('no_faktur', $no_faktur)->first();
+
+            if (!$faktur) {
+                return response()->json(['status' => 'error', 'message' => 'Faktur tidak ditemukan'], 404);
+            }
+
+            // Ambil nilai history_inv dari faktur
+            $historyInv = $faktur->history_inv;
+
+            // Hapus Transactions & Transusers berdasarkan history_inv
+            if ($historyInv) {
+                Transactions::where('no_invoice', $historyInv)->delete();
+                Transusers::where('no_invoice', $historyInv)->delete();
+            }
+
+            // Hapus FakturUser & Faktur berdasarkan no_faktur
+            FakturUser::where('no_faktur', $no_faktur)->delete();
+            $faktur->delete();
+
+            return response()->json(['status' => 'success', 'message' => 'Data berhasil dihapus']);
+        } catch (\Exception $e) {
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
+        }
+    }
 }

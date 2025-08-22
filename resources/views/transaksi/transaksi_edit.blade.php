@@ -290,6 +290,7 @@ h5 {
     </div>
     <div class="button-container" style="display: flex; justify-content: flex-end; gap: 10px;">
         <button type="submit" class="btn btn-primary mt-2 mb-2" id="save_table_transaksi_edit"><i class="fas fa-save"> Proses</i></button>
+        <button type="submit" class="btn btn-success mt-2 mb-2" id="cetak_table_transaksi_edit"><i class="fas fa-print"> Struk</i></button>
         <button type="submit" class="btn btn-info mt-2 mb-2" id="reset_table_transaksi_edit"><i class="fas fa-sync-alt"> Reset</i></button>
         <button type="submit" class="btn btn-warning mt-2 mb-2" id="return_table_transaksi_edit"><i class="fas fa-undo"> List Menu</i></button>
     </div>
@@ -496,6 +497,7 @@ $(document).ready(function(){
                 const get_no_nvoice = response.data[0].no_invoice;
                 $('#no_po_edit').val('Invoice No : '+get_no_nvoice);
                 $('#save_table_transaksi_edit').val(get_no_nvoice);
+                $('#cetak_table_transaksi_edit').val(get_no_nvoice);
                 $('#reset_table_transaksi_edit').val(get_no_nvoice);
                 $("#kode_user_trans_edit").val(response.data[0].user_kode);
                 $("#nama_user_trans_edit").val(response.data[0].nama_cust);
@@ -1204,6 +1206,170 @@ function get_barang_satuan_edit(kd_barang){
     }
 
 // ================================= End Of Update Barang To DB =========================================
+// =================================== Cetak Faktur ==============================================
+    $('#cetak_table_transaksi_edit').on('click', function () {
+        const kode_user = $("#kode_user_trans_edit").val();
+        const products = [];
+        let value_invo = $(this).val();
+        let is_valid = true; // Untuk memeriksa validasi secara keseluruhan
+        alert(value_invo);
+        // Loop melalui setiap baris di tabel
+        $('#transaksi_table_edit tbody tr').each(function () {
+            const kd_barang = $(this).find('td:eq(1)').text(); // KD Barang
+            const nama = $(this).find('td:eq(2)').text();      // Nama Barang
+            const harga = $(this).find('td:eq(3)').text();     // Harga Barang
+            const unit = $(this).find('td:eq(4)').text();      // Unit Barang
+            const satuan = $(this).find('td:eq(5)').text();    // Satuan Barang
+            const jumlah = $(this).find('td:eq(6)').text();    // Jumlah (editable)
+            const diskon = $(this).find('td:eq(7)').text();    // Diskon (editable)
+            const diskon_rp = $(this).find('td:eq(8)').text();
+            const ppn_trans = $(this).find('td:eq(9)').text();
+            const total_text = $(this).find('td:eq(10)').text();     // Total
+            const total = hapus_format(total_text);
+
+            // Validasi jumlah: tidak boleh kosong, harus angka, dan lebih besar dari 0
+            if (!jumlah || isNaN(jumlah) || parseFloat(jumlah) <= 0) {
+                is_valid = false;
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Jumlah Tidak Valid',
+                    text: 'Jumlah harus berupa angka dan lebih besar dari 0 di salah satu baris!',
+                    showConfirmButton: false,
+                    timer: 2000 // Durasi tampil dalam milidetik
+                });
+                return false; // Hentikan loop jika tidak valid
+            }
+
+            // Validasi diskon: harus angka (boleh 0)
+            if (diskon === "" || diskon.trim() === "" || isNaN(diskon)) {
+                is_valid = false;
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Diskon Tidak Valid',
+                    text: 'Diskon harus berupa angka, bisa 0, dan tidak boleh kosong!',
+                    showConfirmButton: false,
+                    timer: 2000 // Durasi tampil dalam milidetik
+                });
+                return false; // Hentikan loop jika tidak valid
+            }
+
+             // Validasi diskon: harus angka (boleh 0)
+             if (diskon_rp === "" || diskon_rp.trim() === "" || isNaN(diskon_rp)) {
+                is_valid = false;
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Diskon Tidak Valid',
+                    text: 'Diskon harus berupa angka, bisa 0, dan tidak boleh kosong!',
+                    showConfirmButton: false,
+                    timer: 2000 // Durasi tampil dalam milidetik
+                });
+                return false; // Hentikan loop jika tidak valid
+            }
+
+            if (ppn_trans === "" || ppn_trans.trim() === "" || isNaN(ppn_trans)) {
+                is_valid = false;
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'PPN Tidak Valid',
+                    text: 'PPN harus berupa angka, bisa 0, dan tidak boleh kosong!',
+                    showConfirmButton: false,
+                    timer: 2000 // Durasi tampil dalam milidetik
+                });
+                return false; // Hentikan loop jika tidak valid
+            }
+
+            if (kode_user === "") {
+                is_valid = false;
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Kode User Tidak Valid',
+                    text: 'Kode User tidak boleh kosong!',
+                    showConfirmButton: false,
+                    timer: 2000 // Durasi tampil dalam milidetik
+                });
+                return false; // Hentikan loop jika tidak valid
+            }
+
+            // Masukkan ke array hanya jika KD Barang ada
+            if (kd_barang) {
+                products.push({
+                    kd_barang,
+                    nama,
+                    harga,
+                    unit,
+                    satuan,
+                    jumlah: parseFloat(jumlah), // Pastikan formatnya angka
+                    diskon: parseFloat(diskon), // Pastikan formatnya angka
+                    diskon_rp: parseFloat(diskon_rp),
+                    ppn_trans: parseFloat(ppn_trans),
+                    total: parseFloat(total) // Bersihkan format jika ada titik
+                });
+            }
+        });
+
+        // Pastikan validasi lolos sebelum mengirim data ke server
+        if (!is_valid) {
+            return; // Hentikan eksekusi jika validasi gagal
+        }
+
+        // Kirim data ke server jika ada produk
+        if (products.length > 0) {
+            save_to_database_faktur(value_invo);
+        } else {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Save Failed',
+                text: 'Tidak Ada Data Disimpan',
+                showConfirmButton: false,
+                timer: 2000 // Durasi tampil dalam milidetik
+            });
+        }
+    });
+
+    function save_to_database_faktur(value_invo) {
+        $('#loading_modal').modal('show');
+        setTimeout(function () {
+            $.ajax({
+                url: '{{ route("save_faktur") }}', // Endpoint Laravel
+                type: 'POST',
+                data: {
+                    invoice_number: value_invo,
+                    _token: '{{ csrf_token() }}'
+                },
+                success: function (res) {
+                    console.log("Faktur berhasil:", res.no_faktur);
+                    let encodedStruk = encodeURIComponent(res.struk_text);
+                    window.location.href = "rawbt://print?text=" + encodedStruk;
+                    $('#loading_modal').modal('hide');
+                    $.ajax({
+                        url: '{{ route('index_faktur') }}',
+                        type: 'GET',
+                        success: function(response) {
+                            $('.master-page').html(response);
+                        },
+                        error: function() {
+                            $('.master-page').html('<p>Error loading form.</p>');
+                        }
+                    });
+                },
+                error: function (xhr, status, error) {
+                    $('#loading_modal').modal('hide');
+                    console.log("Status: " + status);  // Menampilkan status HTTP
+                    console.log("Error: " + error);  // Menampilkan error message
+                    console.log(xhr.responseText);
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Save Failed',
+                        text: xhr.responseText,
+                        showConfirmButton: false,
+                        timer: 2000 // Durasi tampil dalam milidetik
+                    });
+                    // alert('Failed to save data.');
+                }
+            });
+        }, 1200);
+    }
+// ================================= End Of Cetak Faktur =========================================
 // ==================================== Reset Tabel PO ============================================
     $('#reset_table_transaksi_edit').on('click', function(){
         let value_invo = $(this).val();

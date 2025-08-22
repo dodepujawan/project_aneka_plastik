@@ -1,6 +1,10 @@
  <!-- Sidebar -->
- @php
+@php
     $user = Auth::user();
+@endphp
+@php
+    $user = Auth::user();
+    $allowedRoles = ['programmer', 'admin', 'staff'];
 @endphp
  <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion main-sidebar" id="accordionSidebar">
 
@@ -80,6 +84,7 @@
         </div>
     </li>
 
+    @if (in_array($user->roles, $allowedRoles))
     <li class="nav-item d-block">
         <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseSix"
             aria-expanded="true" aria-controls="collapseSix">
@@ -93,11 +98,8 @@
             </div>
         </div>
     </li>
+    @endif
 
-    @php
-        $user = Auth::user();
-        $allowedRoles = ['programmer', 'admin', 'staff'];
-    @endphp
     @if (in_array($user->roles, $allowedRoles))
     <li class="nav-item">
         <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseThree"
@@ -113,6 +115,7 @@
         </div>
     </li>
     @endif
+
     <li class="nav-item">
         <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseFive"
             aria-expanded="true" aria-controls="collapseFive">

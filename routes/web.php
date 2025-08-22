@@ -78,6 +78,7 @@ Route::prefix('faktur')->middleware('auth')->group(function () {
     Route::get('/api/filter_faktur', [FakturController::class, 'filter_no_faktur'])->name('filter_no_faktur');
     Route::get('/api/get_faktur_to_table', [FakturController::class, 'get_faktur_to_table'])->name('get_faktur_to_table');
     Route::post('update/faktur', [FakturController::class, 'update_faktur'])->name('update_faktur');
+    Route::delete('/faktur/delete/{no_faktur}', [FakturController::class, 'delete_faktur'])->name('delete_faktur');
 });
 
 Route::prefix('home')->group(function () {
