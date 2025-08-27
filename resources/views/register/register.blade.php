@@ -51,6 +51,10 @@
                     <select name="cabang_list_reg_new" id="cabang_list_reg_new" class="form-control">
                     </select>
                 </div>
+                <div class="form-group" id="gudang_list_new_register_group">
+                    <label><i class="fa fa-store"></i> Kode Gudang</label>
+                    <input type="text" name="kode_gudang" id="kode_gudang" class="form-control" placeholder="Kode Gudang">
+                </div>
                 <div class="form-group">
                     <label><i class="fa fa-user"></i> Kode User</label>
                     <input type="text" name="kode_user" id="kode_user" class="form-control" placeholder="Kode User" required="">
@@ -118,14 +122,23 @@ $(document).ready(function() {
         });
 
      // ### Function To Hide Cabang
+     $('#gudang_list_new_register_group').hide();
      $('#role').on('change', function() {
         var roles = $(this).val();
 
         if (roles === 'CS') {
             $('#cabang_list_reg_new').val(''); // Reset nilai select ke default
             $('#cabang_list_new_register_group').hide(); // Sembunyikan grup cabang
-        } else {
-            $('#cabang_list_new_register_group').show(); // Tampilkan grup cabang untuk role lain
+            $('#kode_gudang').val('');
+            $('#gudang_list_new_register_group').hide();
+        } else if (roles === 'AD') {
+            $('#kode_gudang').val('');
+            $('#gudang_list_new_register_group').hide();
+            $('#cabang_list_new_register_group').show();
+        } else if (roles === 'ST') {
+            $('#kode_gudang').val('');
+            $('#gudang_list_new_register_group').show();
+            $('#cabang_list_new_register_group').show();
         }
     });
 
@@ -142,7 +155,8 @@ $(document).ready(function() {
                 password: $('#password').val(),
                 role: $('#role').val(),
                 cabang_list_reg: $('#cabang_list_reg_new').val(),
-                kode_user: $('#kode_user').val()
+                kode_user: $('#kode_user').val(),
+                kode_gudang: $('#kode_gudang').val()
             },
             success: function(response) {
                 $('#message').html('<p>' + response.pesan + '</p>');

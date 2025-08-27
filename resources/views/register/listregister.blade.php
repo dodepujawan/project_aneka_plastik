@@ -88,6 +88,10 @@
                         <select name="cabang_list_reg" id="cabang_list_reg" class="form-control">
                         </select>
                     </div>
+                    <div class="form-group" id="gudang_list_register_group">
+                        <label><i class="fa fa-store"></i> Kode Gudang</label>
+                        <input type="text" name="gudang_list_reg" id="gudang_list_reg" class="form-control" placeholder="Kode Gudang">
+                    </div>
                     <div class="form-group">
                         <label><i class="fa fa-user"></i> Kode User</label>
                         <input type="text" name="kode_user_list" id="kode_user_list" class="form-control" placeholder="Kode User" required="">
@@ -169,12 +173,17 @@ $(document).ready(function() {
                 $('#roles_flag').val(data.roles);
                 $('#cabang_flag').val(data.rcabang);
                 $('#kode_user_list').val(data.user_kode);
+                $('#gudang_list_register_group').hide();
                 calling_roles_first();
                 select_cabang();
 
                 if (data.roles === 'customer') {
                     $('#cabang_list_register_group').hide();
                     $('#cabang_list_reg').val('');
+                } else if (data.roles === 'staff') {
+                    $('#gudang_list_reg').val(data.gudang);
+                    $('#gudang_list_register_group').show();
+                    $('#cabang_list_register_group').show();
                 } else {
                     $('#cabang_list_register_group').show();
                 }
@@ -224,8 +233,31 @@ $(document).ready(function() {
         if (roles === 'CS') {
             $('#cabang_list_reg').val(''); // Reset nilai select ke default
             $('#cabang_list_register_group').hide(); // Sembunyikan grup cabang
-        } else {
-            $('#cabang_list_register_group').show(); // Tampilkan grup cabang untuk role lain
+            $('#gudang_list_reg').val('');
+            $('#gudang_list_register_group').hide();
+        } else if (roles === 'AD') {
+            $('#gudang_list_reg').val('');
+            $('#gudang_list_register_group').hide();
+            $('#cabang_list_register_group').show();
+        } else if (roles === 'ST') {
+            let id = $('#id').val();
+            console.log(id);
+            let url = '{{ route("select_list_register_staff", ":id") }}';
+            url = url.replace(':id', id);
+            $.ajax({
+                url: url, // Route to load the form
+                type: 'GET',
+                success: function(data) {
+                    // console.log(JSON.stringify(data));
+                    // console.log('sukses :' + data.gudang);
+                    $('#gudang_list_reg').val(data.gudang);
+                    $('#gudang_list_register_group').show();
+                    $('#cabang_list_register_group').show();
+                },
+                error: function() {
+                    $('.master-page').html('<p>Error loading form.</p>');
+                }
+            });
         }
     });
 

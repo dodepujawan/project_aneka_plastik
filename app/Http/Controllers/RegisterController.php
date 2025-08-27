@@ -60,6 +60,7 @@ class RegisterController extends Controller
                 'roles' => $roleName,
                 'rcabang' => $request->cabang_list_reg,
                 'user_kode' => $request->kode_user,
+                'gudang' => $request->kode_gudang,
             ]);
 
             DB::commit();
@@ -184,6 +185,17 @@ class RegisterController extends Controller
         return response()->json($user);
     }
 
+    public function select_list_register_staff($id){
+        // Cari berdasarkan kolom user_id
+        $user = User::where('user_id', $id)->first();
+
+        if (!$user) {
+            return response()->json(['error' => 'User not found'], 404);
+        }
+
+        return response()->json($user);
+    }
+
     public function update_list_register(Request $request){
         $result = [];
         DB::beginTransaction();
@@ -236,6 +248,7 @@ class RegisterController extends Controller
 
             $user->rcabang = $request->cabang_list_reg;
             $user->user_kode = $request->kode_user_list;
+            $user->gudang = $request->gudang_list_reg;
             $user->save();
 
             DB::commit();
