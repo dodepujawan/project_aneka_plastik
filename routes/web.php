@@ -51,6 +51,7 @@ Route::prefix('register')->middleware('auth')->group(function () {
 Route::prefix('transaksi')->middleware('auth')->group(function () {
     Route::get('/', [TransaksiController::class, 'index'])->name('index_transaksi');
     Route::get('/api/users', [TransaksiController::class, 'get_users'])->name('get_users');
+    Route::get('/api/gudangs', [TransaksiController::class, 'get_kode_gudang'])->name('get_kode_gudang');
     Route::get('/api/barangs', [TransaksiController::class, 'get_barangs'])->name('get_barangs');
     Route::post('save/products', [TransaksiController::class, 'save_products'])->name('save_products');
     Route::get('/api/barangs/satuan', [TransaksiController::class, 'get_barang_satuan'])->name('get_barang_satuan');

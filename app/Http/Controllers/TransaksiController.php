@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use App\Models\Transactions;
 use App\Models\Transusers;
 use App\Models\Faktur;
@@ -52,6 +53,25 @@ class TransaksiController extends Controller
         }
         $users = $query->get(); // Eksekusi query
         return response()->json($users);
+    }
+
+    public function get_kode_gudang(Request $request){
+        $user = auth()->user(); // ambil user yang login
+
+        if ($user->roles === 'admin') {
+            // Admin: tampilkan semua gudang yang tidak kosong
+            $gudangs = User::whereNotNull('gudang')
+                            ->where('gudang', '!=', '')
+                            ->pluck('gudang')
+                            ->unique()
+                            ->values();
+        } else {
+            // Staff: tampilkan gudang sesuai user_id yang login
+            $gudangs = User::where('id', $user->id)
+                            ->pluck('gudang');
+        }
+
+        return response()->json($gudangs);
     }
 
     public function get_barangs(Request $request){
@@ -154,10 +174,11 @@ class TransaksiController extends Controller
     public function get_barang_satuan(Request $request)
     {
         $kd_barang = $request->input('kd_barang');
+        $kodeGudang = $request->input('kode_gudang');
 
         $data = DB::table('mharga as a')
             ->leftJoin('mbarang as b', 'b.KD_STOK', '=', 'a.kd_stok')
-            ->select('a.kd_stok', 'a.satuan', 'a.hj1', 'a.isi', 'b.NAMA_BRG')
+            ->select('a.kd_stok', 'a.satuan', 'a.hj1', 'a.isi', 'b.NAMA_BRG', DB::raw("b.`$kodeGudang` as stok_gudang"))
             ->where('a.kd_stok', $kd_barang)
             ->orderBy('a.isi', 'ASC')
             ->get();
@@ -168,10 +189,11 @@ class TransaksiController extends Controller
     public function get_barang_selected(Request $request){
         $kd_barang = $request->input('kd_barang');
         $satuan_barang = $request->input('satuan_barang');
+        $kodeGudang = $request->input('kode_gudang');
 
         $data = DB::table('mharga as a')
             ->leftJoin('mbarang as b', 'b.KD_STOK', '=', 'a.kd_stok')
-            ->select('a.kd_stok', 'a.satuan', 'a.hj1', 'a.isi', 'b.NAMA_BRG')
+            ->select('a.kd_stok', 'a.satuan', 'a.hj1', 'a.isi', 'b.NAMA_BRG', DB::raw("b.`$kodeGudang` as stok_gudang"))
             ->where('a.kd_stok', $kd_barang)
             ->where('a.satuan', $satuan_barang)
             ->first();

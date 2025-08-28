@@ -118,14 +118,17 @@ h5 {
         <input type="hidden" value="" id="kd_barang" readonly>
         <!-- Informasi Barang -->
         <div class="row">
-            <div class="col-md-4 info-item">
+            <div class="col-md-3 info-item">
                 <h5>Nama: <span id="nama_barang">-</span></h5>
             </div>
-            <div class="col-md-4 info-item">
+            <div class="col-md-3 info-item">
                 <h5>Harga: <span id="harga_barang">-</span></h5>
             </div>
-            <div class="col-md-4 info-item">
+            <div class="col-md-3 info-item">
                 <h5>Isi: <span id="unit_barang">-</span></h5>
+            </div>
+            <div class="col-md-3 info-item">
+                <h5>Stok: <span id="stok_barang">-</span></h5>
             </div>
             {{-- <div class="col-md-3 info-item">
                 <h5>Satuan: <span id="satuan_barang">-</span></h5>
@@ -148,6 +151,16 @@ h5 {
 </div>
 {{-- ### Form Inputan ### --}}
 <form action="" class="mt-3">
+    <div class="row">
+        <div class="col-lg-4 col-md-12 col-sm-12 mb-3">
+            <div class="d-flex align-items-center">
+                <select name="select_gudang" id="select_gudang" class="form-control">
+                    <option></option>
+                    <!-- Options untuk select dropdown -->
+                </select>
+            </div>
+        </div>
+    </div>
     <div class="row">
         <div class="col-lg-4 col-md-12 col-sm-12 mb-3">
             <div class="d-flex align-items-center">
@@ -318,6 +331,20 @@ $(document).ready(function(){
         });
     };
 // ================================= End Of Select User ===========================================
+// ===================================== Select Gudang =============================================
+    $.ajax({
+        url: "{{ route('get_kode_gudang') }}",
+        type: "GET",
+        success: function(data) {
+            let select = $('#select_gudang');
+            select.empty();
+            // select.append('<option value="">-- Pilih Gudang --</option>');
+            $.each(data, function(index, value) {
+                select.append('<option value="' + value + '">' + value + '</option>');
+            });
+        }
+    });
+// ================================= End of Select Gudang ===========================================
 // ================================= Select Barang ===========================================
     $('#select_barang').select2({
         // tags: true,
@@ -434,11 +461,15 @@ $(document).ready(function(){
 // ======================= Trigger Select Satuan Barang When kd_barang change =============================
     function get_barang_satuan(kd_barang){
         // console.log('test :' + kd_barang)
+        let kode_gudang = $('#select_gudang').val();
         if (kd_barang) {
             $.ajax({
                 url: '{{ route("get_barang_satuan") }}',
                 type: 'GET',
-                data: { kd_barang: kd_barang },
+                data: {
+                    kd_barang: kd_barang,
+                    kode_gudang: kode_gudang
+                 },
                 success: function (response) {
                     // alert(response[0].satuan);
                     $('#select_barang_satuan').empty();
@@ -456,6 +487,11 @@ $(document).ready(function(){
                     let formatted_value = isi.replace(/\./g, ''); // Menghapus titik
                     let final_value = parseInt(formatted_value / 1000);
                     $('#unit_barang').text(final_value);
+                    // menghapus nilani decimal dari dbase
+                    let isi_gudang = response[0].stok_gudang.replace(/,/g, '');
+                    let formatted_value_gudang = isi_gudang.replace(/\./g, ''); // Menghapus titik
+                    let final_value_gudang = parseInt(formatted_value_gudang / 100);
+                    $('#stok_barang').text(final_value_gudang);
                 },
                 error: function (xhr) {
                     console.error('Error:', xhr.responseText);
@@ -472,11 +508,12 @@ $(document).ready(function(){
     $('#select_barang_satuan').on('change', function() {
         const satuan_barang = $(this).val();
         const kd_barang = $('#kd_barang').val();
+        const kode_gudang = $('#select_gudang').val();
         if (satuan_barang) {
             $.ajax({
                 url: '{{ route("get_barang_selected") }}',
                 type: 'GET',
-                data: { satuan_barang: satuan_barang, kd_barang: kd_barang },
+                data: { satuan_barang: satuan_barang, kd_barang: kd_barang, kode_gudang: kode_gudang },
                 success: function(response) {
                     let data_harga = response.hj1;
                     $('#harga_barang').text(format_ribuan(data_harga));
@@ -484,6 +521,11 @@ $(document).ready(function(){
                     let formatted_value = isi.replace(/\./g, ''); // Menghapus titik
                     let final_value = parseInt(formatted_value / 1000);
                     $('#unit_barang').text(final_value);
+                    // menghapus nilani decimal dari dbase
+                    let isi_gudang = response[0].stok_gudang.replace(/,/g, '');
+                    let formatted_value_gudang = isi_gudang.replace(/\./g, ''); // Menghapus titik
+                    let final_value_gudang = parseInt(formatted_value_gudang / 100);
+                    $('#stok_barang').text(final_value_gudang);
                 },
                 error: function(xhr) {
                     console.error('Error:', xhr.responseText);
