@@ -166,14 +166,17 @@ h5 {
 
             <!-- Informasi Barang -->
             <div class="row">
-                <div class="col-md-4 info-item">
+                <div class="col-md-3 info-item">
                     <h5>Nama: <span id="nama_barang_edit">-</span></h5>
                 </div>
-                <div class="col-md-4 info-item">
+                <div class="col-md-3 info-item">
                     <h5>Harga: <span id="harga_barang_edit">-</span></h5>
                 </div>
-                <div class="col-md-4 info-item">
+                <div class="col-md-3 info-item">
                     <h5>Isi: <span id="unit_barang_edit">-</span></h5>
+                </div>
+                <div class="col-md-3 info-item">
+                    <h5>Stok: <span id="stok_barang_edit">-</span></h5>
                 </div>
             </div>
 
@@ -186,7 +189,7 @@ h5 {
                     <h5>Harga Barang: <span id="harga_barang_edit">-</span></h5>
                 </div>
                 <div class="col-md-6 info-item">
-                    <h5>Stok Barang: <span id="stok_barang_edit">-</span></h5>
+                    <h5>Stok Barang: <span id="stok_barang_edit_edit">-</span></h5>
                 </div>
             </div> --}}
         </div>
@@ -197,6 +200,16 @@ h5 {
     </div>
     {{-- End Of Inputan No PO --}}
     <form action="" class="mt-3">
+    <div class="row">
+        <div class="col-lg-4 col-md-12 col-sm-12 mb-3">
+            <div class="d-flex align-items-center">
+                <select name="select_gudang_edit" id="select_gudang_edit" class="form-control">
+                    <option></option>
+                    <!-- Options untuk select dropdown -->
+                </select>
+            </div>
+        </div>
+    </div>
     <div class="row">
         <div class="col-lg-4 col-md-12 mb-3">
             <div class="d-flex align-items-center">
@@ -759,6 +772,7 @@ $(document).ready(function(){
         $('#kd_barang').val("").trigger('change');
         $('#nama_barang_edit').text('-').trigger('change');
         $('#unit_barang_edit').text('-').trigger('change');
+        $('#stok_barang_edit').text('-').trigger('change');
         $('#select_barang_satuan_edit').empty().trigger('change');
         $('#select_barang_satuan_edit').append('<option value="">Pilih Satuan</option>').trigger('change');
         $('#harga_barang_edit').text('-').trigger('change');
@@ -805,14 +819,32 @@ $(document).ready(function(){
     });
         // === end of fungsi enter next di form ===
 // ================================= End Of Select Barang ===========================================
+// ===================================== Select Gudang =============================================
+    $.ajax({
+        url: "{{ route('get_kode_gudang') }}",
+        type: "GET",
+        success: function(data) {
+            let select = $('#select_gudang_edit');
+            select.empty();
+            // select.append('<option value="">-- Pilih Gudang --</option>');
+            $.each(data, function(index, value) {
+                select.append('<option value="' + value + '">' + value + '</option>');
+            });
+        }
+    });
+// ================================= End of Select Gudang ===========================================
 // ======================= Trigger Select Satuan Barang When kd_barang change =============================
 function get_barang_satuan_edit(kd_barang){
         // console.log('test :' + kd_barang)
+        let kode_gudang = $('#select_gudang_edit').val();
         if (kd_barang) {
             $.ajax({
                 url: '{{ route("get_barang_satuan") }}',
                 type: 'GET',
-                data: { kd_barang: kd_barang },
+                data: {
+                    kd_barang: kd_barang,
+                    kode_gudang: kode_gudang
+                 },
                 success: function (response) {
                     // alert(response[0].satuan);
                     $('#select_barang_satuan_edit').empty();
@@ -830,6 +862,11 @@ function get_barang_satuan_edit(kd_barang){
                     let formatted_value = isi.replace(/\./g, ''); // Menghapus titik
                     let final_value = parseInt(formatted_value / 1000);
                     $('#unit_barang_edit').text(final_value);
+                    // menghapus nilani decimal dari dbase
+                    let isi_gudang = response[0].stok_gudang.replace(/,/g, '');
+                    let formatted_value_gudang = isi_gudang.replace(/\./g, ''); // Menghapus titik
+                    let final_value_gudang = parseInt(formatted_value_gudang / 100);
+                    $('#stok_barang_edit').text(final_value_gudang);
                 },
                 error: function (xhr) {
                     console.error('Error:', xhr.responseText);
@@ -846,18 +883,25 @@ function get_barang_satuan_edit(kd_barang){
     $('#select_barang_satuan_edit').on('change', function() {
         const satuan_barang = $(this).val();
         const kd_barang = $('#kd_barang').val();
+        const kode_gudang = $('#select_gudang_edit').val();
         if (satuan_barang) {
             $.ajax({
                 url: '{{ route("get_barang_selected") }}',
                 type: 'GET',
-                data: { satuan_barang: satuan_barang, kd_barang: kd_barang },
+                data: { satuan_barang: satuan_barang, kd_barang: kd_barang, kode_gudang: kode_gudang },
                 success: function(response) {
                     let data_harga = response.hj1;
                     $('#harga_barang_edit').text(format_ribuan(data_harga));
+                    // menghapus nilani decimal dari dbase
                     let isi = response.isi.replace(/,/g, '');
                     let formatted_value = isi.replace(/\./g, ''); // Menghapus titik
                     let final_value = parseInt(formatted_value / 1000);
                     $('#unit_barang_edit').text(final_value);
+                    // menghapus nilani decimal dari dbase
+                    let isi_gudang = response[0].stok_gudang.replace(/,/g, '');
+                    let formatted_value_gudang = isi_gudang.replace(/\./g, ''); // Menghapus titik
+                    let final_value_gudang = parseInt(formatted_value_gudang / 100);
+                    $('#stok_barang_edit').text(final_value_gudang);
                 },
                 error: function(xhr) {
                     console.error('Error:', xhr.responseText);
@@ -961,6 +1005,7 @@ function get_barang_satuan_edit(kd_barang){
         $('#nama_barang_edit').text('-');
         $('#harga_barang_edit').text('-');
         $('#unit_barang_edit').text('-');
+        $('#stok_barang_edit').text('-');
         $('#select_barang_satuan_edit').empty();
         $('#select_barang_satuan_edit').append('<option value="">Pilih Satuan</option>');
         loadInputPajakEdit();

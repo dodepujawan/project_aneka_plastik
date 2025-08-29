@@ -412,6 +412,7 @@ $(document).ready(function(){
         $('#kd_barang').val("").trigger('change');
         $('#nama_barang').text('-').trigger('change');
         $('#unit_barang').text('-').trigger('change');
+        $('#stok_barang').text('-').trigger('change');
         $('#select_barang_satuan').empty().trigger('change');
         $('#select_barang_satuan').append('<option value="">Pilih Satuan</option>').trigger('change');
         $('#harga_barang').text('-').trigger('change');
@@ -631,6 +632,7 @@ $(document).ready(function(){
         $('#nama_barang').text('-');
         $('#harga_barang').text('-');
         $('#unit_barang').text('-');
+        $('#stok_barang').text('-');
         $('#select_barang_satuan').empty();
         $('#select_barang_satuan').append('<option value="">Pilih Satuan</option>');
         loadInputPajak();
