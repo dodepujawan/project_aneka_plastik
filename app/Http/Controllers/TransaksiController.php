@@ -471,6 +471,10 @@ class TransaksiController extends Controller
 
     public function save_faktur(Request $request){
         $invoiceNumber = $request->input('invoice_number');
+        $method = $request->input('method');
+        $namaBank = $request->input('nama_bank');
+        $jumlahBayar = $request->input('jumlah_bayar');
+        $jumlahKembalian = $request->input('jumlah_kembalian');
 
         DB::beginTransaction();
         try {
@@ -524,6 +528,10 @@ class TransaksiController extends Controller
                     'nama_cust' => $transUser->nama_cust,
                     'user_kode' => $transUser->user_kode,
                     'no_invoice' => $invoiceNumber,
+                    'pembayaran' => $method,
+                    'nominal_bayar' => $jumlahBayar,
+                    'kembalian' => $jumlahKembalian,
+                    'nama_bank' => $namaBank,
                 ]);
             }
 

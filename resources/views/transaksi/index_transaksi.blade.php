@@ -251,6 +251,66 @@ h5 {
     </table>
 </div>
 <button type="submit" class="btn btn-primary mt-2" id="save_table_transaksi" style="float: right;"><i class="fas fa-save"> Proses</i></button>
+{{-- modal cetak transaksi --}}
+{{-- <!-- Tombol untuk buka modal -->
+<button class="btn btn-primary" data-toggle="modal" data-target="#payment_modal">
+  Bayar
+</button> --}}
+
+<!-- Modal -->
+<div class="modal fade" id="payment_modal" data-backdrop="static" data-keyboard="false" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Pembayaran</h5>
+      </div>
+      <div class="modal-body">
+
+        <!-- Total Harga -->
+        <div class="form-group">
+          <label>Total Harga</label>
+          <input type="text" id="total_harga_modal" class="form-control" readonly>
+        </div>
+
+        <!-- Metode Pembayaran -->
+        <div class="form-group">
+          <label>Metode Pembayaran</label>
+          <select id="paymentMethod" class="form-control">
+            <option value="">-- Pilih --</option>
+            <option value="cash">Cash</option>
+            <option value="transfer">Transfer</option>
+            <option value="bon">Bon</option>
+          </select>
+        </div>
+
+        <!-- Input jika Cash -->
+        <div id="cashSection" class="d-none">
+          <div class="form-group">
+            <label>Nominal Uang</label>
+            <input type="number" id="cashAmount" class="form-control">
+          </div>
+          <div class="form-group">
+            <label>Kembalian</label>
+            <input type="text" id="changeAmount" class="form-control" readonly>
+          </div>
+        </div>
+
+        <!-- Input jika Transfer -->
+        <div id="transferSection" class="d-none">
+          <div class="form-group">
+            <label>Nama Bank</label>
+            <input type="text" id="bankName" class="form-control">
+          </div>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="cetak_faktur" class="btn btn-success">Cetak</button>
+        <button type="button" class="btn btn-secondary" id="cancel_btn_cetak" data-dismiss="modal">Batal</button>
+      </div>
+    </div>
+  </div>
+</div>
 {{-- <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/js/select2.min.js"></script> --}}
 
 <script>
@@ -887,10 +947,20 @@ $(document).ready(function(){
                             // Event listener untuk tombol Print Struk
                             document.getElementById('btn-struk').addEventListener('click', () => {
                                 Swal.close();
-                                $('#loading_modal').modal('show');
-                                setTimeout(function () {
-                                    save_faktur(response.invoice_number);
-                                }, 1200);
+                                let nilai_total_modal = $('#grand_total').text().trim();
+                                let nilaiBersih = unformatRupiah(nilai_total_modal);
+                                $("#total_harga_modal").val(nilaiBersih);
+                                function unformatRupiah(str) {
+                                    if(!str) return 0;
+                                    // hapus semua titik (ribuan), ganti koma dengan titik
+                                    let cleaned = str.replace(/\./g, '').replace(',', '.');
+                                    return parseFloat(cleaned);
+                                }
+                                $('#payment_modal').data('invoice', response.invoice_number);
+                                $('#payment_modal').modal('show');
+                                // setTimeout(function () {
+                                //     save_faktur(response.invoice_number);
+                                // }, 1200);
                             });
                         }
                     });
@@ -937,22 +1007,111 @@ $(document).ready(function(){
         grandTotalPpn = 0;
     }
 // ================================= End Of Submit Barang To DB =========================================
+// ==================================== Model Transaksi Cetak ============================================
+    // Ganti tampilan sesuai metode pembayaran
+    $("#paymentMethod").on("change", function(){
+        let method = $(this).val();
+        if(method === "cash"){
+        $("#bankName").val('');
+        $("#cashAmount").val('');
+        $("#changeAmount").val('');
+        $("#cashSection").removeClass("d-none");
+        $("#transferSection").addClass("d-none");
+        } else if(method === "transfer"){
+        $("#bankName").val('');
+        $("#cashAmount").val('');
+        $("#changeAmount").val('');
+        $("#transferSection").removeClass("d-none");
+        $("#cashSection").addClass("d-none");
+        } else if(method === "bon"){
+        $("#bankName").val('');
+        $("#cashAmount").val('');
+        $("#changeAmount").val('');
+        $("#transferSection").addClass("d-none");
+        $("#cashSection").addClass("d-none");
+        } else {
+        $("#cashSection, #transferSection").addClass("d-none");
+        }
+    });
+
+    // Hitung kembalian otomatis
+    $("#cashAmount").on("input", function(){
+        let total = parseFloat($("#total_harga_modal").val());
+        let bayar = parseFloat($(this).val());
+        let kembali = bayar - total;
+        $("#changeAmount").val(kembali >= 0 ? kembali : 0);
+    });
+
+    // Validasi saat cetak
+    $("#cetak_faktur").on("click", function(){
+        let method = $("#paymentMethod").val();
+        let total = parseFloat($("#total_harga_modal").val());
+        let nama_bank = $("#bankName").val();
+        let jumlah_bayar = $("#cashAmount").val();
+        let jumlah_kembalian = $("#changeAmount").val();
+
+        if(method === "cash"){
+        let bayar = parseFloat($("#cashAmount").val());
+        if(!bayar || bayar < total){
+            alert("Bayaran kurang! Harap isi nominal dengan benar.");
+            return;
+        }
+        }
+        else if(method === "transfer"){
+        let bank = $("#bankName").val().trim();
+        if(bank === ""){
+            alert("Harap isi nama bank untuk transfer.");
+            return;
+        }
+        }
+        else {
+        alert("Pilih metode pembayaran dulu.");
+        return;
+        }
+        // ✅ Ambil invoice dari data modal
+        let invoice_number = $("#payment_modal").data("invoice");
+        console.log('test' + invoice_number);
+        // Panggil fungsi simpan
+        save_faktur(invoice_number, method, nama_bank, jumlah_bayar, jumlah_kembalian);
+    });
+
+    $("#cancel_btn_cetak").on("click", function(){
+        $('#payment_modal').modal('hide');
+        $('.modal-backdrop').remove();
+        success_call();
+        $.ajax({
+                url: '{{ route('index_faktur') }}',
+                type: 'GET',
+                success: function(response) {
+                    $('.master-page').html(response);
+                },
+                error: function() {
+                    $('.master-page').html('<p>Error loading form.</p>');
+                }
+            });
+    });
+// ============================== End of Model Transaksi Cetak ========================================
 // ==================================== Submit to Faktur ============================================
-    function save_faktur(invoice_number) {
+    function save_faktur(invoice_number, method, nama_bank, jumlah_bayar, jumlah_kembalian) {
         $.ajax({
             url: '{{ route("save_faktur") }}',
             type: 'POST',
             data: {
                 invoice_number: invoice_number,
+                method: method,
+                nama_bank: nama_bank,
+                jumlah_bayar: jumlah_bayar,
+                jumlah_kembalian: jumlah_kembalian,
                 _token: '{{ csrf_token() }}'
             },
             success: function(res) {
+                $('#payment_modal').modal('hide');
+                $('.modal-backdrop').remove();
                 console.log("Faktur berhasil:", res.no_faktur);
                 // Cetak ke RawBT
                 let encodedStruk = encodeURIComponent(res.struk_text);
                 window.location.href = "rawbt://print?text=" + encodedStruk;
                 success_call();
-                $('#loading_modal').modal('hide');
                 // ### Redirect Hal Faktur
                 $.ajax({
                     url: '{{ route('index_faktur') }}',

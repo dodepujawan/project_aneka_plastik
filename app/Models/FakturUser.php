@@ -17,5 +17,9 @@ class FakturUser extends Model
         'no_invoice',
         'created_at',
         'updated_at',
+        'pembayaran',
+        'nominal_bayar',
+        'kembalian',
+        'nama_bank'
     ];
 }
