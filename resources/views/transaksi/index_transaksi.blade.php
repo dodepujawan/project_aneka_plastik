@@ -257,7 +257,7 @@ h5 {
   Bayar
 </button> --}}
 
-<!-- Modal -->
+<!-- Modal Pembayaran Struk-->
 <div class="modal fade" id="payment_modal" data-backdrop="static" data-keyboard="false" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered" role="document">
     <div class="modal-content">
@@ -1064,19 +1064,28 @@ $(document).ready(function(){
             return;
         }
         }
+        else if (method === "bon"){
+
+        }
         else {
         alert("Pilih metode pembayaran dulu.");
         return;
         }
         // ✅ Ambil invoice dari data modal
         let invoice_number = $("#payment_modal").data("invoice");
-        console.log('test' + invoice_number);
+        $('#payment_modal').modal('hide');
+        $('body').removeClass('modal-open').css('overflow', 'auto').css('padding-right', '');
+        $('.modal-backdrop').remove();
+        $('#loading_modal').modal('show');
         // Panggil fungsi simpan
-        save_faktur(invoice_number, method, nama_bank, jumlah_bayar, jumlah_kembalian);
+        setTimeout(function () {
+            save_faktur(invoice_number, method, nama_bank, jumlah_bayar, jumlah_kembalian);
+        }, 1200);
     });
 
     $("#cancel_btn_cetak").on("click", function(){
         $('#payment_modal').modal('hide');
+        $('body').removeClass('modal-open').css('overflow', 'auto').css('padding-right', '');
         $('.modal-backdrop').remove();
         success_call();
         $.ajax({
@@ -1105,8 +1114,9 @@ $(document).ready(function(){
                 _token: '{{ csrf_token() }}'
             },
             success: function(res) {
-                $('#payment_modal').modal('hide');
-                $('.modal-backdrop').remove();
+                // $('#payment_modal').modal('hide');
+                // $('.modal-backdrop').remove();
+                $('#loading_modal').modal('hide');
                 console.log("Faktur berhasil:", res.no_faktur);
                 // Cetak ke RawBT
                 let encodedStruk = encodeURIComponent(res.struk_text);
