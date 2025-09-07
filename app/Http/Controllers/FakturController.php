@@ -152,6 +152,10 @@ class FakturController extends Controller
             'a.no_faktur',
             'a.created_at',
             'a.user_kode',
+            'a.pembayaran',
+            'a.nominal_bayar',
+            'a.kembalian',
+            'a.nama_bank',
             'b.kd_brg',
             'b.nama_brg',
             'c.NAMACUST as nama_cust',
@@ -180,6 +184,10 @@ class FakturController extends Controller
         $noFaktur = $request->input('value_invo');
         $kodeUser = $request->input('kode_user');
         $noInvoice = Faktur::where('no_faktur', $noFaktur)->value('history_inv');
+        $method = $request->input('method');
+        $namaBank = $request->input('nama_bank');
+        $jumlahBayar = $request->input('jumlah_bayar');
+        $jumlahKembalian = $request->input('jumlah_kembalian');
 
         $rcabang = Auth::user()->rcabang;
         $roles_user = Auth::user()->roles;
@@ -299,6 +307,10 @@ class FakturController extends Controller
                 'user_id' => $user_id_prev,
                 'nama_cust' => $user_name_prev,
                 'user_kode' => $kodeUser,
+                'pembayaran' => $method,
+                'nominal_bayar' => $jumlahBayar,
+                'kembalian' => $jumlahKembalian,
+                'nama_bank' => $namaBank,
                 'created_at' => $created_at_faktur,
                 'updated_at' => Carbon::now(),
             ]);

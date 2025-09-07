@@ -301,7 +301,60 @@
             <button type="submit" class="btn btn-info mt-2 mb-2" id="reset_table_transaksi_faktur"><i class="fas fa-sync-alt"> Reset</i></button>
         </div>
     </div>
+</div>
+<!-- Modal Pembayaran Struk-->
+<div class="modal fade" id="payment_modal" data-backdrop="static" data-keyboard="false" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Pembayaran</h5>
+      </div>
+      <div class="modal-body">
 
+        <!-- Total Harga -->
+        <div class="form-group">
+          <label>Total Harga</label>
+          <input type="text" id="total_harga_modal" class="form-control" readonly>
+        </div>
+
+        <!-- Metode Pembayaran -->
+        <div class="form-group">
+          <label>Metode Pembayaran</label>
+          <select id="paymentMethod" class="form-control">
+            <option value="">-- Pilih --</option>
+            <option value="cash">Cash</option>
+            <option value="transfer">Transfer</option>
+            <option value="bon">Bon</option>
+          </select>
+        </div>
+
+        <!-- Input jika Cash -->
+        <div id="cashSection" class="d-none">
+          <div class="form-group">
+            <label>Nominal Uang</label>
+            <input type="number" id="cashAmount" class="form-control">
+          </div>
+          <div class="form-group">
+            <label>Kembalian</label>
+            <input type="text" id="changeAmount" class="form-control" readonly>
+          </div>
+        </div>
+
+        <!-- Input jika Transfer -->
+        <div id="transferSection" class="d-none">
+          <div class="form-group">
+            <label>Nama Bank</label>
+            <input type="text" id="bankName" class="form-control">
+          </div>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="cetak_faktur" class="btn btn-success">Cetak</button>
+        <button type="button" class="btn btn-secondary" id="cancel_btn_cetak" data-dismiss="modal">Batal</button>
+      </div>
+    </div>
+  </div>
 </div>
 <script>
 $(document).ready(function() {
@@ -1110,14 +1163,137 @@ function get_barang_satuan_edit(kd_barang){
         $('#grand_total_ppn_faktur').text(format_ribuan(grandTotalPpn));
     });
 // =============================== End Of Input Barang To Table =========================================
-// =================================== Update Barang To DB ==============================================
+// =================================== Struk on Click ==============================================
     $('#save_table_transaksi_faktur').on('click', function () {
-        const kode_user = $("#kode_user_trans_faktur").val();
-        const products = [];
         let value_invo = $(this).val();
-        let is_valid = true; // Untuk memeriksa validasi secara keseluruhan
+        console.log('coba =' + value_invo);
+        $.ajax({
+                url: '{{ route('get_faktur_to_table') }}', // Ganti dengan route yang sesuai
+                type: 'GET',
+                data: {
+                    no_invoice: value_invo // Mengirimkan no_invoice ke server
+                },
+                success: function (response) {
+                    const payup = response.data[0];
+                    $("#paymentMethod").val(payup.pembayaran ?? 'bon');
+                    $("#cashAmount").val(payup.nominal_bayar ?? '');
+                    $("#changeAmount").val(payup.kembalian ?? '');
+                    $("#bankName").val(payup.nama_bank ?? '');
+                    if (payup.pembayaran === 'transfer') {
+                        // contoh: tampilkan input bank
+                        $("#transferSection").removeClass("d-none");
+                    }
+                    if (payup.pembayaran === 'cash') {
+                        // contoh: tampilkan input bank
+                        $("#cashSection").removeClass("d-none");
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error('AJAX Error: ', status, error);
+                }
+            });
+        let nilai_total_modal = $('#grand_total_faktur').text().trim();
+        let nilaiBersih = unformatRupiah(nilai_total_modal);
+        $("#total_harga_modal").val(nilaiBersih);
+        function unformatRupiah(str) {
+            if(!str) return 0;
+            // hapus semua titik (ribuan), ganti koma dengan titik
+            let cleaned = str.replace(/\./g, '').replace(',', '.');
+            return parseFloat(cleaned);
+        }
+        $('#payment_modal').data('invoice', value_invo);
+        $('#payment_modal').modal('show');
+    });
+// ================================= End Of Struk on Click =========================================
+// ==================================== Model Transaksi Cetak ============================================
+    // Ganti tampilan sesuai metode pembayaran
+    $("#paymentMethod").on("change", function(){
+        let method = $(this).val();
+        if(method === "cash"){
+        $("#bankName").val('');
+        $("#cashAmount").val('');
+        $("#changeAmount").val('');
+        $("#cashSection").removeClass("d-none");
+        $("#transferSection").addClass("d-none");
+        } else if(method === "transfer"){
+        $("#bankName").val('');
+        $("#cashAmount").val('');
+        $("#changeAmount").val('');
+        $("#transferSection").removeClass("d-none");
+        $("#cashSection").addClass("d-none");
+        } else if(method === "bon"){
+        $("#bankName").val('');
+        $("#cashAmount").val('');
+        $("#changeAmount").val('');
+        $("#transferSection").addClass("d-none");
+        $("#cashSection").addClass("d-none");
+        } else {
+        $("#cashSection, #transferSection").addClass("d-none");
+        }
+    });
 
-        // Loop melalui setiap baris di tabel
+    // Hitung kembalian otomatis
+    $("#cashAmount").on("input", function(){
+        let total = parseFloat($("#total_harga_modal").val());
+        let bayar = parseFloat($(this).val());
+        let kembali = bayar - total;
+        $("#changeAmount").val(kembali >= 0 ? kembali : 0);
+    });
+
+    // Validasi saat cetak
+    $("#cetak_faktur").on("click", function(){
+        let method = $("#paymentMethod").val();
+        let total = parseFloat($("#total_harga_modal").val());
+        let nama_bank = $("#bankName").val();
+        let jumlah_bayar = $("#cashAmount").val();
+        let jumlah_kembalian = $("#changeAmount").val();
+
+        if(method === "cash"){
+        let bayar = parseFloat($("#cashAmount").val());
+        if(!bayar || bayar < total){
+            alert("Bayaran kurang! Harap isi nominal dengan benar.");
+            return;
+        }
+        }
+        else if(method === "transfer"){
+        let bank = $("#bankName").val().trim();
+        if(bank === ""){
+            alert("Harap isi nama bank untuk transfer.");
+            return;
+        }
+        }
+        else if (method === "bon"){
+
+        }
+        else {
+        alert("Pilih metode pembayaran dulu.");
+        return;
+        }
+        $('#payment_modal').modal('hide');
+        $('body').removeClass('modal-open').css('overflow', 'auto').css('padding-right', '');
+        $('.modal-backdrop').remove();
+        // Panggil fungsi simpan
+        proses_cetak_faktur();
+    });
+
+    $("#cancel_btn_cetak").on("click", function(){
+        $('#payment_modal').modal('hide');
+        $('body').removeClass('modal-open').css('overflow', 'auto').css('padding-right', '');
+        $('.modal-backdrop').remove();
+    });
+// ============================== End of Model Transaksi Cetak ========================================
+// ==================================== CETAK FAKTUR TO DB ============================================
+    function proses_cetak_faktur(){
+        const kode_user = $("#kode_user_trans_faktur").val();
+        let method = $("#paymentMethod").val();
+        let total = parseFloat($("#total_harga_modal").val());
+        let nama_bank = $("#bankName").val();
+        let jumlah_bayar = $("#cashAmount").val();
+        let jumlah_kembalian = $("#changeAmount").val();
+
+        const products = [];
+        let value_invo = $("#payment_modal").data("invoice");
+        let is_valid = true; // Untuk memeriksa validasi secara keseluruhan
         $('#transaksi_table_faktur tbody tr').each(function () {
             const kd_barang = $(this).find('td:eq(1)').text(); // KD Barang
             const nama = $(this).find('td:eq(2)').text();      // Nama Barang
@@ -1157,8 +1333,8 @@ function get_barang_satuan_edit(kd_barang){
                 return false; // Hentikan loop jika tidak valid
             }
 
-             // Validasi diskon: harus angka (boleh 0)
-             if (diskon_rp === "" || diskon_rp.trim() === "" || isNaN(diskon_rp)) {
+                // Validasi diskon: harus angka (boleh 0)
+            if (diskon_rp === "" || diskon_rp.trim() === "" || isNaN(diskon_rp)) {
                 is_valid = false;
                 Swal.fire({
                     icon: 'warning',
@@ -1218,7 +1394,7 @@ function get_barang_satuan_edit(kd_barang){
 
         // Kirim data ke server jika ada produk
         if (products.length > 0) {
-            save_to_database_edit(products,value_invo,kode_user);
+            save_to_database_edit(products,value_invo,kode_user,method,nama_bank,jumlah_bayar,jumlah_kembalian);
         } else {
             Swal.fire({
                 icon: 'warning',
@@ -1228,9 +1404,9 @@ function get_barang_satuan_edit(kd_barang){
                 timer: 2000 // Durasi tampil dalam milidetik
             });
         }
-    });
+    }
 
-    function save_to_database_edit(products,value_invo,kode_user) {
+    function save_to_database_edit(products,value_invo,kode_user,method,nama_bank,jumlah_bayar,jumlah_kembalian) {
         $('#loading_modal').modal('show');
         setTimeout(function () {
             $.ajax({
@@ -1240,7 +1416,11 @@ function get_barang_satuan_edit(kd_barang){
                     _token: $('meta[name="csrf-token"]').attr('content'), // CSRF Token
                     products: products,
                     value_invo: value_invo,
-                    kode_user: kode_user
+                    kode_user: kode_user,
+                    method: method,
+                    nama_bank: nama_bank,
+                    jumlah_bayar: jumlah_bayar,
+                    jumlah_kembalian: jumlah_kembalian
                 },
                 success: function (response) {
                     let encodedStruk = encodeURIComponent(response.struk_text);
@@ -1292,8 +1472,7 @@ function get_barang_satuan_edit(kd_barang){
             });
         }, 1200);
     }
-
-// ================================= End Of Update Barang To DB =========================================
+// ================================= END OF CETAK FAKTUR TO DB =========================================
 // =================================== Delete Faktur ==============================================
     $('#delete_table_transaksi_faktur').on('click', function () {
         let value_invo = $(this).val();
