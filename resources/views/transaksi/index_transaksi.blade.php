@@ -1119,7 +1119,7 @@ $(document).ready(function(){
                 $('#loading_modal').modal('hide');
                 console.log("Faktur berhasil:", res.no_faktur);
                 // Cetak ke RawBT
-                window.location.href = "rawbt://print?base64=" + res.struk_text;
+                window.location.href = "rawbt:base64," + res.struk_text;
                 // let encodedStruk = encodeURIComponent(res.struk_text);
                 // window.location.href = "rawbt://print?text=" + encodedStruk;
                 success_call();
