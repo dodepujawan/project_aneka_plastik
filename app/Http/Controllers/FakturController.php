@@ -362,7 +362,7 @@ class FakturController extends Controller
             $esc .= "TOKO ANEKA PLASTIK\n";
             $esc .= "Jl. Hasanuddin No.51 Singaraja\n";
             $esc .= "-----------------------------\n";
-            $esc .= "No Faktur : {$fakturNumber}\n";
+            $esc .= "No Faktur : {$noFaktur}\n";
             $esc .= "Tanggal   : " . $items->first()->created_at->format('d-m-Y H:i') . "\n";
             $esc .= "-----------------------------\n";
 
@@ -424,7 +424,7 @@ class FakturController extends Controller
             $esc .= "TOKO ANEKA PLASTIK\n";
             $esc .= "Jl. Hasanuddin No.51 Singaraja\n";
             $esc .= "-----------------------------\n";
-            $esc .= "No Faktur : {$fakturNumber}\n";
+            $esc .= "No Faktur : {$noFaktur}\n";
             $esc .= "Tanggal   : " . $items->first()->created_at->format('d-m-Y H:i') . "\n";
             $esc .= "-----------------------------\n";
 
