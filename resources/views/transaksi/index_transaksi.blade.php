@@ -1120,7 +1120,7 @@ $(document).ready(function(){
                 console.log("Faktur berhasil:", res.no_faktur);
                 // Cetak ke RawBT
                 let encodedStruk = encodeURIComponent(res.struk_text);
-                window.location.href = "rawbt://print?text=" + encodedStruk;
+                window.location.href = "rawbt://print?base64=" + encodedStruk;
                 success_call();
                 // ### Redirect Hal Faktur
                 $.ajax({
