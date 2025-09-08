@@ -1423,8 +1423,9 @@ function get_barang_satuan_edit(kd_barang){
                     jumlah_kembalian: jumlah_kembalian
                 },
                 success: function (response) {
-                    let encodedStruk = encodeURIComponent(response.struk_text);
-                    window.location.href = "rawbt://print?text=" + encodedStruk;
+                    window.location.href = "rawbt:base64," + response.struk_text;
+                    // let encodedStruk = encodeURIComponent(response.struk_text);
+                    // window.location.href = "rawbt://print?text=" + encodedStruk;
                     $('#loading_modal').modal('hide');
                     // Swal.fire({
                     //     icon: 'success',

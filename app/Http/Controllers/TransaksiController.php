@@ -605,11 +605,10 @@ class TransaksiController extends Controller
                 $esc .= "Metode : Bon\n";
             }
 
-            $esc .= "Terima kasih\n\n\n";
+            $esc .= "Terima kasih\n\n";
 
             // Potong kertas (kalau printer support)
             // $esc .= "\x1D\x56\x41";
-            $esc .= "\n\n\n";
 
             // ### COPY 2 ###
             $esc .= "COPY 2\n";
@@ -668,11 +667,10 @@ class TransaksiController extends Controller
                 $esc .= "Metode : Bon\n";
             }
 
-            $esc .= "Terima kasih\n\n\n";
+            $esc .= "Terima kasih\n\n";
 
             // Potong kertas (kalau printer support)
             // $esc .= "\x1D\x56\x41";
-            $esc .= "\n\n\n";
 
             // Encode ke base64 supaya RawBT bisa baca
             $base64 = base64_encode($esc);

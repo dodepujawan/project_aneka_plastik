@@ -354,37 +354,139 @@ class FakturController extends Controller
             // Ambil ulang data untuk struk
             $items = Faktur::where('no_faktur', $noFaktur)->get();
 
-            // Format struk sederhana (bisa tambah ESC/POS command biar lebih rapi)
-            $struk = "\n";
-            $struk .= "TOKO ANEKA PLASTIK\n";
-            $struk .= "Jl. Hasannudin No.51 Singaraja\n";
-            $struk .= "-----------------------------\n";
-            $struk .= "No Faktur : {$noFaktur}\n";
-            // $struk .= "Tanggal   : " . now()->format('d-m-Y H:i') . "\n";
-            $struk .= "Tanggal   : " . $items->first()->created_at->format('d-m-Y H:i') . "\n";
-            $struk .= "-----------------------------\n";
+            // Mulai string ESC/POS
+            $esc = "\x1B@\n"; // Initialize printer
 
+            // Header toko
+            $esc .= "COPY 1\n";
+            $esc .= "TOKO ANEKA PLASTIK\n";
+            $esc .= "Jl. Hasanuddin No.51 Singaraja\n";
+            $esc .= "-----------------------------\n";
+            $esc .= "No Faktur : {$fakturNumber}\n";
+            $esc .= "Tanggal   : " . $items->first()->created_at->format('d-m-Y H:i') . "\n";
+            $esc .= "-----------------------------\n";
+
+            // Detail barang
             foreach ($items as $i) {
-                $nama = substr($i->nama_brg, 0, 20);
-                $struk .= sprintf(
-                    "%-20s %3d x %8s\n",
-                    $nama,
-                    $i->qty_order,
-                    number_format($i->harga, 0, ',', '.')
+                $nama  = substr($i->nama_brg, 0, 32); // max 32 char biar aman
+                $qty   = $i->qty_order;
+                $disc  = $i->disc;   // diskon persen
+                $ndisc = $i->ndisc;  // diskon rupiah
+                $total = $i->total;  // total sudah dihitung dari DB
+
+                // Nama barang (baris pertama)
+                $esc .= $nama . "\n";
+
+                // qty - disc% - discRp   total
+                $esc .= sprintf(
+                    "%-3s - %-3s%% - %-6s %10s\n",
+                    number_format($qty, 0, ',', '.'),
+                    number_format($disc, 0, ',', '.'),
+                    number_format($ndisc, 0, ',', '.'),
+                    number_format($total, 0, ',', '.')
                 );
             }
 
-            $total = $items->sum('total');
-            $struk .= "-----------------------------\n";
-            $struk .= sprintf("TOTAL: %24s\n", number_format($total, 0, ',', '.'));
-            $struk .= "PPN : " . number_format($items->sum('rppn'), 0, ',', '.') . "\n";
-            $struk .= "DPP : " . number_format($items->sum('dpp'), 0, ',', '.') . "\n";
-            $struk .= "-----------------------------\n";
-            $struk .= "Terima kasih\n\n\n";
+            $esc .= "-----------------------------\n";
+
+            // Grand Total, DPP, PPN rata kanan
+            $grandTotal = $items->sum('total');
+            $dpp = $items->sum('dpp');
+            $ppn = $items->sum('rppn');
+
+            $esc .= sprintf("%30s\n", "Grand Total: " . number_format($grandTotal, 0, ',', '.'));
+            $esc .= sprintf("%30s\n", "DPP: " . number_format($dpp, 0, ',', '.'));
+            $esc .= sprintf("%30s\n", "PPN: " . number_format($ppn, 0, ',', '.'));
+
+            $esc .= "-----------------------------\n";
+            // Tambahkan info pembayaran
+            if ($method === 'cash') {
+                $esc .= "Bayar  : " . number_format($jumlahBayar, 0, ',', '.') . "\n";
+                $esc .= "Susuk  : " . number_format($jumlahKembalian, 0, ',', '.') . "\n";
+                $esc .= "Metode : Cash\n";
+            } elseif ($method === 'transfer') {
+                $esc .= "Bayar  : " . number_format($grandTotal, 0, ',', '.') . "\n";
+                $esc .= "Susuk  : 0\n";
+                $esc .= "Metode : Transfer\n";
+            } else { // bon
+                $esc .= "Bayar  : 0\n";
+                $esc .= "Susuk  : 0\n";
+                $esc .= "Metode : Bon\n";
+            }
+
+            $esc .= "Terima kasih\n\n";
+
+            // Potong kertas (kalau printer support)
+            // $esc .= "\x1D\x56\x41";
+
+            // ### COPY 2 ###
+            $esc .= "COPY 2\n";
+            $esc .= "TOKO ANEKA PLASTIK\n";
+            $esc .= "Jl. Hasanuddin No.51 Singaraja\n";
+            $esc .= "-----------------------------\n";
+            $esc .= "No Faktur : {$fakturNumber}\n";
+            $esc .= "Tanggal   : " . $items->first()->created_at->format('d-m-Y H:i') . "\n";
+            $esc .= "-----------------------------\n";
+
+            // Detail barang
+            foreach ($items as $i) {
+                $nama  = substr($i->nama_brg, 0, 32); // max 32 char biar aman
+                $qty   = $i->qty_order;
+                $disc  = $i->disc;   // diskon persen
+                $ndisc = $i->ndisc;  // diskon rupiah
+                $total = $i->total;  // total sudah dihitung dari DB
+
+                // Nama barang (baris pertama)
+                $esc .= $nama . "\n";
+
+                // qty - disc% - discRp   total
+                $esc .= sprintf(
+                    "%-3s - %-3s%% - %-6s %10s\n",
+                    number_format($qty, 0, ',', '.'),
+                    number_format($disc, 0, ',', '.'),
+                    number_format($ndisc, 0, ',', '.'),
+                    number_format($total, 0, ',', '.')
+                );
+            }
+
+            $esc .= "-----------------------------\n";
+
+            // Grand Total, DPP, PPN rata kanan
+            $grandTotal = $items->sum('total');
+            $dpp = $items->sum('dpp');
+            $ppn = $items->sum('rppn');
+
+            $esc .= sprintf("%30s\n", "Grand Total: " . number_format($grandTotal, 0, ',', '.'));
+            $esc .= sprintf("%30s\n", "DPP: " . number_format($dpp, 0, ',', '.'));
+            $esc .= sprintf("%30s\n", "PPN: " . number_format($ppn, 0, ',', '.'));
+
+            $esc .= "-----------------------------\n";
+            // Tambahkan info pembayaran
+            if ($method === 'cash') {
+                $esc .= "Bayar  : " . number_format($jumlahBayar, 0, ',', '.') . "\n";
+                $esc .= "Susuk  : " . number_format($jumlahKembalian, 0, ',', '.') . "\n";
+                $esc .= "Metode : Cash\n";
+            } elseif ($method === 'transfer') {
+                $esc .= "Bayar  : " . number_format($grandTotal, 0, ',', '.') . "\n";
+                $esc .= "Susuk  : 0\n";
+                $esc .= "Metode : Transfer\n";
+            } else { // bon
+                $esc .= "Bayar  : 0\n";
+                $esc .= "Susuk  : 0\n";
+                $esc .= "Metode : Bon\n";
+            }
+
+            $esc .= "Terima kasih\n\n";
+
+            // Potong kertas (kalau printer support)
+            // $esc .= "\x1D\x56\x41";
+
+            // Encode ke base64 supaya RawBT bisa baca
+            $base64 = base64_encode($esc);
 
             return response()->json([
                 'message' => 'Products updated successfully!',
-                'struk_text' => $struk
+                'struk_text' => $base64
             ], 200);
         } catch (\Exception $e) {
             DB::rollBack();

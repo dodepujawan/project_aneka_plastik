@@ -1463,8 +1463,9 @@ function get_barang_satuan_edit(kd_barang){
                 },
                 success: function (res) {
                     console.log("Faktur berhasil:", res.no_faktur);
-                    let encodedStruk = encodeURIComponent(res.struk_text);
-                    window.location.href = "rawbt://print?text=" + encodedStruk;
+                    window.location.href = "rawbt:base64," + res.struk_text;
+                    // let encodedStruk = encodeURIComponent(res.struk_text);
+                    // window.location.href = "rawbt://print?text=" + encodedStruk;
                     $('#loading_modal').modal('hide');
                     $.ajax({
                         url: '{{ route('index_faktur') }}',
