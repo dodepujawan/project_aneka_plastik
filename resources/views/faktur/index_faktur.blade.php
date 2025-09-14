@@ -1193,14 +1193,14 @@ function get_barang_satuan_edit(kd_barang){
                 }
             });
         let nilai_total_modal = $('#grand_total_faktur').text().trim();
-        let nilaiBersih = unformatRupiah(nilai_total_modal);
-        $("#total_harga_modal").val(nilaiBersih);
-        function unformatRupiah(str) {
-            if(!str) return 0;
-            // hapus semua titik (ribuan), ganti koma dengan titik
-            let cleaned = str.replace(/\./g, '').replace(',', '.');
-            return parseFloat(cleaned);
-        }
+        // let nilaiBersih = unformatRupiah(nilai_total_modal);
+        $("#total_harga_modal").val(nilai_total_modal);
+        // function unformatRupiah(str) {
+        //     if(!str) return 0;
+        //     // hapus semua titik (ribuan), ganti koma dengan titik
+        //     let cleaned = str.replace(/\./g, '').replace(',', '.');
+        //     return parseFloat(cleaned);
+        // }
         $('#payment_modal').data('invoice', value_invo);
         $('#payment_modal').modal('show');
     });
@@ -1234,7 +1234,7 @@ function get_barang_satuan_edit(kd_barang){
 
     // Hitung kembalian otomatis
     $("#cashAmount").on("input", function(){
-        let total = parseFloat($("#total_harga_modal").val());
+        let total = hapus_format($("#total_harga_modal").val());
         let bayar = parseFloat($(this).val());
         let kembali = bayar - total;
         $("#changeAmount").val(kembali >= 0 ? kembali : 0);
@@ -1243,7 +1243,7 @@ function get_barang_satuan_edit(kd_barang){
     // Validasi saat cetak
     $("#cetak_faktur").on("click", function(){
         let method = $("#paymentMethod").val();
-        let total = parseFloat($("#total_harga_modal").val());
+        let total = hapus_format($("#total_harga_modal").val());
         let nama_bank = $("#bankName").val();
         let jumlah_bayar = $("#cashAmount").val();
         let jumlah_kembalian = $("#changeAmount").val();
@@ -1286,7 +1286,7 @@ function get_barang_satuan_edit(kd_barang){
     function proses_cetak_faktur(){
         const kode_user = $("#kode_user_trans_faktur").val();
         let method = $("#paymentMethod").val();
-        let total = parseFloat($("#total_harga_modal").val());
+        let total = hapus_format($("#total_harga_modal").val());
         let nama_bank = $("#bankName").val();
         let jumlah_bayar = $("#cashAmount").val();
         let jumlah_kembalian = $("#changeAmount").val();

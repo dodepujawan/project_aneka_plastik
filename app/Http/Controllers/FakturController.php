@@ -368,23 +368,36 @@ class FakturController extends Controller
 
             // Detail barang
             foreach ($items as $i) {
-                $nama  = substr($i->nama_brg, 0, 32); // max 32 char biar aman
+                $nama  = substr($i->nama_brg, 0, 32);
                 $qty   = $i->qty_order;
-                $disc  = $i->disc;   // diskon persen
-                $ndisc = $i->ndisc;  // diskon rupiah
-                $total = $i->total;  // total sudah dihitung dari DB
+                $disc  = $i->disc;
+                $ndisc = $i->ndisc;
+                $harga = $i->harga;
+                $total = $i->total;
 
-                // Nama barang (baris pertama)
+                // Baris 1: Nama barang
                 $esc .= $nama . "\n";
 
-                // qty - disc% - discRp   total
-                $esc .= sprintf(
-                    "%-3s - %-3s%% - %-6s %10s\n",
-                    number_format($qty, 0, ',', '.'),
-                    number_format($disc, 0, ',', '.'),
-                    number_format($ndisc, 0, ',', '.'),
-                    number_format($total, 0, ',', '.')
-                );
+                // Format harga x qty
+                $hargaQty = number_format($harga, 0, ',', '.') . " x " . number_format($qty, 0, ',', '.');
+
+                // Diskon text (kalau ada)
+                $diskonText = '';
+                if ($disc > 0) {
+                    $diskonText .= '-' . number_format($disc, 0, ',', '.') . '% ';
+                }
+                if ($ndisc > 0) {
+                    $diskonText .= '-Rp' . number_format($ndisc, 0, ',', '.') . ' ';
+                }
+
+                if ($diskonText !== '') {
+                    // Ada diskon → harga x qty di baris 2, diskon + total di baris 3
+                    $esc .= $hargaQty . "\n";
+                    $esc .= sprintf("%-15s %15s\n", $diskonText, number_format($total, 0, ',', '.'));
+                } else {
+                    // Tidak ada diskon → harga x qty + total sejajar di baris 2
+                    $esc .= sprintf("%-20s %10s\n", $hargaQty, number_format($total, 0, ',', '.'));
+                }
             }
 
             $esc .= "-----------------------------\n";
@@ -402,15 +415,15 @@ class FakturController extends Controller
             // Tambahkan info pembayaran
             if ($method === 'cash') {
                 $esc .= "Bayar  : " . number_format($jumlahBayar, 0, ',', '.') . "\n";
-                $esc .= "Susuk  : " . number_format($jumlahKembalian, 0, ',', '.') . "\n";
+                $esc .= "Kembali  : " . number_format($jumlahKembalian, 0, ',', '.') . "\n";
                 $esc .= "Metode : Cash\n";
             } elseif ($method === 'transfer') {
                 $esc .= "Bayar  : " . number_format($grandTotal, 0, ',', '.') . "\n";
-                $esc .= "Susuk  : 0\n";
+                $esc .= "Kembali  : 0\n";
                 $esc .= "Metode : Transfer\n";
             } else { // bon
                 $esc .= "Bayar  : 0\n";
-                $esc .= "Susuk  : 0\n";
+                $esc .= "Kembali  : 0\n";
                 $esc .= "Metode : Bon\n";
             }
 
@@ -430,23 +443,36 @@ class FakturController extends Controller
 
             // Detail barang
             foreach ($items as $i) {
-                $nama  = substr($i->nama_brg, 0, 32); // max 32 char biar aman
+                $nama  = substr($i->nama_brg, 0, 32);
                 $qty   = $i->qty_order;
-                $disc  = $i->disc;   // diskon persen
-                $ndisc = $i->ndisc;  // diskon rupiah
-                $total = $i->total;  // total sudah dihitung dari DB
+                $disc  = $i->disc;
+                $ndisc = $i->ndisc;
+                $harga = $i->harga;
+                $total = $i->total;
 
-                // Nama barang (baris pertama)
+                // Baris 1: Nama barang
                 $esc .= $nama . "\n";
 
-                // qty - disc% - discRp   total
-                $esc .= sprintf(
-                    "%-3s - %-3s%% - %-6s %10s\n",
-                    number_format($qty, 0, ',', '.'),
-                    number_format($disc, 0, ',', '.'),
-                    number_format($ndisc, 0, ',', '.'),
-                    number_format($total, 0, ',', '.')
-                );
+                // Format harga x qty
+                $hargaQty = number_format($harga, 0, ',', '.') . " x " . number_format($qty, 0, ',', '.');
+
+                // Diskon text (kalau ada)
+                $diskonText = '';
+                if ($disc > 0) {
+                    $diskonText .= '-' . number_format($disc, 0, ',', '.') . '% ';
+                }
+                if ($ndisc > 0) {
+                    $diskonText .= '-Rp' . number_format($ndisc, 0, ',', '.') . ' ';
+                }
+
+                if ($diskonText !== '') {
+                    // Ada diskon → harga x qty di baris 2, diskon + total di baris 3
+                    $esc .= $hargaQty . "\n";
+                    $esc .= sprintf("%-15s %15s\n", $diskonText, number_format($total, 0, ',', '.'));
+                } else {
+                    // Tidak ada diskon → harga x qty + total sejajar di baris 2
+                    $esc .= sprintf("%-20s %10s\n", $hargaQty, number_format($total, 0, ',', '.'));
+                }
             }
 
             $esc .= "-----------------------------\n";
@@ -464,15 +490,15 @@ class FakturController extends Controller
             // Tambahkan info pembayaran
             if ($method === 'cash') {
                 $esc .= "Bayar  : " . number_format($jumlahBayar, 0, ',', '.') . "\n";
-                $esc .= "Susuk  : " . number_format($jumlahKembalian, 0, ',', '.') . "\n";
+                $esc .= "Kembali  : " . number_format($jumlahKembalian, 0, ',', '.') . "\n";
                 $esc .= "Metode : Cash\n";
             } elseif ($method === 'transfer') {
                 $esc .= "Bayar  : " . number_format($grandTotal, 0, ',', '.') . "\n";
-                $esc .= "Susuk  : 0\n";
+                $esc .= "Kembali  : 0\n";
                 $esc .= "Metode : Transfer\n";
             } else { // bon
                 $esc .= "Bayar  : 0\n";
-                $esc .= "Susuk  : 0\n";
+                $esc .= "Kembali  : 0\n";
                 $esc .= "Metode : Bon\n";
             }
 

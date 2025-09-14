@@ -948,14 +948,14 @@ $(document).ready(function(){
                             document.getElementById('btn-struk').addEventListener('click', () => {
                                 Swal.close();
                                 let nilai_total_modal = $('#grand_total').text().trim();
-                                let nilaiBersih = unformatRupiah(nilai_total_modal);
-                                $("#total_harga_modal").val(nilaiBersih);
-                                function unformatRupiah(str) {
-                                    if(!str) return 0;
-                                    // hapus semua titik (ribuan), ganti koma dengan titik
-                                    let cleaned = str.replace(/\./g, '').replace(',', '.');
-                                    return parseFloat(cleaned);
-                                }
+                                // let nilaiBersih = unformatRupiah(nilai_total_modal);
+                                $("#total_harga_modal").val(nilai_total_modal);
+                                // function unformatRupiah(str) {
+                                //     if(!str) return 0;
+                                //     // hapus semua titik (ribuan), ganti koma dengan titik
+                                //     let cleaned = str.replace(/\./g, '').replace(',', '.');
+                                //     return parseFloat(cleaned);
+                                // }
                                 $('#payment_modal').data('invoice', response.invoice_number);
                                 $('#payment_modal').modal('show');
                                 // setTimeout(function () {
@@ -1036,7 +1036,7 @@ $(document).ready(function(){
 
     // Hitung kembalian otomatis
     $("#cashAmount").on("input", function(){
-        let total = parseFloat($("#total_harga_modal").val());
+        let total = hapus_format($("#total_harga_modal").val());
         let bayar = parseFloat($(this).val());
         let kembali = bayar - total;
         $("#changeAmount").val(kembali >= 0 ? kembali : 0);
@@ -1045,7 +1045,7 @@ $(document).ready(function(){
     // Validasi saat cetak
     $("#cetak_faktur").on("click", function(){
         let method = $("#paymentMethod").val();
-        let total = parseFloat($("#total_harga_modal").val());
+        let total = hapus_format($("#total_harga_modal").val());
         let nama_bank = $("#bankName").val();
         let jumlah_bayar = $("#cashAmount").val();
         let jumlah_kembalian = $("#changeAmount").val();
