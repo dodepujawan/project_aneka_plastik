@@ -368,10 +368,33 @@ class FakturController extends Controller
             $esc .= "No Faktur : {$noFaktur}\n";
             $esc .= "Tanggal   : " . $items->first()->created_at->format('d-m-Y H:i') . "\n";
             // function cutting name
-            $maxWidth = 32;
             function wrapLabel($label, $text, $maxWidth) {
-                $wrappedText = wordwrap($text, $maxWidth - strlen($label), "\n" . str_repeat(" ", strlen($label)));
-                return $label . $wrappedText . "\n";
+                $labelLength = strlen($label);
+                $lines = [];
+                // Split teks menjadi kata-kata
+                $words = explode(' ', $text);
+                $currentLine = '';
+                foreach ($words as $word) {
+                    // Cek jika menambah kata ini melebihi batas
+                    if (strlen($currentLine . ' ' . $word) > $maxWidth - $labelLength) {
+                        // Baris penuh, simpan dulu
+                        $lines[] = $currentLine;
+                        $currentLine = $word;
+                    } else {
+                        // Tambahkan kata ke baris
+                        $currentLine = ($currentLine === '' ? $word : $currentLine . ' ' . $word);
+                    }
+                }
+                // Masukkan baris terakhir
+                if ($currentLine !== '') {
+                    $lines[] = $currentLine;
+                }
+                // Gabungkan semua baris dengan indent untuk baris kedua dst
+                $result = $label . array_shift($lines) . "\n"; // baris pertama dengan label
+                foreach ($lines as $line) {
+                    $result .= str_repeat(' ', $labelLength) . $line . "\n"; // baris selanjutnya rata kiri dengan teks label
+                }
+                return $result;
             }
             $esc .= wrapLabel("Sales : ", $sales, $maxWidth);
             $esc .= wrapLabel("Customer : ", $customer, $maxWidth);
