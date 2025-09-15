@@ -373,7 +373,6 @@ class FakturController extends Controller
                 $wrappedText = wordwrap($text, $maxWidth - strlen($label), "\n" . str_repeat(" ", strlen($label)));
                 return $label . $wrappedText . "\n";
             }
-            $esc = '';
             $esc .= wrapLabel("Sales : ", $sales, $maxWidth);
             $esc .= wrapLabel("Customer : ", $customer, $maxWidth);
             $esc .= "-----------------------------\n";
