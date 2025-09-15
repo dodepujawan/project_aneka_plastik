@@ -544,6 +544,8 @@ class TransaksiController extends Controller
 
             // Ambil ulang data untuk struk
             $items = Faktur::where('no_faktur', $fakturNumber)->get();
+            $sales = User::where('user_id', $user_id_prev)->pluck('name')->first();
+            $customer = User::where('user_id', $kodeUser)->pluck('name')->first();
 
             // Mulai string ESC/POS
             $esc = "\x1B@\n"; // Initialize printer
@@ -555,6 +557,15 @@ class TransaksiController extends Controller
             $esc .= "-----------------------------\n";
             $esc .= "No Faktur : {$fakturNumber}\n";
             $esc .= "Tanggal   : " . $items->first()->created_at->format('d-m-Y H:i') . "\n";
+            // function cutting name
+            $maxWidth = 32;
+            function wrapLabel($label, $text, $maxWidth) {
+                $wrappedText = wordwrap($text, $maxWidth - strlen($label), "\n" . str_repeat(" ", strlen($label)));
+                return $label . $wrappedText . "\n";
+            }
+            $esc = '';
+            $esc .= wrapLabel("Sales : ", $sales, $maxWidth);
+            $esc .= wrapLabel("Customer : ", $customer, $maxWidth);
             $esc .= "-----------------------------\n";
 
             // Detail barang
@@ -578,7 +589,8 @@ class TransaksiController extends Controller
                     $diskonText .= '-' . number_format($disc, 0, ',', '.') . '% ';
                 }
                 if ($ndisc > 0) {
-                    $diskonText .= '-Rp' . number_format($ndisc, 0, ',', '.') . ' ';
+                    $totalNdisc = $ndisc * $qty;
+                    $diskonText .= '-' . number_format($totalNdisc, 0, ',', '.') . ' ';
                 }
 
                 if ($diskonText !== '') {
@@ -605,17 +617,17 @@ class TransaksiController extends Controller
             $esc .= "-----------------------------\n";
             // Tambahkan info pembayaran
             if ($method === 'cash') {
-                $esc .= "Bayar  : " . number_format($jumlahBayar, 0, ',', '.') . "\n";
-                $esc .= "Kembali  : " . number_format($jumlahKembalian, 0, ',', '.') . "\n";
-                $esc .= "Metode : Cash\n";
+                $esc .= sprintf("%30s\n", "Bayar  : " . number_format($jumlahBayar, 0, ',', '.'));
+                $esc .= sprintf("%30s\n", "Kembali  : " . number_format($jumlahKembalian, 0, ',', '.'));
+                $esc .= sprintf("%30s\n", "Metode : Cash");
             } elseif ($method === 'transfer') {
-                $esc .= "Bayar  : " . number_format($grandTotal, 0, ',', '.') . "\n";
-                $esc .= "Kembali  : 0\n";
-                $esc .= "Metode : Transfer\n";
+                $esc .= sprintf("%30s\n", "Bayar  : " . number_format($grandTotal, 0, ',', '.'));
+                $esc .= sprintf("%30s\n", "Kembali  : 0");
+                $esc .= sprintf("%30s\n", "Metode : Transfer");
             } else { // bon
-                $esc .= "Bayar  : 0\n";
-                $esc .= "Kembali  : 0\n";
-                $esc .= "Metode : Bon\n";
+                $esc .= sprintf("%30s\n", "Bayar  : 0");
+                $esc .= sprintf("%30s\n", "Kembali  : 0");
+                $esc .= sprintf("%30s\n", "Metode : Bon");
             }
 
             $esc .= "Terima kasih\n\n";
@@ -630,6 +642,8 @@ class TransaksiController extends Controller
             $esc .= "-----------------------------\n";
             $esc .= "No Faktur : {$fakturNumber}\n";
             $esc .= "Tanggal   : " . $items->first()->created_at->format('d-m-Y H:i') . "\n";
+            $esc .= wrapLabel("Sales : ", $sales, $maxWidth);
+            $esc .= wrapLabel("Customer : ", $customer, $maxWidth);
             $esc .= "-----------------------------\n";
 
             // Detail barang
@@ -653,7 +667,8 @@ class TransaksiController extends Controller
                     $diskonText .= '-' . number_format($disc, 0, ',', '.') . '% ';
                 }
                 if ($ndisc > 0) {
-                    $diskonText .= '-Rp' . number_format($ndisc, 0, ',', '.') . ' ';
+                    $totalNdisc = $ndisc * $qty;
+                    $diskonText .= '-' . number_format($totalNdisc, 0, ',', '.') . ' ';
                 }
 
                 if ($diskonText !== '') {
@@ -680,17 +695,17 @@ class TransaksiController extends Controller
             $esc .= "-----------------------------\n";
             // Tambahkan info pembayaran
             if ($method === 'cash') {
-                $esc .= "Bayar  : " . number_format($jumlahBayar, 0, ',', '.') . "\n";
-                $esc .= "Kembali  : " . number_format($jumlahKembalian, 0, ',', '.') . "\n";
-                $esc .= "Metode : Cash\n";
+                $esc .= sprintf("%30s\n", "Bayar  : " . number_format($jumlahBayar, 0, ',', '.'));
+                $esc .= sprintf("%30s\n", "Kembali  : " . number_format($jumlahKembalian, 0, ',', '.'));
+                $esc .= sprintf("%30s\n", "Metode : Cash");
             } elseif ($method === 'transfer') {
-                $esc .= "Bayar  : " . number_format($grandTotal, 0, ',', '.') . "\n";
-                $esc .= "Kembali  : 0\n";
-                $esc .= "Metode : Transfer\n";
+                $esc .= sprintf("%30s\n", "Bayar  : " . number_format($grandTotal, 0, ',', '.'));
+                $esc .= sprintf("%30s\n", "Kembali  : 0");
+                $esc .= sprintf("%30s\n", "Metode : Transfer");
             } else { // bon
-                $esc .= "Bayar  : 0\n";
-                $esc .= "Kembali  : 0\n";
-                $esc .= "Metode : Bon\n";
+                $esc .= sprintf("%30s\n", "Bayar  : 0");
+                $esc .= sprintf("%30s\n", "Kembali  : 0");
+                $esc .= sprintf("%30s\n", "Metode : Bon");
             }
 
             $esc .= "Terima kasih\n\n";

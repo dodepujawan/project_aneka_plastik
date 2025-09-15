@@ -1167,6 +1167,10 @@ function get_barang_satuan_edit(kd_barang){
     $('#save_table_transaksi_faktur').on('click', function () {
         let value_invo = $(this).val();
         console.log('coba =' + value_invo);
+        let nilai_total_modal = $('#grand_total_faktur').text().trim();
+        let nilai_total_cash = hapus_format(nilai_total_modal);
+        // console.log('toto' + nilai_total_cash);
+        $("#total_harga_modal").val(nilai_total_modal);
         $.ajax({
                 url: '{{ route('get_faktur_to_table') }}', // Ganti dengan route yang sesuai
                 type: 'GET',
@@ -1184,17 +1188,25 @@ function get_barang_satuan_edit(kd_barang){
                         $("#transferSection").removeClass("d-none");
                     }
                     if (payup.pembayaran === 'cash') {
-                        // contoh: tampilkan input bank
-                        $("#cashSection").removeClass("d-none");
+                        let total_cash = 0;
+                        response.data.forEach((item, index) => {
+                            total_cash += parseFloat(item.total);
+                        });
+                        if (nilai_total_cash != total_cash){
+                            $("#cashAmount").val(0);
+                            $("#changeAmount").val(0);
+                            $("#cashSection").removeClass("d-none");
+                        } else {
+                            // contoh: tampilkan input bank
+                            $("#cashSection").removeClass("d-none");
+                        }
                     }
                 },
                 error: function (xhr, status, error) {
                     console.error('AJAX Error: ', status, error);
                 }
             });
-        let nilai_total_modal = $('#grand_total_faktur').text().trim();
         // let nilaiBersih = unformatRupiah(nilai_total_modal);
-        $("#total_harga_modal").val(nilai_total_modal);
         // function unformatRupiah(str) {
         //     if(!str) return 0;
         //     // hapus semua titik (ribuan), ganti koma dengan titik
