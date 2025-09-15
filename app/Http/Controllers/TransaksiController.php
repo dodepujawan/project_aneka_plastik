@@ -544,8 +544,8 @@ class TransaksiController extends Controller
 
             // Ambil ulang data untuk struk
             $items = Faktur::where('no_faktur', $fakturNumber)->get();
-            $sales = User::where('user_id', $user_id_prev)->pluck('name')->first();
-            $customer = User::where('user_id', $kodeUser)->pluck('name')->first();
+            $sales = User::where('user_id', $transUser->user_id)->pluck('name')->first();
+            $customer = User::where('user_id', $transUser->user_kode)->pluck('name')->first();
 
             // Mulai string ESC/POS
             $esc = "\x1B@\n"; // Initialize printer
