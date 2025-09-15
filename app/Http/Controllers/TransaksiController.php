@@ -558,6 +558,7 @@ class TransaksiController extends Controller
             $esc .= "No Faktur : {$fakturNumber}\n";
             $esc .= "Tanggal   : " . $items->first()->created_at->format('d-m-Y H:i') . "\n";
             // function cutting name
+            $maxWidth = 32;
             function wrapLabel($label, $text, $maxWidth) {
                 $labelLength = strlen($label);
                 $lines = [];

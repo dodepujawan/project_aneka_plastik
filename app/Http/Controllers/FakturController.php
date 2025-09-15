@@ -368,6 +368,7 @@ class FakturController extends Controller
             $esc .= "No Faktur : {$noFaktur}\n";
             $esc .= "Tanggal   : " . $items->first()->created_at->format('d-m-Y H:i') . "\n";
             // function cutting name
+            $maxWidth = 32;
             function wrapLabel($label, $text, $maxWidth) {
                 $labelLength = strlen($label);
                 $lines = [];
