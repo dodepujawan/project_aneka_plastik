@@ -1089,7 +1089,7 @@ $(document).ready(function(){
         $('.modal-backdrop').remove();
         success_call();
         $.ajax({
-                url: '{{ route('index_faktur') }}',
+                url: '{{ route('index_edit_transaksi') }}',
                 type: 'GET',
                 success: function(response) {
                     $('.master-page').html(response);

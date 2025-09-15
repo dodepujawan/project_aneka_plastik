@@ -356,6 +356,7 @@ class FakturController extends Controller
             $items = Faktur::where('no_faktur', $noFaktur)->get();
             $sales = User::where('user_id', $user_id_prev)->pluck('name')->first();
             $customer = User::where('user_kode', $kodeUser)->pluck('name')->first();
+            // $customer = User::whereRaw("user_kode = ?", [$kodeUser])->pluck('name')->first();
 
             // Mulai string ESC/POS
             $esc = "\x1B@\n"; // Initialize printer
