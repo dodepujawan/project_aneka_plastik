@@ -668,7 +668,7 @@ class TransaksiController extends Controller
             $esc2 .= "No Faktur : {$fakturNumber}\n";
             $esc2 .= "Tanggal   : " . $items->first()->created_at->format('d-m-Y H:i') . "\n";
             $esc2 .= wrapLabel("Sales : ", $sales, $maxWidth);
-            $esc2. = wrapLabel("Customer : ", $customer, $maxWidth);
+            $esc2 .= wrapLabel("Customer : ", $customer, $maxWidth);
             $esc2 .= "-----------------------------\n";
 
             // Detail barang
