@@ -1116,10 +1116,10 @@ $(document).ready(function(){
             success: function(res) {
                 // $('#payment_modal').modal('hide');
                 // $('.modal-backdrop').remove();
-                $('#loading_modal').modal('hide');
                 console.log("Faktur berhasil:", res.no_faktur);
                 // Cetak ke RawBT
                 window.location.href = "rawbt:base64," + res.struk_text;
+                $('#loading_modal').modal('hide');
                 // let encodedStruk = encodeURIComponent(res.struk_text);
                 // window.location.href = "rawbt://print?text=" + encodedStruk;
                 setTimeout(function () {

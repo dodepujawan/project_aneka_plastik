@@ -1447,24 +1447,29 @@ function get_barang_satuan_edit(kd_barang){
                     //     timer: 2000 // Durasi tampil dalam milidetik
                     // });
 
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Update Successul',
-                        text: 'Data Berhasil Diupdate dengan Nomor Invoice: ' + value_invo,
-                        showConfirmButton: true,
-                        confirmButtonText: 'OK',
-                    }).then(() => {
-                        $.ajax({
-                            url: '{{ route('index_faktur') }}',
-                            type: 'GET',
-                            success: function(response) {
-                                $('.master-page').html(response);
-                            },
-                            error: function() {
-                                $('.master-page').html('<p>Error loading form.</p>');
-                            }
+                    setTimeout(function () {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Cetak Copy 2',
+                            text: 'Data Berhasil Dicetak dengan Nomor Faktur: ' + res.no_faktur,
+                            showConfirmButton: true,
+                            confirmButtonText: 'OK',
+                        }).then(() => {
+                            window.location.href = "rawbt:base64," + res.struk_text2;
+                            success_call();
+                            // ### Redirect Hal Faktur
+                            $.ajax({
+                                url: '{{ route('index_faktur') }}',
+                                type: 'GET',
+                                success: function(response) {
+                                    $('.master-page').html(response);
+                                },
+                                error: function() {
+                                    $('.master-page').html('<p>Error loading form.</p>');
+                                }
+                            });
                         });
-                    });
+                    }, 1200); 
                     // $('#transaksi_table_faktur tbody').empty();
                     // $('#grand_total_faktur').text(0);
                 },

@@ -470,15 +470,16 @@ class FakturController extends Controller
             // $esc .= "\x1D\x56\x41";
 
             // ### COPY 2 ###
-            $esc .= "COPY 2\n";
-            $esc .= "TOKO ANEKA PLASTIK\n";
-            $esc .= "Jl. Hasanuddin No.51 Singaraja\n";
-            $esc .= "-----------------------------\n";
-            $esc .= "No Faktur : {$noFaktur}\n";
-            $esc .= "Tanggal   : " . $items->first()->created_at->format('d-m-Y H:i') . "\n";
-            $esc .= wrapLabel("Sales : ", $sales, $maxWidth);
-            $esc .= wrapLabel("Customer : ", $customer, $maxWidth);
-            $esc .= "-----------------------------\n";
+            $esc2 = "\x1B@\n"; // Initialize printer
+            $esc2 .= "COPY 2\n";
+            $esc2 .= "TOKO ANEKA PLASTIK\n";
+            $esc2 .= "Jl. Hasanuddin No.51 Singaraja\n";
+            $esc2 .= "-----------------------------\n";
+            $esc2 .= "No Faktur : {$fakturNumber}\n";
+            $esc2 .= "Tanggal   : " . $items->first()->created_at->format('d-m-Y H:i') . "\n";
+            $esc2 .= wrapLabel("Sales : ", $sales, $maxWidth);
+            $esc2 .= wrapLabel("Customer : ", $customer, $maxWidth);
+            $esc2 .= "-----------------------------\n";
 
             // Detail barang
             foreach ($items as $i) {
@@ -490,7 +491,7 @@ class FakturController extends Controller
                 $total = $i->total;
 
                 // Baris 1: Nama barang
-                $esc .= $nama . "\n";
+                $esc2 .= $nama . "\n";
 
                 // Format harga x qty
                 $hargaQty = number_format($harga, 0, ',', '.') . " x " . number_format($qty, 0, ',', '.');
@@ -507,52 +508,54 @@ class FakturController extends Controller
 
                 if ($diskonText !== '') {
                     // Ada diskon → harga x qty di baris 2, diskon + total di baris 3
-                    $esc .= $hargaQty . "\n";
-                    $esc .= sprintf("%-15s %15s\n", $diskonText, number_format($total, 0, ',', '.'));
+                    $esc2 .= $hargaQty . "\n";
+                    $esc2 .= sprintf("%-15s %15s\n", $diskonText, number_format($total, 0, ',', '.'));
                 } else {
                     // Tidak ada diskon → harga x qty + total sejajar di baris 2
-                    $esc .= sprintf("%-20s %10s\n", $hargaQty, number_format($total, 0, ',', '.'));
+                    $esc2 .= sprintf("%-20s %10s\n", $hargaQty, number_format($total, 0, ',', '.'));
                 }
             }
 
-            $esc .= "-----------------------------\n";
+            $esc2 .= "-----------------------------\n";
 
             // Grand Total, DPP, PPN rata kanan
             $grandTotal = $items->sum('total');
             $dpp = $items->sum('dpp');
             $ppn = $items->sum('rppn');
 
-            $esc .= sprintf("%30s\n", "Grand Total: " . number_format($grandTotal, 0, ',', '.'));
-            $esc .= sprintf("%30s\n", "DPP: " . number_format($dpp, 0, ',', '.'));
-            $esc .= sprintf("%30s\n", "PPN: " . number_format($ppn, 0, ',', '.'));
+            $esc2 .= sprintf("%30s\n", "Grand Total: " . number_format($grandTotal, 0, ',', '.'));
+            $esc2 .= sprintf("%30s\n", "DPP: " . number_format($dpp, 0, ',', '.'));
+            $esc2 .= sprintf("%30s\n", "PPN: " . number_format($ppn, 0, ',', '.'));
 
-            $esc .= "-----------------------------\n";
+            $esc2 .= "-----------------------------\n";
             // Tambahkan info pembayaran
             if ($method === 'cash') {
-                $esc .= sprintf("%30s\n", "Bayar  : " . number_format($jumlahBayar, 0, ',', '.'));
-                $esc .= sprintf("%30s\n", "Kembali  : " . number_format($jumlahKembalian, 0, ',', '.'));
-                $esc .= sprintf("%30s\n", "Metode : Cash");
+                $esc2 .= sprintf("%30s\n", "Bayar  : " . number_format($jumlahBayar, 0, ',', '.'));
+                $esc2 .= sprintf("%30s\n", "Kembali  : " . number_format($jumlahKembalian, 0, ',', '.'));
+                $esc2 .= sprintf("%30s\n", "Metode : Cash");
             } elseif ($method === 'transfer') {
-                $esc .= sprintf("%30s\n", "Bayar  : " . number_format($grandTotal, 0, ',', '.'));
-                $esc .= sprintf("%30s\n", "Kembali  : 0");
-                $esc .= sprintf("%30s\n", "Metode : Transfer");
+                $esc2 .= sprintf("%30s\n", "Bayar  : " . number_format($grandTotal, 0, ',', '.'));
+                $esc2 .= sprintf("%30s\n", "Kembali  : 0");
+                $esc2 .= sprintf("%30s\n", "Metode : Transfer");
             } else { // bon
-                $esc .= sprintf("%30s\n", "Bayar  : 0");
-                $esc .= sprintf("%30s\n", "Kembali  : 0");
-                $esc .= sprintf("%30s\n", "Metode : Bon");
+                $esc2 .= sprintf("%30s\n", "Bayar  : 0");
+                $esc2 .= sprintf("%30s\n", "Kembali  : 0");
+                $esc2 .= sprintf("%30s\n", "Metode : Bon");
             }
 
-            $esc .= "Terima kasih\n\n";
+            $esc2 .= "Terima kasih\n\n";
 
             // Potong kertas (kalau printer support)
             // $esc .= "\x1D\x56\x41";
 
             // Encode ke base64 supaya RawBT bisa baca
             $base64 = base64_encode($esc);
+            $base65 = base64_encode($esc2);
 
             return response()->json([
                 'message' => 'Products updated successfully!',
-                'struk_text' => $base64
+                'struk_text' => $base64,
+                'struk_text2' => $base65,
             ], 200);
         } catch (\Exception $e) {
             DB::rollBack();
