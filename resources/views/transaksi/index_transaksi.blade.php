@@ -1122,18 +1122,29 @@ $(document).ready(function(){
                 window.location.href = "rawbt:base64," + res.struk_text;
                 // let encodedStruk = encodeURIComponent(res.struk_text);
                 // window.location.href = "rawbt://print?text=" + encodedStruk;
-                success_call();
-                // ### Redirect Hal Faktur
-                $.ajax({
-                    url: '{{ route('index_faktur') }}',
-                    type: 'GET',
-                    success: function(response) {
-                        $('.master-page').html(response);
-                    },
-                    error: function() {
-                        $('.master-page').html('<p>Error loading form.</p>');
-                    }
-                });
+                setTimeout(function () {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Cetak Copy 2',
+                        text: 'Data Berhasil Dicetak dengan Nomor Faktur: ' + res.no_faktur,
+                        showConfirmButton: true,
+                        confirmButtonText: 'OK',
+                    }).then(() => {
+                        window.location.href = "rawbt:base64," + res.struk_text2;
+                        success_call();
+                        // ### Redirect Hal Faktur
+                        $.ajax({
+                            url: '{{ route('index_faktur') }}',
+                            type: 'GET',
+                            success: function(response) {
+                                $('.master-page').html(response);
+                            },
+                            error: function() {
+                                $('.master-page').html('<p>Error loading form.</p>');
+                            }
+                        });
+                    });
+                }, 1200); 
             },
             error: function(xhr) {
                 console.error("Status:", xhr.status);
