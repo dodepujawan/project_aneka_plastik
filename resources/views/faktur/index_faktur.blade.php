@@ -1451,11 +1451,11 @@ function get_barang_satuan_edit(kd_barang){
                         Swal.fire({
                             icon: 'success',
                             title: 'Cetak Copy 2',
-                            text: 'Data Berhasil Dicetak dengan Nomor Faktur: ' + res.no_faktur,
+                            text: 'Data Berhasil Dicetak dengan Nomor Faktur: ' + value_invo,
                             showConfirmButton: true,
                             confirmButtonText: 'OK',
                         }).then(() => {
-                            window.location.href = "rawbt:base64," + res.struk_text2;
+                            window.location.href = "rawbt:base64," + response.struk_text2;
                             success_call();
                             // ### Redirect Hal Faktur
                             $.ajax({
