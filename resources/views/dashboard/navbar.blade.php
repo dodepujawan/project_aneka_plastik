@@ -110,6 +110,14 @@
                 </a>
                 <div class="dropdown-divider"></div>
                 @endif
+
+                @if (in_array($user->roles, $allowedRoles))
+                <a class="dropdown-item list-rekening" href="#">
+                    <i class="fas fa-credit-card fa-sm fa-fw mr-2 text-primary"></i>
+                    List Rekening
+                </a>
+                <div class="dropdown-divider"></div>
+                @endif
                 {{-- End Of Cabang --}}
                 {{-- <div class="dropdown-divider"></div>
                 <a class="dropdown-item" href="#">

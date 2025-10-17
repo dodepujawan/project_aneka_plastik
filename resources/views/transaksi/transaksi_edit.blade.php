@@ -395,8 +395,10 @@ $(document).ready(function(){
         }
         const table = $('#transaksi_table_edit_field').DataTable({
             processing: true,
-            serverSide: false,
+            serverSide: true, // Ubah menjadi true untuk server-side processing
             stateSave: true, // untuk kembali ke halaman sebelumnya
+            pageLength: 10, // Set default 10 data per halaman
+            lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]], // Opsi pagination
             ajax: {
                 url: '{{ route('get_edit_transaksi_data') }}',
                 type: 'GET',
@@ -405,7 +407,11 @@ $(document).ready(function(){
                 {
                     data: null,
                     name: 'no',
-                    render: (data, type, row, meta) => meta.row + 1, // Nomor otomatis
+                    orderable: false,
+                    render: (data, type, row, meta) => {
+                        // Untuk nomor urut yang sesuai dengan pagination
+                        return meta.row + meta.settings._iDisplayStart + 1;
+                }, // Nomor otomatis
                 },
                 { data: 'no_invoice', name: 'no_invoice' },
                 { data: 'created_at', name: 'created_at' },
@@ -436,7 +442,7 @@ $(document).ready(function(){
             ],
             searching: true,
             paging: true,
-            info: false,
+            info: true,
             scrollY: '100vh',  // Menambahkan scrolling vertikal
             scrollCollapse: true,
             scrollX: true,
@@ -460,8 +466,10 @@ $(document).ready(function(){
         }
         const table = $('#transaksi_table_edit_field_admin').DataTable({
             processing: true,
-            serverSide: false,
+            serverSide: true,
             stateSave: true, // untuk kembali ke halaman sebelumnya
+            pageLength: 10, // Set default 10 data per halaman
+            lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]], // Opsi pagination
             ajax: {
                 url: '{{ route('get_edit_transaksi_data_admin') }}',
                 type: 'GET',
@@ -470,7 +478,11 @@ $(document).ready(function(){
                 {
                     data: null,
                     name: 'no',
-                    render: (data, type, row, meta) => meta.row + 1, // Nomor otomatis
+                    orderable: false,
+                    render: (data, type, row, meta) => {
+                        // Untuk nomor urut yang sesuai dengan pagination
+                        return meta.row + meta.settings._iDisplayStart + 1;
+                    }, // Nomor otomatis
                 },
                 { data: 'no_invoice', name: 'no_invoice' },
                 { data: 'user_kode', name: 'user_kode' },
@@ -503,7 +515,7 @@ $(document).ready(function(){
             ],
             searching: true,
             paging: true,
-            info: false,
+            info: true,
             scrollY: '100vh',  // Menambahkan scrolling vertikal
             scrollCollapse: true,
             scrollX: true,
@@ -1489,7 +1501,7 @@ function get_barang_satuan_edit(kd_barang){
                                 }
                             });
                         });
-                    }, 1200); 
+                    }, 1200);
                 },
                 error: function (xhr, status, error) {
                     $('#loading_modal').modal('hide');

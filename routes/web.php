@@ -8,6 +8,7 @@ use App\Http\Controllers\PDFController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\TransaksiController;
 use App\Http\Controllers\FakturController;
+use App\Http\Controllers\RekeningController;
 use App\Http\Controllers\MobileController;
 use App\Http\Controllers\PajakController;
 use App\Http\Controllers\QrScannerController;
@@ -120,6 +121,12 @@ Route::prefix('mobile')->middleware('auth')->group(function () {
 Route::prefix('pajak')->middleware('auth')->group(function () {
     Route::get('/get-pajak', [PajakController::class, 'get_pajak'])->name('get_pajak');
     Route::post('/edit/show', [PajakController::class, 'update_pajak'])->name('update_pajak');
+});
+
+Route::prefix('rekening')->middleware('auth')->group(function () {
+    Route::get('/', [RekeningController::class, 'rekening'])->name('rekening');
+    Route::get('/generate-rekening-id', [RekeningController::class, 'generate_rekening_id'])->name('generate_rekening_id');
+    Route::post('/rekening-register', [RekeningController::class, 'rekening_register'])->name('rekening_register');
 });
 
 Route::prefix('qris')->middleware('auth')->group(function () {

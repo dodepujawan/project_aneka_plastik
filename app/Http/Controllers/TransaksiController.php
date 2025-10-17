@@ -207,25 +207,59 @@ class TransaksiController extends Controller
     }
 
     public function get_edit_transaksi_data(Request $request){
-        $data = DB::table('po_userby as a')
+        $userKode = Auth::user()->user_kode;
+
+        $start = $request->start ?? 0;
+        $length = $request->length ?? 10;
+        $searchValue = $request->search['value'] ?? '';
+
+        // Base query untuk ambil data
+        $query = DB::table('po_userby as a')
             ->leftJoin('po_online as b', 'a.no_invoice', '=', 'b.no_invoice')
             ->select(
                 'a.no_invoice',
-                DB::raw('DATE(a.created_at) as created_at'), // Gunakan DATE untuk mengambil tanggal saja
+                DB::raw('DATE(a.created_at) as created_at'),
                 DB::raw('SUM(b.total) as total')
             )
-            // ->where('a.user_id', Auth::user()->user_id)
-            ->where('a.user_kode', Auth::user()->user_kode)
+            ->where('a.user_kode', $userKode)
             ->where('b.status_po', 0)
             ->where('b.status_faktur', 0)
-            ->groupBy('a.no_invoice', 'a.created_at')
-            ->orderBy('a.created_at', 'desc')
-            ->get();
+            ->groupBy('a.no_invoice', 'a.created_at');
+
+        // ==============================
+        // Total records tanpa filter
+        $totalRecords = DB::table('po_userby as a')
+            ->leftJoin('po_online as b', 'a.no_invoice', '=', 'b.no_invoice')
+            ->where('a.user_kode', $userKode)
+            ->where('b.status_po', 0)
+            ->where('b.status_faktur', 0)
+            ->distinct('a.no_invoice')
+            ->count('a.no_invoice');
+
+        // ==============================
+        // Filter search
+        if (!empty($searchValue)) {
+            $query->having(function ($q) use ($searchValue) {
+                $q->orHaving('a.no_invoice', 'like', "%$searchValue%")
+                ->orHaving(DB::raw('DATE(a.created_at)'), 'like', "%$searchValue%");
+            });
+        }
+
+        // ==============================
+        // Total records setelah filter
+        $recordsFiltered = $query->get()->count();
+
+        // ==============================
+        // Ambil data dengan pagination
+        $data = $query->orderBy('a.created_at', 'desc')
+                    ->skip($start)
+                    ->take($length)
+                    ->get();
 
         return response()->json([
-            'draw' => $request->draw,
-            'recordsTotal' => $data->count(),
-            'recordsFiltered' => $data->count(),
+            'draw' => intval($request->draw),
+            'recordsTotal' => $totalRecords,
+            'recordsFiltered' => $recordsFiltered,
             'data' => $data,
         ]);
     }
@@ -233,33 +267,79 @@ class TransaksiController extends Controller
     public function get_edit_transaksi_data_admin(Request $request){
         $user = Auth::user();
 
+        $columns = [
+            0 => 'a.id',
+            1 => 'a.no_invoice',
+            2 => 'a.user_kode',
+            3 => 'c.NAMACUST',
+            4 => 'a.created_at',
+            5 => 'total'
+        ];
+
+        $start = $request->start ?? 0;
+        $length = $request->length ?? 10;
+        $orderColumn = $columns[$request->order[0]['column']] ?? 'a.created_at';
+        $orderDir = $request->order[0]['dir'] ?? 'desc';
+        $searchValue = $request->search['value'] ?? null;
+
+        // Base query
         $query = DB::table('po_userby as a')
             ->leftJoin('po_online as b', 'a.no_invoice', '=', 'b.no_invoice')
             ->leftJoin('mcustomer as c', 'a.user_kode', '=', 'c.CUSTOMER')
             ->select(
+                'a.id',
                 'a.no_invoice',
-                DB::raw('DATE(a.created_at) as created_at'),
                 'a.user_id',
                 'a.user_kode',
                 'c.NAMACUST as nama_cust',
+                DB::raw('DATE(a.created_at) as created_at'),
                 DB::raw('SUM(b.total) as total')
             )
             ->where('b.status_po', 0)
             ->where('b.status_faktur', 0)
-            ->groupBy('a.id','a.no_invoice', 'a.created_at', 'a.user_kode', 'c.NAMACUST', 'a.user_id')
-            // ->orderBy('a.id', 'desc');
-            ->orderBy('a.created_at', 'desc');
+            ->groupBy('a.id','a.no_invoice', 'a.created_at', 'a.user_kode', 'c.NAMACUST', 'a.user_id');
 
         if ($user->roles != 'admin') {
             $query->where('a.user_id', $user->user_id);
         }
 
-        $data = $query->get();
+        // ==============================
+        // Total records tanpa filter
+        $totalRecords = DB::table('po_userby as a')
+            ->leftJoin('po_online as b', 'a.no_invoice', '=', 'b.no_invoice')
+            ->where('b.status_po', 0)
+            ->where('b.status_faktur', 0)
+            ->when($user->roles != 'admin', function($q) use ($user) {
+                $q->where('a.user_id', $user->user_id);
+            })
+            ->distinct('a.id')
+            ->count('a.id');
+
+        // ==============================
+        // Filter search
+        if ($searchValue) {
+            $query->having(function($q) use ($searchValue) {
+                $q->orHaving('a.no_invoice', 'like', "%$searchValue%")
+                ->orHaving('a.user_kode', 'like', "%$searchValue%")
+                ->orHaving('nama_cust', 'like', "%$searchValue%");
+            });
+        }
+
+        // ==============================
+        // Total records setelah filter
+        $recordsFiltered = $query->get()->count();
+
+        // ==============================
+        // Ambil data untuk page sekarang
+        $data = $query->orderBy($orderColumn, $orderDir)
+                    ->skip($start)
+                    ->take($length)
+                    ->get();
 
         return response()->json([
-            'draw' => $request->draw,
-            'recordsTotal' => $data->count(),
-            'recordsFiltered' => $data->count(),
+            'draw' => intval($request->draw),
+            'recordsTotal' => $totalRecords,
+            'recordsFiltered' => $recordsFiltered,
             'data' => $data,
         ]);
     }

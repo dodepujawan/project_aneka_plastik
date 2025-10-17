@@ -1456,7 +1456,7 @@ function get_barang_satuan_edit(kd_barang){
                             confirmButtonText: 'OK',
                         }).then(() => {
                             window.location.href = "rawbt:base64," + response.struk_text2;
-                            success_call();
+                            // success_call();
                             // ### Redirect Hal Faktur
                             $.ajax({
                                 url: '{{ route('index_faktur') }}',
@@ -1469,7 +1469,7 @@ function get_barang_satuan_edit(kd_barang){
                                 }
                             });
                         });
-                    }, 1200); 
+                    }, 1200);
                     // $('#transaksi_table_faktur tbody').empty();
                     // $('#grand_total_faktur').text(0);
                 },

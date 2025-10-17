@@ -135,6 +135,25 @@ $(document).on('click', '.dropdown-item.cabang-list', function(e) {
         });
     });
 // ========================= End Of Update Pajak ======================================
+// ========================= List Rekening ======================================
+$(document).on('click', '.dropdown-item.list-rekening', function(e) {
+        e.preventDefault();
+        load_list_rekening_form();
+    });
+
+    function load_list_rekening_form() {
+        $.ajax({
+            url: '{{ route('rekening') }}',
+            type: 'GET',
+            success: function(response) {
+                $('.master-page').html(response);
+            },
+            error: function() {
+                $('.master-page').html('<p>Error loading form.</p>');
+            }
+        });
+    }
+// ========================= End Of List Rekenings ======================================
 // ########################### End Of NAVBAR ROOM #####################################
 // ########################### SIDEBAR ROOM #####################################
 // ========================= Main Transaksi ======================================
