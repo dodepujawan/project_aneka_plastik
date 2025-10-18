@@ -6,10 +6,16 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Arr;
 use App\Models\Rekening;
+use Illuminate\Support\Facades\Auth;
 
 class RekeningController extends Controller
 {
     public function rekening()
+    {
+        return view('rekening.rekening_edit');
+    }
+
+    public function rekening_tambah()
     {
         return view('rekening.rekening');
     }
@@ -85,6 +91,88 @@ class RekeningController extends Controller
             $result['pesan'] = 'Error: ' . $e->getMessage();
         }
         return response()->json($result);
+    }
+
+    public function filter_rekening(Request $request)
+    {
+        if (!Auth::check()) {
+            return response()->json(['message' => 'Silakan login terlebih dahulu'], 401);
+        }
+
+        $user = Auth::user();
+
+        $allowedRoles = ['admin'];
+        if (!in_array($user->roles, $allowedRoles)) {
+            return response()->json(['message' => 'Akses ditolak'], 403);
+        }
+
+        // Jika pengguna memiliki peran yang sesuai, lanjutkan dengan query
+        // Jika tidak ada penambahan spesifik perti CAST untuk date pakai ini -> $query = DB::table('users');
+        $query = DB::table('bank_ol')
+        ->select([
+            'id',
+            'kode_bank',
+            'nama_bank',
+            'no_rekening',
+            'created_at'
+        ]);
+
+        $rekenings = $query->get();
+
+        return response()->json([
+            'data' => $rekenings
+        ]);
+    }
+
+    public function edit_list_rekening($id){
+        // Fetch user data
+        $rekening = Rekening::find($id);// Assuming session has user id
+        return response()->json($rekening);
+    }
+
+    public function update_list_rekening(Request $request){
+        $result = [];
+        DB::beginTransaction();
+        try {
+            // Validate the request data
+            $validatedData = $request->validate([
+                'rekening_id' => 'required',
+                'rekening_name' => 'required|string|max:255',
+                'rekening_number' => 'required|string|min:5',
+            ]);
+
+            $rekening = Rekening::where('kode_bank', $request->input('rekening_id'))->first();
+
+            if (!$rekening) {
+                return response()->json(['pesan' => 'Rekening not found.'], 404);
+            }
+
+            $rekening->nama_bank = $request->rekening_name;
+            $rekening->no_rekening = $request->rekening_number;
+            $rekening->save();
+
+            DB::commit();
+            $result['pesan'] = 'Update Berhasil.';
+            $result['rekening_id_baru'] = $rekening->rekening_id; // Tambahkan user_id baru jika berubah (untuk keperluan debugu, kalo tidak perlu bisa dihapus)
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::rollback();
+            $result['pesan'] = 'Validation Error: ' . implode(', ', Arr::flatten($e->errors()));
+        } catch (\Exception $e) {
+            DB::rollback();
+            $result['pesan'] = 'Error: ' . $e->getMessage();
+        }
+        return response()->json($result);
+    }
+
+    public function delete_list_rekening($id){
+        $rekening = Rekening::find($id);
+
+        if ($rekening){
+            $rekening->delete();
+            return response()->json(['success' => 'Rekening berhasil dihapus']);
+        }else{
+            return response()->json(['error' => 'Rekening tidak ditemukan'], 404);
+        }
     }
 
 }

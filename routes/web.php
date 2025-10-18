@@ -125,8 +125,13 @@ Route::prefix('pajak')->middleware('auth')->group(function () {
 
 Route::prefix('rekening')->middleware('auth')->group(function () {
     Route::get('/', [RekeningController::class, 'rekening'])->name('rekening');
+    Route::get('/tambah', [RekeningController::class, 'rekening_tambah'])->name('rekening_tambah');
     Route::get('/generate-rekening-id', [RekeningController::class, 'generate_rekening_id'])->name('generate_rekening_id');
     Route::post('/rekening-register', [RekeningController::class, 'rekening_register'])->name('rekening_register');
+    Route::get('filter_rekening', [RekeningController::class, 'filter_rekening'])->name('filter_rekening');
+    Route::get('edit_list_rekening/{id}', [RekeningController::class, 'edit_list_rekening'])->name('edit_list_rekening');
+    Route::delete('delete_list_rekening/{id}', [RekeningController::class, 'delete_list_rekening'])->name('delete_list_rekening');
+    Route::post('update_list_rekening', [RekeningController::class, 'update_list_rekening'])->name('update_list_rekening');
 });
 
 Route::prefix('qris')->middleware('auth')->group(function () {

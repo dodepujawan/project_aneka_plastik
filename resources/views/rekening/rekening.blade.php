@@ -1,5 +1,6 @@
 <div class="container master-register">
     <div class="col-md-6 col-md-offset-3">
+        <button class="btn btn-primary mb-3" id="listRekening">List Rekening</button>
         <h2 class="text-center">FORM REGISTER REKENING</h3>
         <hr>
         @if(session('message'))
@@ -28,7 +29,7 @@
     </div>
 </div>
 <script>
-    $(document).ready(function() {
+$(document).ready(function() {
     // Set CSRF token in AJAX setup
     $.ajaxSetup({
         headers: {
@@ -89,5 +90,24 @@
             }
         });
     });
+    // ========================= List Rekening ======================================
+    $(document).on('click', '#listRekening', function(e) {
+        e.preventDefault();
+        load_add_rekening_form();
+    });
+
+    function load_add_rekening_form() {
+        $.ajax({
+            url: '{{ route('rekening') }}',
+            type: 'GET',
+            success: function(response) {
+                $('.master-page').html(response);
+            },
+            error: function() {
+                $('.master-page').html('<p>Error loading form.</p>');
+            }
+        });
+    }
+// ========================= End Of List Rekening ======================================
 });
 </script>
