@@ -362,7 +362,7 @@ $(document).ready(function(){
                 },
                 cache: true
             },
-            placeholder: 'Pilih User',
+            placeholder: 'Pilih Customer',
             minimumInputLength: 1,
             templateResult: formatUser
         });
@@ -400,11 +400,22 @@ $(document).ready(function(){
             select.empty();
             // select.append('<option value="">-- Pilih Gudang --</option>');
             $.each(data, function(index, value) {
-                select.append('<option value="' + value + '">' + value + '</option>');
+                select.append('<option value="' + value.cabang_id + '">' + value.nama + '</option>');
             });
         }
     });
 // ================================= End of Select Gudang ===========================================
+// ================================= Trigger Select Gudang ===========================================
+$('#select_gudang').on('change', function() {
+    let kode_gudang = $(this).val(); // ambil gudang aktif
+    let kd_barang = $('#kd_barang').val(); // ambil barang aktif dari Select2
+
+    if (kd_barang) {
+        console.log('Gudang berubah, refresh data barang:', kd_barang, 'Gudang:', kode_gudang);
+        get_barang_satuan(kd_barang);
+    }
+});
+// ================================= End of Triger Select Gudang ===========================================
 // ================================= Select Barang ===========================================
     $('#select_barang').select2({
         // tags: true,
@@ -540,6 +551,7 @@ $(document).ready(function(){
                             `<option value="${item.satuan}">${item.satuan}</option>`
                         );
                     });
+                    console.log('nemu' + response[0].NAMA_BRG);
                     $('#nama_barang').text(response[0].NAMA_BRG);
                     let data_harga = response[0].hj1;
                     $('#harga_barang').text(format_ribuan(data_harga));
@@ -1144,7 +1156,7 @@ $(document).ready(function(){
                             }
                         });
                     });
-                }, 1200); 
+                }, 1200);
             },
             error: function(xhr) {
                 console.error("Status:", xhr.status);

@@ -26,7 +26,7 @@ class CabangController extends Controller
                 'telp_cabang' => 'required|string|max:255',
             ]);
 
-            $role = 'TAP';
+            $role = 'GUD';
             $lastCabang = DB::table('cabangs')
                 ->where('cabang_id', 'LIKE', $role . '%')
                 ->orderBy('cabang_id', 'desc')
@@ -69,7 +69,7 @@ class CabangController extends Controller
 
     public function generate_cabang_id(Request $request)
     {
-        $role = 'TAP';
+        $role = 'GUD';
 
         $lastUser = DB::table('cabangs')
             ->where('cabang_id', 'LIKE', $role . '%')

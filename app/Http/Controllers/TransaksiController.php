@@ -7,6 +7,7 @@ use App\Models\Transactions;
 use App\Models\Transusers;
 use App\Models\Faktur;
 use App\Models\FakturUser;
+use App\Models\Cabang;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -56,21 +57,7 @@ class TransaksiController extends Controller
     }
 
     public function get_kode_gudang(Request $request){
-        $user = auth()->user(); // ambil user yang login
-
-        if ($user->roles === 'admin') {
-            // Admin: tampilkan semua gudang yang tidak kosong
-            $gudangs = User::whereNotNull('gudang')
-                            ->where('gudang', '!=', '')
-                            ->pluck('gudang')
-                            ->unique()
-                            ->values();
-        } else {
-            // Staff: tampilkan gudang sesuai user_id yang login
-            $gudangs = User::where('id', $user->id)
-                            ->pluck('gudang');
-        }
-
+        $gudangs = Cabang::select('cabang_id', 'lokal_id', 'nama')->get();
         return response()->json($gudangs);
     }
 
@@ -171,14 +158,32 @@ class TransaksiController extends Controller
         }
     }
 
-    public function get_barang_satuan(Request $request)
-    {
+    public function get_barang_satuan(Request $request){
         $kd_barang = $request->input('kd_barang');
         $kodeGudang = $request->input('kode_gudang');
 
-        $data = DB::table('mharga as a')
-            ->leftJoin('mbarang as b', 'b.KD_STOK', '=', 'a.kd_stok')
-            ->select('a.kd_stok', 'a.satuan', 'a.hj1', 'a.isi', 'b.NAMA_BRG', DB::raw("b.`$kodeGudang` as stok_gudang"))
+        if ($kodeGudang === 'GUD001') {
+            $harga = 'mharga';
+            $barang = 'mbarang';
+        } elseif ($kodeGudang === 'GUD002') {
+            $harga = 'mharga_gudang';
+            $barang = 'mbarang_gudang';
+        } else {
+            // default fallback (optional)
+            $harga = 'mharga';
+            $barang = 'mbarang';
+        }
+
+        $data = DB::table($harga . ' as a')
+            ->leftJoin($barang . ' as b', 'b.KD_STOK', '=', 'a.kd_stok')
+            ->select(
+                'a.kd_stok',
+                'a.satuan',
+                'a.hj1',
+                'a.isi',
+                'b.NAMA_BRG',
+                DB::raw('b.STOKUNIT as stok_gudang')
+            )
             ->where('a.kd_stok', $kd_barang)
             ->orderBy('a.isi', 'ASC')
             ->get();
@@ -191,9 +196,22 @@ class TransaksiController extends Controller
         $satuan_barang = $request->input('satuan_barang');
         $kodeGudang = $request->input('kode_gudang');
 
-        $data = DB::table('mharga as a')
-            ->leftJoin('mbarang as b', 'b.KD_STOK', '=', 'a.kd_stok')
-            ->select('a.kd_stok', 'a.satuan', 'a.hj1', 'a.isi', 'b.NAMA_BRG', DB::raw("b.`$kodeGudang` as stok_gudang"))
+        if ($kodeGudang === 'GUD001') {
+            $harga = 'mharga';
+            $barang = 'mbarang';
+        } elseif ($kodeGudang === 'GUD002') {
+            $harga = 'mharga_gudang';
+            $barang = 'mbarang_gudang';
+        } else {
+            // default fallback (optional)
+            $harga = 'mharga';
+            $barang = 'mbarang';
+        }
+
+        $data = DB::table($harga . ' as a')
+            ->leftJoin($barang . ' as b', 'b.KD_STOK', '=', 'a.kd_stok')
+            // ->select('a.kd_stok', 'a.satuan', 'a.hj1', 'a.isi', 'b.NAMA_BRG', DB::raw("b.`$kodeGudang` as stok_gudang"))
+            ->select('a.kd_stok', 'a.satuan', 'a.hj1', 'a.isi', 'b.NAMA_BRG', 'b.STOKUNIT as stok_gudang')
             ->where('a.kd_stok', $kd_barang)
             ->where('a.satuan', $satuan_barang)
             ->first();
