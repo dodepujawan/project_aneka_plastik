@@ -222,15 +222,21 @@
             }
         });
 
-        // To hide after click children item
-       $('.collapse .collapse-item').on('click', function() {
-            // Cek apakah sidebar dalam mode kecil
-            if ($('.sidebar').hasClass('toggled')) {
-                // Tutup semua collapse
-                $('.collapse').collapse('hide');
-                $('.nav-link').attr('aria-expanded', 'false');
-            }
-        });
+    // Menyembunyikan sidebar etik klik menu
+    $('.collapse .collapse-item').on('click', function() {
+            $('.collapse').collapse('hide');
+            $('.nav-link').attr('aria-expanded', 'false');
+    });
+
+     //     // To hide after click children item
+    //    $('.collapse .collapse-item').on('click', function() {
+    //         // Cek apakah sidebar dalam mode kecil
+    //         if ($('.sidebar').hasClass('toggled')) {
+    //             // Tutup semua collapse
+    //             $('.collapse').collapse('hide');
+    //             $('.nav-link').attr('aria-expanded', 'false');
+    //         }
+    //     });
 
     });
     </script>

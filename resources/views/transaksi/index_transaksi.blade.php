@@ -150,8 +150,13 @@ h5 {
     </div>
 </div>
 {{-- ### Form Inputan ### --}}
-<form action="" class="mt-3">
+<form action="" id="form_transaksi" class="mt-3">
     <div class="row">
+        <div class="col-lg-4 col-md-12 col-sm-12 mb-3">
+            <div class="d-flex align-items-center">
+                <input type="text" id="nomor_po" class="form-control" readonly>
+            </div>
+        </div>
         <div class="col-lg-4 col-md-12 col-sm-12 mb-3">
             <div class="d-flex align-items-center">
                 <select name="select_gudang" id="select_gudang" class="form-control">
@@ -250,7 +255,7 @@ h5 {
         </tbody>
     </table>
 </div>
-<button type="submit" class="btn btn-primary mt-2" id="save_table_transaksi" style="float: right;"><i class="fas fa-save"> Proses</i></button>
+{{-- <button type="submit" class="btn btn-primary mt-2" id="save_table_transaksi" style="float: right;"><i class="fas fa-save"> Proses</i></button> --}}
 {{-- modal cetak transaksi --}}
 {{-- <!-- Tombol untuk buka modal -->
 <button class="btn btn-primary" data-toggle="modal" data-target="#payment_modal">
@@ -391,6 +396,20 @@ $(document).ready(function(){
         });
     };
 // ================================= End Of Select User ===========================================
+// ================================= Tampil No PO ===========================================
+    // panggil generate kode PO otomatis
+    $.ajax({
+        url: "{{ route('generate_kode_po') }}",
+        type: "GET",
+        success: function(response) {
+            $('#nomor_po').val(response.kode_po); // tampilkan ke input
+        },
+        error: function(xhr) {
+            console.error(xhr.responseText);
+            alert('Gagal generate kode PO');
+        }
+    });
+// ================================= End Of Tampil No PO ===========================================
 // ===================================== Select Gudang =============================================
     $.ajax({
         url: "{{ route('get_kode_gudang') }}",
@@ -595,7 +614,7 @@ $('#select_gudang').on('change', function() {
                     let final_value = parseInt(formatted_value / 1000);
                     $('#unit_barang').text(final_value);
                     // menghapus nilani decimal dari dbase
-                    let isi_gudang = response[0].stok_gudang.replace(/,/g, '');
+                    let isi_gudang = response.stok_gudang.replace(/,/g, '');
                     let formatted_value_gudang = isi_gudang.replace(/\./g, ''); // Menghapus titik
                     let final_value_gudang = parseInt(formatted_value_gudang / 100);
                     $('#stok_barang').text(final_value_gudang);
@@ -626,11 +645,53 @@ $('#select_gudang').on('change', function() {
         });
     }
 // =================== End Of Pajak PPN ==========================
+// ================================= Simpan Barang To DB ===========================================
+    $('#form_transaksi').on('submit', function(e) {
+        e.preventDefault();
+
+        // ambil dan bersihkan nilai harga dulu
+        let hargaText = $('#harga_barang').val() || '0';
+        let totalText = $('#total_barang').val() || '0';
+        let unitText  = $('#unit_barang').val() || '0';
+        let data = {
+            _token: '{{ csrf_token() }}',
+            nomor_po: $('#nomor_po').val(),
+            select_gudang: $('#select_gudang').val(),
+            kode_user: '{{ Auth::user()->user_id }}',
+            product: {
+                kd_barang: $('#select_barang').val(),
+                nama: $('#select_barang option:selected').text(),
+                harga: parseFloat(hapus_format(hargaText)) || 0,
+                jumlah: parseInt($('#jumlah_trans').val()),
+                unit: parseFloat(hapus_format(unitText)) || 0,
+                satuan: $('#select_barang_satuan option:selected').text(),
+                diskon: parseFloat($('#diskon_barang').val()) || 0,
+                diskon_rp: parseFloat($('#diskon_barang_rp').val()) || 0,
+                total: parseFloat(hapus_format(totalText)) || 0,
+                ppn_trans: parseFloat($('#ppn_trans').val()) || 0
+            }
+        };
+
+        $.ajax({
+            url: "{{ route('save_products') }}",
+            type: "POST",
+            data: data,
+            success: function(res) {
+                let id = res.id;
+                console.log(res.message);
+                submit_to_table(id);
+            },
+            error: function(err) {
+                console.error(err.responseJSON.error);
+            }
+        });
+    });
+// ================================= End Of Simpan Barang To DB ===========================================
 // ================================= Input Barang To Table ===========================================
     let grandTotal = 0;
     let grandTotalDpp = 0;
     let grandTotalPpn = 0;
-    $('form').on('submit', function(event) {
+    function submit_to_table(id){
         event.preventDefault();
 
         let kdBarang = $('#kd_barang').val();
@@ -685,7 +746,10 @@ $('#select_gudang').on('change', function() {
                 <td>${format_ribuan(gtotal)}</td>
                 <td class="d-none dpp-val">${dpp}</td>
                 <td class="d-none ppn-val">${total_ppn}</td>
-                <td><button type="button" class="btn btn-danger btn-sm delete-row"><i class="fa fa-trash" aria-hidden="true"></i></button></td>
+                <td>
+                <button type="button" class="btn btn-danger btn-sm delete-row" data-id="${id}"><i class="fa fa-trash" aria-hidden="true"></i></button>
+                <button type="button" class="btn btn-primary btn-sm delete-row" data-id="${id}"><i class="fa fa-save" aria-hidden="true"></i></button>
+                </td>
             </tr>
         `;
         // d-none dpp-val dan ppn-val untuk mengakali akumulasi jumlah dpp dan ppn
@@ -714,7 +778,7 @@ $('#select_gudang').on('change', function() {
             document.querySelector('.select2-search__field').focus();
         }, 0);
 
-    });
+    };
 
     // ### Detele Table
     $('#transaksi_table').on('click', '.delete-row', function() {

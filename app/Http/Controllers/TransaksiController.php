@@ -56,6 +56,35 @@ class TransaksiController extends Controller
         return response()->json($users);
     }
 
+    public function generate_kode_po(Request $request){
+        $user = auth()->user();
+
+        // Ambil langsung user_id (misal AD0001 / ST0001)
+        $userCode = $user->user_id;
+
+        // Bulan dan tahun (MMYY)
+        $monthYear = now()->format('my'); // contoh: 0825
+
+        // Cari kode terakhir untuk user + bulan ini
+        $lastOrder = Transusers::where('no_invoice', 'like', "PO-{$userCode}{$monthYear}%")
+            ->latest('id')
+            ->first();
+
+        if ($lastOrder) {
+            $lastNumber = (int) substr($lastOrder->kode_po, -5);
+            $nextNumber = str_pad($lastNumber + 1, 5, '0', STR_PAD_LEFT);
+        } else {
+            $nextNumber = '00001';
+        }
+
+        // Format akhir: PO-AD0001082500002
+        $kodePo = "PO-{$userCode}{$monthYear}{$nextNumber}";
+
+        return response()->json([
+            'kode_po' => $kodePo
+        ]);
+    }
+
     public function get_kode_gudang(Request $request){
         $gudangs = Cabang::select('cabang_id', 'lokal_id', 'nama')->get();
         return response()->json($gudangs);
@@ -78,83 +107,78 @@ class TransaksiController extends Controller
     }
 
     public function save_products(Request $request){
-        // Ambil data produk dari request
-        $products = $request->input('products');
-        $kode_user = $request->input('kode_user');
+        $invoiceNumber = $request->input('nomor_po'); // dari input hidden/form
+        $kode_user     = $request->input('kode_user');
+        $rcabang       = $request->input('select_gudang');
+        $product       = $request->input('product');
 
-        // Ambil bulan dan tahun saat ini, format 'mY' misalnya '0225' untuk Februari 2025
-        $currentMonthYear = Carbon::now()->format('m') . substr(Carbon::now()->format('Y'), 2, 2);
-
-        // Ambil rcabang dari pengguna yang sedang login
-        $rcabang = Auth::user()->rcabang;
-        $user_id = Auth::user()->user_id;
+        $user_id   = Auth::user()->user_id;
         $user_name = Auth::user()->name;
 
-        // Mulai transaksi
         DB::beginTransaction();
 
         try {
-            // Ambil nomor urut terakhir untuk transaksi berdasarkan bulan dan tahun yang sama
-            $lastInvoice = Transusers::where('no_invoice', 'like', '%'.$currentMonthYear.'%')
-                                        ->orderBy('no_invoice', 'desc')
-                                        ->lockForUpdate()
-                                        ->first();
+            // 1️⃣ Cek apakah Transusers sudah ada untuk no_invoice ini
+            $transUser = Transusers::where('no_invoice', $invoiceNumber)->first();
 
-            // Tentukan nomor urut berdasarkan nomor invoice terakhir
-            $nextInvoiceNumber = $lastInvoice ? (int) substr($lastInvoice->no_invoice, -5) + 1 : 1;
-
-            // Format nomor invoice dengan menambahkan prefix dan nomor urut
-            $invoiceNumber = 'POL-' . $currentMonthYear . str_pad($nextInvoiceNumber, 5, '0', STR_PAD_LEFT);
-
-            Transusers::create([
-                'no_invoice' => $invoiceNumber,
-                'user_id' => $user_id,
-                'nama_cust' => $user_name,
-                'user_kode' => $kode_user,
-            ]);
-
-            // Proses menyimpan data produk
-            foreach ($products as $product) {
-                // menghilangkan titik di total
-                // $cleaned_total = intval(str_replace('.', '', explode(',', $product['total'])[0]));
-                $total_net = $product['total'];
-                $ppn = $product['ppn_trans']; // contoh: 10
-                $dpp = round($total_net / (1 + ($ppn / 100)));
-                $ppn_rupiah = $total_net - $dpp;
-                $diskon_rupiah = ($product['diskon'] / 100) * $product['harga'];
-                Transactions::create([
-                    'no_invoice' => $invoiceNumber,  // Menyimpan nomor invoice
-                    'kd_brg' => $product['kd_barang'],
-                    'nama_brg' => $product['nama'],
-                    'harga' => $product['harga'],
-                    'qty_unit' => $product['unit'],
-                    'satuan' => $product['satuan'],
-                    'qty_order' => $product['jumlah'],
-                    'ppn' => $product['ppn_trans'],
-                    'rppn' => $ppn_rupiah,
-                    'dpp' => $total_net - $ppn_rupiah,
-                    'disc' => $product['diskon'],
-                    'rdisc' => $diskon_rupiah,
-                    'ndisc' => $product['diskon_rp'],
-                    'ttldisc' => ($diskon_rupiah + $product['diskon_rp']) * $product['jumlah'],
-                    'ttl_gross' => $product['jumlah'] * $product['harga'],
-                    'total' => $product['total'],
-                    'rcabang' => $rcabang,  // Menyimpan rcabang dari pengguna yang login
-                    'status_po' => 0,
-                    'status_faktur' => 0,
+            if (!$transUser) {
+                // Kalau belum ada, baru buat sekali
+                Transusers::create([
+                    'no_invoice' => $invoiceNumber,
+                    'user_id'    => $user_id,
+                    'nama_cust'  => $user_name,
+                    'user_kode'  => $kode_user,
                 ]);
             }
 
-            // Commit transaksi jika berhasil
+            // 2️⃣ Proses satu baris produk
+            $total_net = floatval(str_replace([','], '', $product['total']));
+            $ppn       = floatval($product['ppn_trans']);
+            $harga     = floatval(str_replace([','], '', $product['harga']));
+            $jumlah    = floatval($product['jumlah']);
+            $diskon    = floatval($product['diskon']);
+            $diskon_rp_input = floatval($product['diskon_rp']);
+
+            $dpp       = round($total_net / (1 + ($ppn / 100)), 2);
+            $ppn_rp    = $total_net - $dpp;
+            $diskon_rp = ($diskon / 100) * $harga;
+
+            dd($product);
+            $newTransaction = Transactions::create([
+                'no_invoice' => $invoiceNumber,
+                'kd_brg'     => $product['kd_barang'],
+                'nama_brg'   => $product['nama'],
+                'harga'      => $harga,
+                'qty_unit'   => $product['unit'],
+                'satuan'     => $product['satuan'],
+                'qty_order'  => $jumlah,
+                'ppn'        => $ppn,
+                'rppn'       => $ppn_rp,
+                'dpp'        => $total_net - $ppn_rp,
+                'disc'       => $diskon,
+                'rdisc'      => $diskon_rp,
+                'ndisc'      => $diskon_rp_input,
+                'ttldisc'    => ($diskon_rp + $diskon_rp_input) * $jumlah,
+                'ttl_gross'  => $jumlah * $harga,
+                'total'      => $total_net,
+                'rcabang'    => $rcabang,
+                'status_po'  => 0,
+                'status_faktur' => 0,
+            ]);
+
             DB::commit();
 
-            return response()->json(['message' => 'Products saved successfully!','invoice_number' => $invoiceNumber,], 200);
-        } catch (\Exception $e) {
-            // Rollback transaksi jika ada error
-            DB::rollBack();
+            return response()->json([
+                'message' => 'Product saved successfully!',
+                'invoice_number' => $invoiceNumber,
+                'id' => $newTransaction->id,
+            ], 200);
 
-            // Kembalikan pesan error
-            return response()->json(['error' => 'Failed to save products: ' . $e->getMessage()], 500);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'error' => 'Failed to save product: ' . $e->getMessage()
+            ], 500);
         }
     }
 
@@ -1270,3 +1294,86 @@ class TransaksiController extends Controller
 //         return response()->json(['error' => 'Failed to update products: ' . $e->getMessage()], 500);
 //     }
 // }
+
+
+// ### Fungsi Save Product Lama
+// public function save_products(Request $request){
+//         // Ambil data produk dari request
+//         $products = $request->input('products');
+//         $kode_user = $request->input('kode_user');
+
+//         // Ambil bulan dan tahun saat ini, format 'mY' misalnya '0225' untuk Februari 2025
+//         $currentMonthYear = Carbon::now()->format('m') . substr(Carbon::now()->format('Y'), 2, 2);
+
+//         // Ambil rcabang dari pengguna yang sedang login
+//         $rcabang = Auth::user()->rcabang;
+//         $user_id = Auth::user()->user_id;
+//         $user_name = Auth::user()->name;
+
+//         // Mulai transaksi
+//         DB::beginTransaction();
+
+//         try {
+//             // Ambil nomor urut terakhir untuk transaksi berdasarkan bulan dan tahun yang sama
+//             $lastInvoice = Transusers::where('no_invoice', 'like', '%'.$currentMonthYear.'%')
+//                                         ->orderBy('no_invoice', 'desc')
+//                                         ->lockForUpdate()
+//                                         ->first();
+
+//             // Tentukan nomor urut berdasarkan nomor invoice terakhir
+//             $nextInvoiceNumber = $lastInvoice ? (int) substr($lastInvoice->no_invoice, -5) + 1 : 1;
+
+//             // Format nomor invoice dengan menambahkan prefix dan nomor urut
+//             $invoiceNumber = 'POL-' . $currentMonthYear . str_pad($nextInvoiceNumber, 5, '0', STR_PAD_LEFT);
+
+//             Transusers::create([
+//                 'no_invoice' => $invoiceNumber,
+//                 'user_id' => $user_id,
+//                 'nama_cust' => $user_name,
+//                 'user_kode' => $kode_user,
+//             ]);
+
+//             // Proses menyimpan data produk
+//             foreach ($products as $product) {
+//                 // menghilangkan titik di total
+//                 // $cleaned_total = intval(str_replace('.', '', explode(',', $product['total'])[0]));
+//                 $total_net = $product['total'];
+//                 $ppn = $product['ppn_trans']; // contoh: 10
+//                 $dpp = round($total_net / (1 + ($ppn / 100)));
+//                 $ppn_rupiah = $total_net - $dpp;
+//                 $diskon_rupiah = ($product['diskon'] / 100) * $product['harga'];
+//                 Transactions::create([
+//                     'no_invoice' => $invoiceNumber,  // Menyimpan nomor invoice
+//                     'kd_brg' => $product['kd_barang'],
+//                     'nama_brg' => $product['nama'],
+//                     'harga' => $product['harga'],
+//                     'qty_unit' => $product['unit'],
+//                     'satuan' => $product['satuan'],
+//                     'qty_order' => $product['jumlah'],
+//                     'ppn' => $product['ppn_trans'],
+//                     'rppn' => $ppn_rupiah,
+//                     'dpp' => $total_net - $ppn_rupiah,
+//                     'disc' => $product['diskon'],
+//                     'rdisc' => $diskon_rupiah,
+//                     'ndisc' => $product['diskon_rp'],
+//                     'ttldisc' => ($diskon_rupiah + $product['diskon_rp']) * $product['jumlah'],
+//                     'ttl_gross' => $product['jumlah'] * $product['harga'],
+//                     'total' => $product['total'],
+//                     'rcabang' => $rcabang,  // Menyimpan rcabang dari pengguna yang login
+//                     'status_po' => 0,
+//                     'status_faktur' => 0,
+//                 ]);
+//             }
+
+//             // Commit transaksi jika berhasil
+//             DB::commit();
+
+//             return response()->json(['message' => 'Products saved successfully!','invoice_number' => $invoiceNumber,], 200);
+//         } catch (\Exception $e) {
+//             // Rollback transaksi jika ada error
+//             DB::rollBack();
+
+//             // Kembalikan pesan error
+//             return response()->json(['error' => 'Failed to save products: ' . $e->getMessage()], 500);
+//         }
+//     }
