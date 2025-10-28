@@ -71,7 +71,7 @@ class TransaksiController extends Controller
             ->first();
 
         if ($lastOrder) {
-            $lastNumber = (int) substr($lastOrder->kode_po, -5);
+            $lastNumber = (int) substr($lastOrder->no_invoice, -5);
             $nextNumber = str_pad($lastNumber + 1, 5, '0', STR_PAD_LEFT);
         } else {
             $nextNumber = '00001';
@@ -107,7 +107,7 @@ class TransaksiController extends Controller
     }
 
     public function save_products(Request $request){
-        $invoiceNumber = $request->input('nomor_po'); // dari input hidden/form
+        $invoiceNumber = $request->input('nomor_po');
         $kode_user     = $request->input('kode_user');
         $rcabang       = $request->input('select_gudang');
         $product       = $request->input('product');
@@ -118,11 +118,10 @@ class TransaksiController extends Controller
         DB::beginTransaction();
 
         try {
-            // 1️⃣ Cek apakah Transusers sudah ada untuk no_invoice ini
+            // 1️⃣ Buat Transusers hanya kalau belum ada
             $transUser = Transusers::where('no_invoice', $invoiceNumber)->first();
 
             if (!$transUser) {
-                // Kalau belum ada, baru buat sekali
                 Transusers::create([
                     'no_invoice' => $invoiceNumber,
                     'user_id'    => $user_id,
@@ -131,38 +130,39 @@ class TransaksiController extends Controller
                 ]);
             }
 
-            // 2️⃣ Proses satu baris produk
-            $total_net = floatval(str_replace([','], '', $product['total']));
-            $ppn       = floatval($product['ppn_trans']);
-            $harga     = floatval(str_replace([','], '', $product['harga']));
-            $jumlah    = floatval($product['jumlah']);
-            $diskon    = floatval($product['diskon']);
-            $diskon_rp_input = floatval($product['diskon_rp']);
+            // 2️⃣ Ambil nilai dari frontend (sudah dihitung di JS)
+            $harga      = floatval($product['harga']);
+            $jumlah     = floatval($product['jumlah']);
+            $diskon     = floatval($product['diskon']);
+            $diskon_rp  = floatval($product['diskon_rp']);
+            $total_net  = floatval($product['total']);
+            $ppn        = floatval($product['ppn_trans']);
 
-            $dpp       = round($total_net / (1 + ($ppn / 100)), 2);
-            $ppn_rp    = $total_net - $dpp;
-            $diskon_rp = ($diskon / 100) * $harga;
+            // 3️⃣ Hitung nilai turunan ringan (kalau perlu disimpan)
+            $diskon_rupiah = ($diskon / 100) * $harga;
+            $dpp        = round($total_net / (1 + ($ppn / 100)), 2);
+            $ppn_rp     = $total_net - $dpp;
 
-            dd($product);
+            // 4️⃣ Simpan transaksi
             $newTransaction = Transactions::create([
-                'no_invoice' => $invoiceNumber,
-                'kd_brg'     => $product['kd_barang'],
-                'nama_brg'   => $product['nama'],
-                'harga'      => $harga,
-                'qty_unit'   => $product['unit'],
-                'satuan'     => $product['satuan'],
-                'qty_order'  => $jumlah,
-                'ppn'        => $ppn,
-                'rppn'       => $ppn_rp,
-                'dpp'        => $total_net - $ppn_rp,
-                'disc'       => $diskon,
-                'rdisc'      => $diskon_rp,
-                'ndisc'      => $diskon_rp_input,
-                'ttldisc'    => ($diskon_rp + $diskon_rp_input) * $jumlah,
-                'ttl_gross'  => $jumlah * $harga,
-                'total'      => $total_net,
-                'rcabang'    => $rcabang,
-                'status_po'  => 0,
+                'no_invoice'    => $invoiceNumber,
+                'kd_brg'        => $product['kd_barang'],
+                'nama_brg'      => $product['nama'],
+                'harga'         => $harga,
+                'qty_order'     => $jumlah,
+                'qty_unit'      => $product['unit'],
+                'satuan'        => $product['satuan'],
+                'disc'          => $diskon,
+                'rdisc'         => $diskon_rupiah,
+                'ndisc'         => $diskon_rp,
+                'ttldisc'       => ($diskon_rupiah + $diskon_rp) * $jumlah,
+                'ppn'           => $ppn,
+                'rppn'          => $ppn_rp,
+                'dpp'           => $dpp,
+                'ttl_gross'     => $harga * $jumlah,
+                'total'         => $total_net,
+                'rcabang'       => $rcabang,
+                'status_po'     => 0,
                 'status_faktur' => 0,
             ]);
 
@@ -180,6 +180,87 @@ class TransaksiController extends Controller
                 'error' => 'Failed to save product: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    public function update_products(Request $request){
+        $productData = $request->input('product');
+        $id = $request->input('id'); // id row dari tabel transactions
+
+        try {
+            $trans = Transactions::findOrFail($id);
+
+            // Ambil data lama sebagai referensi
+            $harga = floatval($trans->harga);
+            $jumlah = floatval($productData['jumlah']);
+            $diskon = floatval($productData['diskon']);
+            $diskon_rp_input = floatval($productData['diskon_rp']);
+            $ppn = floatval($productData['ppn_trans']);
+
+            // Hitung ulang semua nilai turunan
+            $diskon_rupiah = ($diskon / 100) * $harga;
+            $harga_setelah_diskon = $harga - $diskon_rupiah - $diskon_rp_input;
+            $total_net = $harga_setelah_diskon * $jumlah;
+
+            // PPN & DPP
+            $dpp = round($total_net / (1 + ($ppn / 100)), 2);
+            $ppn_rp = $total_net - $dpp;
+
+            // Update hanya field yang boleh berubah
+            $trans->update([
+                'qty_order' => $jumlah,
+                'disc' => $diskon,
+                'rdisc' => $diskon_rupiah,
+                'ndisc' => $diskon_rp_input,
+                'ttldisc' => ($diskon_rupiah + $diskon_rp_input) * $jumlah,
+                'ppn' => $ppn,
+                'rppn' => $ppn_rp,
+                'dpp' => $dpp,
+                'ttl_gross' => $harga * $jumlah,
+                'total' => $total_net,
+            ]);
+
+            return response()->json([
+                'message' => 'Produk berhasil diupdate!',
+                'recalculated' => [
+                    'total' => $total_net,
+                    'ppn_rp' => $ppn_rp,
+                    'dpp' => $dpp,
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Gagal update produk: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function delete_product_baris(Request $request){
+        $id = $request->id;
+        $item = Transactions::find($id);
+
+        if (!$item) {
+            return response()->json(['message' => 'Item tidak ditemukan.'], 404);
+        }
+
+        $nomorPo = $item->no_invoice;
+
+        // Hapus baris item
+        $item->delete();
+
+        // Cek apakah masih ada item dengan nomor PO ini
+        $sisaItem = Transactions::where('no_invoice', $nomorPo)->count();
+
+        if ($sisaItem === 0) {
+            // Hapus header transusers juga
+            Transusers::where('no_invoice', $nomorPo)->delete();
+            return response()->json([
+                'message' => 'Semua item dihapus. Data transaksi juga dihapus.'
+            ]);
+        }
+
+        return response()->json([
+            'message' => 'Item berhasil dihapus.'
+        ]);
     }
 
     public function get_barang_satuan(Request $request){
@@ -417,120 +498,6 @@ class TransaksiController extends Controller
         ->get();
 
         return response()->json(['data' => $data]);
-    }
-
-    // ###  Update Transaksi
-    public function update_products(Request $request){
-        $products = $request->input('products');
-        $noInvoice = $request->input('value_invo');
-        $kodeUser = $request->input('kode_user');
-
-        $rcabang = Auth::user()->rcabang;
-        $roles_user = Auth::user()->roles;
-        $user_kode = Auth::user()->user_kode;
-        $user_id = Auth::user()->user_id;
-        $user_name = Auth::user()->name;
-
-        if ($roles_user == 'customer') {
-            $statusRolesCheck = Transusers::where('no_invoice', $noInvoice)
-                ->where('user_kode', $user_kode)
-                ->exists();
-
-            if (!$statusRolesCheck) {
-                return response()->json([
-                    'error' => 'Anda tidak dapat mengupdate produk karena status_po Anda tidak memenuhi syarat, Tolong Refresh.'
-                ], 403);
-            }
-        }
-
-        $statusPoCheck = Transactions::where('no_invoice', $noInvoice)
-            ->where('status_po', '!=', 0)
-            ->exists();
-        if ($statusPoCheck) {
-            return response()->json([
-                'error' => 'Tidak dapat melanjutkan, terdapat transaksi dengan status_po selain 0'
-            ], 400);
-        }
-
-        DB::beginTransaction();
-
-        try {
-            // Lock dulu data transusers biar tidak ada race condition
-            $lockedTransUser = Transusers::where('no_invoice', $noInvoice)
-                ->lockForUpdate()
-                ->first();
-
-            if (!$lockedTransUser) {
-                DB::rollBack();
-                return response()->json([
-                    'error' => 'Data tidak ditemukan atau tidak bisa dikunci.'
-                ], 404);
-            }
-
-            // Simpan data penting sebelum delete
-            $user_id_prev = $lockedTransUser->user_id;
-            $user_name_prev = $lockedTransUser->nama_cust;
-            $created_at_transusers = $lockedTransUser->created_at;
-
-            $transactionsCreatedAt = Transactions::where('no_invoice', $noInvoice)
-                ->pluck('created_at')->first();
-
-            // Hapus data lama
-            Transusers::where('no_invoice', $noInvoice)->delete();
-            Transactions::where('no_invoice', $noInvoice)->delete();
-
-            // Simpan data baru
-            Transusers::create([
-                'no_invoice' => $noInvoice,
-                'user_id' => $user_id_prev,
-                'nama_cust' => $user_name_prev,
-                'user_kode' => $kodeUser,
-                'created_at' => $created_at_transusers,
-                'updated_at' => Carbon::now(),
-            ]);
-
-            foreach ($products as $product) {
-                $cleaned_total = str_replace(',', '.', str_replace('.', '', $product['total']));
-                $total_net = (float) $cleaned_total;
-                // Hitung DPP & PPN mundur (sesuai gaya Excel klien)
-                $ppn = $product['ppn_trans']; // contoh: 10
-                $dpp = round($total_net / (1 + ($ppn / 100)));
-                $ppn_rupiah = $total_net - $dpp;
-
-                $diskon_rupiah = ($product['diskon'] / 100) * $product['harga'];
-                Transactions::create([
-                    'no_invoice' => $noInvoice,
-                    'kd_brg' => $product['kd_barang'],
-                    'nama_brg' => $product['nama'],
-                    'harga' => $product['harga'],
-                    'qty_unit' => $product['unit'],
-                    'satuan' => $product['satuan'],
-                    'qty_order' => $product['jumlah'],
-                    'ppn' => $product['ppn_trans'],
-                    'rppn' => $ppn_rupiah,
-                    'dpp' => $total_net - $ppn_rupiah,
-                    'disc' => $product['diskon'],
-                    'rdisc' => $diskon_rupiah,
-                    'ndisc' => $product['diskon_rp'],
-                    'ttldisc' => ($diskon_rupiah + $product['diskon_rp']) * $product['jumlah'],
-                    'ttl_gross' => $product['jumlah'] * $product['harga'],
-                    'total' => $cleaned_total,
-                    'rcabang' => $rcabang,
-                    'status_po' => 0,
-                    'status_faktur' => 0,
-                    'created_at' => $transactionsCreatedAt,
-                    'updated_at' => Carbon::now(),
-                ]);
-            }
-
-            DB::commit();
-
-            return response()->json(['message' => 'Products updated successfully!'], 200);
-        } catch (\Exception $e) {
-            DB::rollBack();
-
-            return response()->json(['error' => 'Failed to update products: ' . $e->getMessage()], 500);
-        }
     }
 
     public function delete_products(Request $request){
@@ -1377,3 +1344,119 @@ class TransaksiController extends Controller
 //             return response()->json(['error' => 'Failed to save products: ' . $e->getMessage()], 500);
 //         }
 //     }
+
+
+// ### Fungsi Update Product Lama
+ // ###  Update Transaksi
+    // public function update_products(Request $request){
+    //     $products = $request->input('products');
+    //     $noInvoice = $request->input('value_invo');
+    //     $kodeUser = $request->input('kode_user');
+
+    //     $rcabang = Auth::user()->rcabang;
+    //     $roles_user = Auth::user()->roles;
+    //     $user_kode = Auth::user()->user_kode;
+    //     $user_id = Auth::user()->user_id;
+    //     $user_name = Auth::user()->name;
+
+    //     if ($roles_user == 'customer') {
+    //         $statusRolesCheck = Transusers::where('no_invoice', $noInvoice)
+    //             ->where('user_kode', $user_kode)
+    //             ->exists();
+
+    //         if (!$statusRolesCheck) {
+    //             return response()->json([
+    //                 'error' => 'Anda tidak dapat mengupdate produk karena status_po Anda tidak memenuhi syarat, Tolong Refresh.'
+    //             ], 403);
+    //         }
+    //     }
+
+    //     $statusPoCheck = Transactions::where('no_invoice', $noInvoice)
+    //         ->where('status_po', '!=', 0)
+    //         ->exists();
+    //     if ($statusPoCheck) {
+    //         return response()->json([
+    //             'error' => 'Tidak dapat melanjutkan, terdapat transaksi dengan status_po selain 0'
+    //         ], 400);
+    //     }
+
+    //     DB::beginTransaction();
+
+    //     try {
+    //         // Lock dulu data transusers biar tidak ada race condition
+    //         $lockedTransUser = Transusers::where('no_invoice', $noInvoice)
+    //             ->lockForUpdate()
+    //             ->first();
+
+    //         if (!$lockedTransUser) {
+    //             DB::rollBack();
+    //             return response()->json([
+    //                 'error' => 'Data tidak ditemukan atau tidak bisa dikunci.'
+    //             ], 404);
+    //         }
+
+    //         // Simpan data penting sebelum delete
+    //         $user_id_prev = $lockedTransUser->user_id;
+    //         $user_name_prev = $lockedTransUser->nama_cust;
+    //         $created_at_transusers = $lockedTransUser->created_at;
+
+    //         $transactionsCreatedAt = Transactions::where('no_invoice', $noInvoice)
+    //             ->pluck('created_at')->first();
+
+    //         // Hapus data lama
+    //         Transusers::where('no_invoice', $noInvoice)->delete();
+    //         Transactions::where('no_invoice', $noInvoice)->delete();
+
+    //         // Simpan data baru
+    //         Transusers::create([
+    //             'no_invoice' => $noInvoice,
+    //             'user_id' => $user_id_prev,
+    //             'nama_cust' => $user_name_prev,
+    //             'user_kode' => $kodeUser,
+    //             'created_at' => $created_at_transusers,
+    //             'updated_at' => Carbon::now(),
+    //         ]);
+
+    //         foreach ($products as $product) {
+    //             $cleaned_total = str_replace(',', '.', str_replace('.', '', $product['total']));
+    //             $total_net = (float) $cleaned_total;
+    //             // Hitung DPP & PPN mundur (sesuai gaya Excel klien)
+    //             $ppn = $product['ppn_trans']; // contoh: 10
+    //             $dpp = round($total_net / (1 + ($ppn / 100)));
+    //             $ppn_rupiah = $total_net - $dpp;
+
+    //             $diskon_rupiah = ($product['diskon'] / 100) * $product['harga'];
+    //             Transactions::create([
+    //                 'no_invoice' => $noInvoice,
+    //                 'kd_brg' => $product['kd_barang'],
+    //                 'nama_brg' => $product['nama'],
+    //                 'harga' => $product['harga'],
+    //                 'qty_unit' => $product['unit'],
+    //                 'satuan' => $product['satuan'],
+    //                 'qty_order' => $product['jumlah'],
+    //                 'ppn' => $product['ppn_trans'],
+    //                 'rppn' => $ppn_rupiah,
+    //                 'dpp' => $total_net - $ppn_rupiah,
+    //                 'disc' => $product['diskon'],
+    //                 'rdisc' => $diskon_rupiah,
+    //                 'ndisc' => $product['diskon_rp'],
+    //                 'ttldisc' => ($diskon_rupiah + $product['diskon_rp']) * $product['jumlah'],
+    //                 'ttl_gross' => $product['jumlah'] * $product['harga'],
+    //                 'total' => $cleaned_total,
+    //                 'rcabang' => $rcabang,
+    //                 'status_po' => 0,
+    //                 'status_faktur' => 0,
+    //                 'created_at' => $transactionsCreatedAt,
+    //                 'updated_at' => Carbon::now(),
+    //             ]);
+    //         }
+
+    //         DB::commit();
+
+    //         return response()->json(['message' => 'Products updated successfully!'], 200);
+    //     } catch (\Exception $e) {
+    //         DB::rollBack();
+
+    //         return response()->json(['error' => 'Failed to update products: ' . $e->getMessage()], 500);
+    //     }
+    // }

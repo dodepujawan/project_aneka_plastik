@@ -95,8 +95,19 @@ h5 {
     }
 }
 /* End of Product Info */
+
+.title_page {
+    color: #1976d2; /* biru SBAdmin */
+    font-weight: 600;
+    border-bottom: 3px solid #90caf9;
+    padding-bottom: 8px;
+    margin-bottom: 20px;
+}
 </style>
-<h3>Halaman Input PO</h3>
+<h3 class="title_page">Halaman Input PO</h3>
+<div class="mt-3 mb-3">
+    <button type="button" class="btn btn-success" id="generate_new_po">+ New PO</button>
+</div>
 <div class="container master_customer_select">
     <div class="row">
         <div class="form-group col-lg-4 col-md-12 col-sm-12 mb-3">
@@ -320,6 +331,25 @@ h5 {
 
 <script>
 $(document).ready(function(){
+// ========================= New Transaksi ======================================
+    $('#generate_new_po').on('click', function(e) {
+            e.preventDefault();
+            loadMainTransaksilink1();
+        });
+
+    function loadMainTransaksilink1() {
+        $.ajax({
+            url: '{{ route('index_transaksi') }}',
+            type: 'GET',
+            success: function(response) {
+                $('.master-page').html(response);
+            },
+            error: function() {
+                $('.master-page').html('<p>Error loading form.</p>');
+            }
+        });
+    }
+// ========================= End Of New Transaksi ======================================
 // ================================= Select User ===========================================
     let user_role_select = @json(Auth::user()->roles);
     let user_kode_select = @json(Auth::user()->user_kode);
@@ -649,26 +679,57 @@ $('#select_gudang').on('change', function() {
     $('#form_transaksi').on('submit', function(e) {
         e.preventDefault();
 
-        // ambil dan bersihkan nilai harga dulu
-        let hargaText = $('#harga_barang').val() || '0';
-        let totalText = $('#total_barang').val() || '0';
-        let unitText  = $('#unit_barang').val() || '0';
+        // fungsi hanya untuk cek nilai kosong
+        let kode_userCek = $('#kode_user_trans').val();
+        let kdBarangCek = $('#kd_barang').val();
+        let namaBarangCek = $('#nama_barang').text();
+
+        let hargaBarang = parseFloat(hapus_format($('#harga_barang').text())) || 0;
+        let jumlahTrans = parseInt($('#jumlah_trans').val()) || 0;
+        let diskonBarang = parseFloat($('#diskon_barang').val()) || 0; // persen
+        let diskonBarangRp = parseFloat($('#diskon_barang_rp').val()) || 0; // nominal
+        let ppnBarang = parseFloat($('#ppn_trans').val()) || 0;
+        // Hitung diskon dalam uang
+        let diskon_dalam_uang = (diskonBarang / 100) * hargaBarang;
+        // Harga setelah diskon
+        let harga_setelah_diskon = hargaBarang - diskon_dalam_uang - diskonBarangRp;
+        // Total kotor (sudah termasuk PPN)
+        let total = harga_setelah_diskon * jumlahTrans;
+        // Hitung PPN dan DPP (kalau perlu tampilkan di tabel nanti)
+        let dpp = Math.round(total / (1 + ppnBarang / 100));
+        let total_ppn = total - dpp;
+        // Grand total (karena total sudah termasuk PPN)
+        let gtotal = total;
+
+            // Pengecekan untuk nilai kosong
+        if (!kdBarangCek || !namaBarangCek || !kode_userCek || hargaBarang === 0 || jumlahTrans === 0) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Submit Failed',
+                text: 'Mohon lengkapi semua data sebelum submit!',
+                showConfirmButton: false,
+                timer: 2000 // Durasi tampil dalam milidetik
+            });
+            // alert('Mohon lengkapi semua data sebelum submit!');
+            return; // Hentikan proses jika salah satu input kosong
+        }
+
         let data = {
             _token: '{{ csrf_token() }}',
             nomor_po: $('#nomor_po').val(),
             select_gudang: $('#select_gudang').val(),
-            kode_user: '{{ Auth::user()->user_id }}',
+            kode_user: $('#kode_user_trans').val(),
             product: {
                 kd_barang: $('#select_barang').val(),
                 nama: $('#select_barang option:selected').text(),
-                harga: parseFloat(hapus_format(hargaText)) || 0,
-                jumlah: parseInt($('#jumlah_trans').val()),
-                unit: parseFloat(hapus_format(unitText)) || 0,
+                harga: hargaBarang,
+                jumlah: jumlahTrans,
+                unit: parseFloat(hapus_format($('#unit_barang').text())) || 0,
                 satuan: $('#select_barang_satuan option:selected').text(),
-                diskon: parseFloat($('#diskon_barang').val()) || 0,
-                diskon_rp: parseFloat($('#diskon_barang_rp').val()) || 0,
-                total: parseFloat(hapus_format(totalText)) || 0,
-                ppn_trans: parseFloat($('#ppn_trans').val()) || 0
+                diskon: diskonBarang,
+                diskon_rp: diskonBarangRp,
+                total: gtotal,
+                ppn_trans: ppnBarang
             }
         };
 
@@ -704,18 +765,7 @@ $('#select_gudang').on('change', function() {
         let diskonBarang = parseFloat($('#diskon_barang').val()) || 0;
         let diskonBarangRp = parseFloat($('#diskon_barang_rp').val()) || 0;
         let ppnBarang = parseFloat($('#ppn_trans').val().replace(',', '.')) || 0;
-            // Pengecekan untuk nilai kosong
-        if (!kdBarang || !namaBarang || hargaBarang === 0 || jumlahTrans === 0) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Submit Failed',
-                text: 'Mohon lengkapi semua data sebelum submit!',
-                showConfirmButton: false,
-                timer: 2000 // Durasi tampil dalam milidetik
-            });
-            // alert('Mohon lengkapi semua data sebelum submit!');
-            return; // Hentikan proses jika salah satu input kosong
-        }
+
         // rumus diskon
         let diskon_dalam_uang = (diskonBarang / 100) * hargaBarang;
         let harga_setelah_diskon = hargaBarang - diskon_dalam_uang - diskonBarangRp;
@@ -747,8 +797,8 @@ $('#select_gudang').on('change', function() {
                 <td class="d-none dpp-val">${dpp}</td>
                 <td class="d-none ppn-val">${total_ppn}</td>
                 <td>
+                <button type="button" class="btn btn-primary btn-sm edit-row" data-id="${id}"><i class="fa fa-save" aria-hidden="true"></i></button>
                 <button type="button" class="btn btn-danger btn-sm delete-row" data-id="${id}"><i class="fa fa-trash" aria-hidden="true"></i></button>
-                <button type="button" class="btn btn-primary btn-sm delete-row" data-id="${id}"><i class="fa fa-save" aria-hidden="true"></i></button>
                 </td>
             </tr>
         `;
@@ -763,7 +813,7 @@ $('#select_gudang').on('change', function() {
         grandTotalPpn += total_ppn;
         $('#grand_total_ppn').text(format_ribuan(grandTotalPpn));
 
-        this.reset();
+        // this.reset();
         $('#select_barang').val(null).trigger('change');
         $('#nama_barang').text('-');
         $('#harga_barang').text('-');
@@ -771,6 +821,9 @@ $('#select_gudang').on('change', function() {
         $('#stok_barang').text('-');
         $('#select_barang_satuan').empty();
         $('#select_barang_satuan').append('<option value="">Pilih Satuan</option>');
+        $('#jumlah_trans').val('');
+        $('#diskon_barang').val('');
+        $('#diskon_barang_rp').val('');
         loadInputPajak();
 
         setTimeout(function() {
@@ -779,27 +832,6 @@ $('#select_gudang').on('change', function() {
         }, 0);
 
     };
-
-    // ### Detele Table
-    $('#transaksi_table').on('click', '.delete-row', function() {
-        let row = $(this).closest('tr');
-        let total_text = row.find('td:eq(10)').text();
-        let total = parseFloat(hapus_format(total_text)) || 0;
-
-        let dpp = parseFloat(row.find('.dpp-val').text()) || 0;
-        let total_ppn = parseFloat(row.find('.ppn-val').text()) || 0;
-
-        grandTotal -= total;
-        grandTotalDpp -= dpp;
-        grandTotalPpn -= total_ppn;
-
-        row.remove();
-        updateRowNumbers();
-
-        $('#grand_total').text(format_ribuan(grandTotal));
-        $('#grand_total_dpp').text(format_ribuan(grandTotalDpp));
-        $('#grand_total_ppn').text(format_ribuan(grandTotalPpn));
-    });
 
     function updateRowNumbers() {
         $('#transaksi_table tbody tr').each(function(index) {
@@ -841,7 +873,92 @@ $('#select_gudang').on('change', function() {
         $('#grand_total_ppn').text(format_ribuan(grandTotalPpn));
     });
 // =============================== End Of Input Barang To Table =========================================
-// =================================== Submit Barang To DB ==============================================
+// ================================== Edit Barang ============================================
+    $('#transaksi_table').on('click', '.edit-row', function () {
+        const row = $(this).closest('tr');
+        const id = $(this).data('id');
+
+        const jumlah = parseFloat(row.find('td:eq(6)').text()) || 0;
+        const diskon = parseFloat(row.find('td:eq(7)').text()) || 0;
+        const diskon_rp = parseFloat(row.find('td:eq(8)').text()) || 0;
+        const ppn_trans = parseFloat(row.find('td:eq(9)').text()) || 0;
+
+        $.ajax({
+            url: "{{ route('update_products') }}",
+            type: "POST",
+            data: {
+                _token: '{{ csrf_token() }}',
+                id: id,
+                product: { jumlah, diskon, diskon_rp, ppn_trans }
+            },
+            success: function (response) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil!',
+                    text: response.message,
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+            },
+            error: function (xhr) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal!',
+                    text: 'Terjadi kesalahan saat menyimpan data.',
+                });
+            }
+        });
+    });
+// =============================== End Of Edit Barang =========================================
+// ================================== Delete Barang ============================================
+    // ### Detele Table
+    $('#transaksi_table').on('click', '.delete-row', function() {
+        const button = $(this); // ✅ simpan referensi tombol
+        const id = $(this).data('id');
+        $.ajax({
+            url: "{{ route('delete_product_baris') }}",
+            type: "POST",
+            data: {
+                _token: '{{ csrf_token() }}',
+                id: id,
+            },
+            success: function (response) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil!',
+                    text: response.message,
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+                let row = button.closest('tr');
+                let total_text = row.find('td:eq(10)').text();
+                let total = parseFloat(hapus_format(total_text)) || 0;
+
+                let dpp = parseFloat(row.find('.dpp-val').text()) || 0;
+                let total_ppn = parseFloat(row.find('.ppn-val').text()) || 0;
+
+                grandTotal -= total;
+                grandTotalDpp -= dpp;
+                grandTotalPpn -= total_ppn;
+
+                row.remove();
+                updateRowNumbers();
+
+                $('#grand_total').text(format_ribuan(grandTotal));
+                $('#grand_total_dpp').text(format_ribuan(grandTotalDpp));
+                $('#grand_total_ppn').text(format_ribuan(grandTotalPpn));
+            },
+            error: function (xhr) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal!',
+                    text: 'Terjadi kesalahan saat menyimpan data.',
+                });
+            }
+        });
+    });
+// =============================== End Of Delete Barang =========================================
+// =================================== Submit Barang To DB XXX ==============================================
     $('#save_table_transaksi').on('click', function () {
         const kode_user = $("#kode_user_trans").val();
         const products = [];

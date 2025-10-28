@@ -56,6 +56,8 @@ Route::prefix('transaksi')->middleware('auth')->group(function () {
     Route::get('/api/gudangs', [TransaksiController::class, 'get_kode_gudang'])->name('get_kode_gudang');
     Route::get('/api/barangs', [TransaksiController::class, 'get_barangs'])->name('get_barangs');
     Route::post('save/products', [TransaksiController::class, 'save_products'])->name('save_products');
+    Route::post('update/products', [TransaksiController::class, 'update_products'])->name('update_products');
+    Route::post('delete/product/baris', [TransaksiController::class, 'delete_product_baris'])->name('delete_product_baris');
     Route::get('/api/barangs/satuan', [TransaksiController::class, 'get_barang_satuan'])->name('get_barang_satuan');
     Route::get('/api/barangs/selected', [TransaksiController::class, 'get_barang_selected'])->name('get_barang_selected');
     // Bagian Faktur
@@ -65,7 +67,6 @@ Route::prefix('transaksi')->middleware('auth')->group(function () {
     Route::get('/api/edit_transaksi', [TransaksiController::class, 'get_edit_transaksi_data'])->name('get_edit_transaksi_data');
     Route::get('/api/edit_transaksi/admin', [TransaksiController::class, 'get_edit_transaksi_data_admin'])->middleware('role:admin,staff')->name('get_edit_transaksi_data_admin');
     Route::get('/api/edit_transaksi/to_table', [TransaksiController::class, 'get_edit_transaksi_to_table'])->name('get_edit_transaksi_to_table');
-    Route::post('update/products', [TransaksiController::class, 'update_products'])->name('update_products');
     Route::post('delete/products', [TransaksiController::class, 'delete_products'])->name('delete_products');
     // Show Approved Transaksi
     Route::get('/approved', [TransaksiController::class, 'approved'])->name('approved_transaksi');
