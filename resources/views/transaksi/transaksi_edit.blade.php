@@ -195,12 +195,17 @@ h5 {
         </div>
     </div>
     {{-- Inputan No PO --}}
-    <div class="container">
+    {{-- <div class="container">
         <input type="text" class="form-control mt-3 col-lg-3" name="no_po_edit" id="no_po_edit" readonly>
-    </div>
+    </div> --}}
     {{-- End Of Inputan No PO --}}
-    <form action="" class="mt-3">
+    <form action="" id="form_transaksi_edit" class="mt-3">
     <div class="row">
+        <div class="col-lg-4 col-md-12 col-sm-12 mb-3">
+            <div class="d-flex align-items-center">
+                <input type="text" id="nomor_po_edit" class="form-control" readonly>
+            </div>
+        </div>
         <div class="col-lg-4 col-md-12 col-sm-12 mb-3">
             <div class="d-flex align-items-center">
                 <select name="select_gudang_edit" id="select_gudang_edit" class="form-control">
@@ -574,7 +579,7 @@ $(document).ready(function(){
             success: function (response) {
                 $('#transaksi_table_edit tbody').empty();
                 const get_no_nvoice = response.data[0].no_invoice;
-                $('#no_po_edit').val('Invoice No : '+get_no_nvoice);
+                $('#nomor_po_edit').val(get_no_nvoice);
                 $('#save_table_transaksi_edit').val(get_no_nvoice);
                 $('#cetak_table_transaksi_edit').val(get_no_nvoice);
                 $('#reset_table_transaksi_edit').val(get_no_nvoice);
@@ -607,7 +612,10 @@ $(document).ready(function(){
                             <td>${total_order}</td>
                             <td class="d-none dpp-val">${item.dpp}</td>     <!-- DPP dari server -->
                             <td class="d-none ppn-val">${item.rppn}</td>
-                            <td><button type="button" class="btn btn-danger btn-sm delete-row"><i class="fa fa-trash" aria-hidden="true"></i></button></td>
+                            <td class="text-center d-flex justify-content-center gap-3">
+                            <button type="button" class="btn btn-primary btn-sm edit-row mr-1" data-id="${item.id}"><i class="fa fa-save" aria-hidden="true"></i></button>
+                            <button type="button" class="btn btn-danger btn-sm delete-row" data-id="${item.id}"><i class="fa fa-trash" aria-hidden="true"></i></button>
+                            </td>
                         </tr>
                     `);
                 });
@@ -894,11 +902,22 @@ $(document).ready(function(){
             select.empty();
             // select.append('<option value="">-- Pilih Gudang --</option>');
             $.each(data, function(index, value) {
-                select.append('<option value="' + value + '">' + value + '</option>');
+                select.append('<option value="' + value.cabang_id + '">' + value.nama + '</option>');
             });
         }
     });
 // ================================= End of Select Gudang ===========================================
+// ================================= Trigger Select Gudang ===========================================
+    $('#select_gudang_edit').on('change', function() {
+        let kode_gudang = $(this).val(); // ambil gudang aktif
+        let kd_barang = $('#kd_barang').val(); // ambil barang aktif dari Select2
+
+        if (kd_barang) {
+            console.log('Gudang berubah, refresh data barang:', kd_barang, 'Gudang:', kode_gudang);
+            get_barang_satuan_edit(kd_barang);
+        }
+    });
+// ================================= End of Triger Select Gudang ===========================================
 // ======================= Trigger Select Satuan Barang When kd_barang change =============================
 function get_barang_satuan_edit(kd_barang){
         // console.log('test :' + kd_barang)
@@ -995,9 +1014,82 @@ function get_barang_satuan_edit(kd_barang){
         });
     }
 // =================== End Of Pajak PPN ==========================
+// ================================= Simpan Barang To DB ===========================================
+    $('form').on('submit', function(e) {
+        e.preventDefault();
+
+        // fungsi hanya untuk cek nilai kosong
+        let kode_userCek = $('#kode_user_trans_edit').val();
+        let kdBarangCek = $('#kd_barang').val();
+        let namaBarangCek = $('#nama_barang_edit').text();
+
+        let hargaBarang = parseFloat(hapus_format($('#harga_barang_edit').text())) || 0;
+        let jumlahTrans = parseInt($('#jumlah_trans_edit').val()) || 0;
+        let diskonBarang = parseFloat($('#diskon_barang_edit').val()) || 0; // persen
+        let diskonBarangRp = parseFloat($('#diskon_barang_rp_edit').val()) || 0; // nominal
+        let ppnBarang = parseFloat($('#ppn_trans_edit').val()) || 0;
+        // Hitung diskon dalam uang
+        let diskon_dalam_uang = (diskonBarang / 100) * hargaBarang;
+        // Harga setelah diskon
+        let harga_setelah_diskon = hargaBarang - diskon_dalam_uang - diskonBarangRp;
+        // Total kotor (sudah termasuk PPN)
+        let total = harga_setelah_diskon * jumlahTrans;
+        // Hitung PPN dan DPP (kalau perlu tampilkan di tabel nanti)
+        let dpp = Math.round(total / (1 + ppnBarang / 100));
+        let total_ppn = total - dpp;
+        // Grand total (karena total sudah termasuk PPN)
+        let gtotal = total;
+
+            // Pengecekan untuk nilai kosong
+        if (!kdBarangCek || !namaBarangCek || !kode_userCek || hargaBarang === 0 || jumlahTrans === 0) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Submit Failed',
+                text: 'Mohon lengkapi semua data sebelum submit!',
+                showConfirmButton: false,
+                timer: 2000 // Durasi tampil dalam milidetik
+            });
+            // alert('Mohon lengkapi semua data sebelum submit!');
+            return; // Hentikan proses jika salah satu input kosong
+        }
+
+        let data = {
+            _token: '{{ csrf_token() }}',
+            nomor_po: $('#nomor_po_edit').val(),
+            select_gudang: $('#select_gudang_edit').val(),
+            kode_user: $('#kode_user_trans_edit').val(),
+            product: {
+                kd_barang: $('#kd_barang').val(),
+                nama: $('#nama_barang_edit').text(),
+                harga: hargaBarang,
+                jumlah: jumlahTrans,
+                unit: parseFloat(hapus_format($('#unit_barang_edit').text())) || 0,
+                satuan: $('#select_barang_satuan_edit option:selected').text(),
+                diskon: diskonBarang,
+                diskon_rp: diskonBarangRp,
+                total: gtotal,
+                ppn_trans: ppnBarang
+            }
+        };
+
+        $.ajax({
+            url: "{{ route('save_products') }}",
+            type: "POST",
+            data: data,
+            success: function(res) {
+                let id = res.id;
+                console.log(res.message);
+                submit_to_table_edit(id);
+            },
+            error: function(err) {
+                console.error(err.responseJSON.error);
+            }
+        });
+    });
+// ================================= End Of Simpan Barang To DB ===========================================
 // ================================= Input Barang To Table ===========================================
     // let grandTotal = 0;
-    $('form').on('submit', function(event) {
+    function submit_to_table_edit(id){
         event.preventDefault();
 
         let kdBarang = $('#kd_barang').val();
@@ -1052,7 +1144,10 @@ function get_barang_satuan_edit(kd_barang){
                 <td>${format_ribuan(gtotal)}</td>
                 <td class="d-none dpp-val">${dpp}</td>
                 <td class="d-none ppn-val">${total_ppn}</td>
-                <td><button type="button" class="btn btn-danger btn-sm delete-row"><i class="fa fa-trash" aria-hidden="true"></i></button></td>
+                <td>
+                <button type="button" class="btn btn-primary btn-sm edit-row" data-id="${id}"><i class="fa fa-save" aria-hidden="true"></i></button>
+                <button type="button" class="btn btn-danger btn-sm delete-row" data-id="${id}"><i class="fa fa-trash" aria-hidden="true"></i></button>
+                </td>
             </tr>
         `;
         // d-none dpp-val dan ppn-val untuk mengakali akumulasi jumlah dpp dan ppn
@@ -1066,7 +1161,7 @@ function get_barang_satuan_edit(kd_barang){
         grandTotalPpn += total_ppn;
         $('#grand_total_ppn_edit').text(format_ribuan(grandTotalPpn));
 
-        this.reset();
+        // this.reset();
         $('#select_barang_edit').val(null).trigger('change');
         $('#nama_barang_edit').text('-');
         $('#harga_barang_edit').text('-');
@@ -1074,6 +1169,9 @@ function get_barang_satuan_edit(kd_barang){
         $('#stok_barang_edit').text('-');
         $('#select_barang_satuan_edit').empty();
         $('#select_barang_satuan_edit').append('<option value="">Pilih Satuan</option>');
+        $('#jumlah_trans_edit').val('');
+        $('#diskon_barang_edit').val('');
+        $('#diskon_barang_rp_edit').val('');
         loadInputPajakEdit();
 
         setTimeout(function() {
@@ -1081,7 +1179,7 @@ function get_barang_satuan_edit(kd_barang){
             document.querySelector('.select2-search__field').focus();
         }, 0);
 
-    });
+    };
 
     // ### Detele Table
     $('#transaksi_table_edit').on('click', '.delete-row', function() {

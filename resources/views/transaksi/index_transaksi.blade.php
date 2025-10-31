@@ -720,8 +720,8 @@ $('#select_gudang').on('change', function() {
             select_gudang: $('#select_gudang').val(),
             kode_user: $('#kode_user_trans').val(),
             product: {
-                kd_barang: $('#select_barang').val(),
-                nama: $('#select_barang option:selected').text(),
+                kd_barang: $('#kd_barang').val(),
+                nama: $('#nama_barang').text(),
                 harga: hargaBarang,
                 jumlah: jumlahTrans,
                 unit: parseFloat(hapus_format($('#unit_barang').text())) || 0,

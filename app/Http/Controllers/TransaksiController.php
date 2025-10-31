@@ -477,6 +477,7 @@ class TransaksiController extends Controller
             'a.no_invoice',
             'a.created_at',
             'a.user_kode',
+            'b.id',
             'b.kd_brg',
             'b.nama_brg',
             'c.NAMACUST as nama_cust',
