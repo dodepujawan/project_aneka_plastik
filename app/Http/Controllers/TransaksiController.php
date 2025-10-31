@@ -10,6 +10,7 @@ use App\Models\FakturUser;
 use App\Models\Cabang;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -465,6 +466,82 @@ class TransaksiController extends Controller
             'recordsFiltered' => $recordsFiltered,
             'data' => $data,
         ]);
+    }
+
+    public function filter_no_po(Request $request){
+        if (!Auth::check()) {
+            return response()->json(['message' => 'Silakan login terlebih dahulu'], 401);
+        }
+
+        $query = DB::table('po_userby as a')
+            ->join('po_online as b', function($join) {
+                $join->on(DB::raw('CONVERT(a.no_invoice USING utf8mb4) COLLATE utf8mb4_general_ci'),
+                        '=',
+                        DB::raw('CONVERT(b.no_invoice USING utf8mb4) COLLATE utf8mb4_general_ci'));
+            })
+            ->leftJoin('mcustomer as c', function($join) {
+                $join->on(DB::raw('CONVERT(a.user_kode USING latin1) COLLATE latin1_general_ci'),
+                        '=',
+                        DB::raw('CONVERT(c.CUSTOMER USING latin1) COLLATE latin1_general_ci'));
+            })
+            ->leftJoin('users as d', function($join) {
+                $join->on(DB::raw('CONVERT(a.user_id USING utf8mb4) COLLATE utf8mb4_general_ci'),
+                        '=',
+                        DB::raw('CONVERT(d.user_id USING utf8mb4) COLLATE utf8mb4_general_ci'));
+            })
+            ->select(
+                'a.no_invoice',
+                DB::raw('DATE(a.created_at) as created_at'),
+                'a.user_id',
+                'a.user_kode',
+                DB::raw('c.NAMACUST as nama_cust'),
+                'b.history_inv',
+                'd.name',
+                DB::raw('SUM(b.total) as total')
+            )
+            ->groupBy(
+                'a.no_invoice',
+                'a.created_at',
+                'a.user_id',
+                'a.user_kode',
+                'c.NAMACUST',
+                'b.history_inv',
+                'd.name'
+            );
+
+        // Filter role sebelum DataTables
+        $user = Auth::user();
+        if ($user->roles === 'customer') {
+            $query->where('a.user_kode', $user->user_kode);
+        } elseif ($user->roles === 'staff') {
+            $query->where('a.user_id', $user->user_id);
+        }
+
+        // Kirim langsung builder ke DataTables
+        return DataTables::of($query)
+            ->filter(function ($query) use ($request, $user) {
+                if ($request->startDate) {
+                    $query->whereDate('a.created_at', '>=', $request->startDate);
+                }
+                if ($request->endDate) {
+                    $query->whereDate('a.created_at', '<=', $request->endDate);
+                }
+                if ($request->searchText) {
+                    $search = $request->searchText;
+                    $query->where(function ($q) use ($search, $user) {
+                        $q->where('a.no_invoice', 'like', "%$search%")
+                        ->orWhere('b.history_inv', 'like', "%$search%");
+                        if (in_array($user->roles, ['staff', 'admin'])) {
+                            $q->orWhere('a.user_kode', 'like', "%$search%")
+                            ->orWhere('a.user_id', 'like', "%$search%")
+                            ->orWhere('c.NAMACUST', 'like', "%$search%")
+                            ->orWhere('d.name', 'like', "%$search%");
+                        }
+                    });
+                }
+            })
+            ->addIndexColumn() // otomatis tambahkan kolom nomor urut DT_RowIndex
+            ->make(true);
     }
 
     public function get_edit_transaksi_to_table(Request $request){

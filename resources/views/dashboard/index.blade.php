@@ -69,6 +69,21 @@
         <i class="fas fa-angle-up"></i>
     </a>
 
+    {{-- Minimalis Loading Modal --}}
+    <div id="tableOverlay" style="
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(255, 255, 255, 0.6);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    ">
+    <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+    </div>
+    {{-- End Of Minimalis Loading Modal --}}
     {{-- Download Loading Modal --}}
     <div class="modal fade" id="loading_modal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static" data-keyboard="false">
         <div class="modal-dialog modal-dialog-centered" role="document">
