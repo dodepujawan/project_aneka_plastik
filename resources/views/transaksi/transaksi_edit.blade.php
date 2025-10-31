@@ -1181,27 +1181,6 @@ function get_barang_satuan_edit(kd_barang){
 
     };
 
-    // ### Detele Table
-    $('#transaksi_table_edit').on('click', '.delete-row', function() {
-        let row = $(this).closest('tr');
-        let total_text = row.find('td:eq(10)').text();
-        let total = parseFloat(hapus_format(total_text)) || 0;
-
-        let dpp = parseFloat(row.find('.dpp-val').text()) || 0;
-        let total_ppn = parseFloat(row.find('.ppn-val').text()) || 0;
-
-        grandTotal -= total;
-        grandTotalDpp -= dpp;
-        grandTotalPpn -= total_ppn;
-
-        row.remove();
-        updateRowNumbers();
-
-        $('#grand_total_edit').text(format_ribuan(grandTotal));
-        $('#grand_total_dpp_edit').text(format_ribuan(grandTotalDpp));
-        $('#grand_total_ppn_edit').text(format_ribuan(grandTotalPpn));
-    });
-
     function updateRowNumbers() {
         $('#transaksi_table_edit tbody tr').each(function(index) {
             $(this).find('.row-number').text(index + 1);
@@ -1242,7 +1221,92 @@ function get_barang_satuan_edit(kd_barang){
         $('#grand_total_ppn_edit').text(format_ribuan(grandTotalPpn));
     });
 // =============================== End Of Input Barang To Table =========================================
-// =================================== Update Barang To DB ==============================================
+// ================================== Edit Barang ============================================
+    $('#transaksi_table_edit').on('click', '.edit-row', function () {
+        const row = $(this).closest('tr');
+        const id = $(this).data('id');
+
+        const jumlah = parseFloat(row.find('td:eq(6)').text()) || 0;
+        const diskon = parseFloat(row.find('td:eq(7)').text()) || 0;
+        const diskon_rp = parseFloat(row.find('td:eq(8)').text()) || 0;
+        const ppn_trans = parseFloat(row.find('td:eq(9)').text()) || 0;
+
+        $.ajax({
+            url: "{{ route('update_products') }}",
+            type: "POST",
+            data: {
+                _token: '{{ csrf_token() }}',
+                id: id,
+                product: { jumlah, diskon, diskon_rp, ppn_trans }
+            },
+            success: function (response) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil!',
+                    text: response.message,
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+            },
+            error: function (xhr) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal!',
+                    text: 'Terjadi kesalahan saat menyimpan data.',
+                });
+            }
+        });
+    });
+// =============================== End Of Edit Barang =========================================
+// ================================== Delete Barang ============================================
+    // ### Detele Table
+    $('#transaksi_table_edit').on('click', '.delete-row', function() {
+        const button = $(this); // ✅ simpan referensi tombol
+        const id = $(this).data('id');
+        $.ajax({
+            url: "{{ route('delete_product_baris') }}",
+            type: "POST",
+            data: {
+                _token: '{{ csrf_token() }}',
+                id: id,
+            },
+            success: function (response) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil!',
+                    text: response.message,
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+                let row = button.closest('tr');
+                let total_text = row.find('td:eq(10)').text();
+                let total = parseFloat(hapus_format(total_text)) || 0;
+
+                let dpp = parseFloat(row.find('.dpp-val').text()) || 0;
+                let total_ppn = parseFloat(row.find('.ppn-val').text()) || 0;
+
+                grandTotal -= total;
+                grandTotalDpp -= dpp;
+                grandTotalPpn -= total_ppn;
+
+                row.remove();
+                updateRowNumbers();
+
+                $('#grand_total_edit').text(format_ribuan(grandTotal));
+                $('#grand_total_dpp_edit').text(format_ribuan(grandTotalDpp));
+                $('#grand_total_ppn_edit').text(format_ribuan(grandTotalPpn));
+            },
+            error: function (xhr) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal!',
+                    text: 'Terjadi kesalahan saat menyimpan data.',
+                });
+            }
+        });
+    });
+// =============================== End Of Delete Barang =========================================
+// =================================== Update Barang To DB XXX ==============================================
     $('#save_table_transaksi_edit').on('click', function () {
         const kode_user = $("#kode_user_trans_edit").val();
         const products = [];
