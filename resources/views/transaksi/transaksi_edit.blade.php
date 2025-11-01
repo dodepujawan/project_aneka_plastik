@@ -130,6 +130,8 @@ h5 {
                 <tr>
                     <th>No</th>
                     <th>No PO</th>
+                    <th>Customer Kode</th>
+                    <th>Customer</th>
                     <th>Tgl PO</th>
                     <th>Total PO</th>
                     <th>Aksi</th>
@@ -137,6 +139,13 @@ h5 {
             </thead>
             <tbody>
             </tbody>
+            <tfoot>
+                <tr>
+                    <th colspan="5" style="text-align:right">Grand Total:</th>
+                    <th id="grand_total_appr_edit_staff">Rp 0</th>
+                    <th></th>
+                </tr>
+            </tfoot>
         </table>
         <table id="transaksi_table_edit_field_admin" class="display table table-bordered mb-2 style-table">
             <thead>
@@ -156,7 +165,7 @@ h5 {
             <tfoot>
                 <tr>
                     <th colspan="6" style="text-align:right">Grand Total:</th>
-                    <th id="grand_total_appr_edit">Rp 0</th>
+                    <th id="grand_total_appr_edit_admin">Rp 0</th>
                     <th></th>
                 </tr>
             </tfoot>
@@ -328,12 +337,12 @@ h5 {
             </tbody>
         </table>
     </div>
-    <div class="button-container" style="display: flex; justify-content: flex-end; gap: 10px;">
+    {{-- <div class="button-container" style="display: flex; justify-content: flex-end; gap: 10px;">
         <button type="submit" class="btn btn-primary mt-2 mb-2" id="save_table_transaksi_edit"><i class="fas fa-save"> Proses</i></button>
         <button type="submit" class="btn btn-success mt-2 mb-2" id="cetak_table_transaksi_edit"><i class="fas fa-print"> Struk</i></button>
         <button type="submit" class="btn btn-info mt-2 mb-2" id="reset_table_transaksi_edit"><i class="fas fa-sync-alt"> Reset</i></button>
-        <button type="submit" class="btn btn-warning mt-2 mb-2" id="return_table_transaksi_edit"><i class="fas fa-undo"> List Menu</i></button>
-    </div>
+        <button type="submit" class="btn btn-warning mt-1 mb-2" id="return_table_transaksi_edit"><i class="fas fa-undo"> List Menu</i></button>
+    </div> --}}
 </div>
 <!-- Modal Pembayaran Struk-->
 <div class="modal fade" id="payment_modal" data-backdrop="static" data-keyboard="false" tabindex="-1">
@@ -399,11 +408,11 @@ $(document).ready(function(){
     let user_nama_select = @json(Auth::user()->name);
     // console.log('kode:' + user_role_select);
     // console.log('nama:' + user_nama_select);
-    if(user_role_select == 'customer'){
+    if(user_role_select == 'staff'){
         $("#transaksi_table_edit_field").show();
         $("#transaksi_table_edit_field_admin").hide();
         show_table_po();
-        $(".master_customer_select_edit").hide();
+        // $(".master_customer_select_edit").hide();
         // menghapus halaman sebelumnya lalu reload ulang from sidebar click
         $('#transaksi_table_edit_field').DataTable().state.clear();
         show_table_po();
@@ -416,31 +425,30 @@ $(document).ready(function(){
         $('#transaksi_table_edit_field_admin').DataTable().state.clear();
         show_table_po_admin();
     }
-    function show_table_po(){
+    function show_table_po() {
         if ($.fn.dataTable.isDataTable('#transaksi_table_edit_field')) {
-            $('#transaksi_table_edit_field').DataTable().destroy();
+            $('#transaksi_table_edit_field').DataTable().clear().destroy();
         }
-        const table = $('#transaksi_table_edit_field').DataTable({
+        table = $('#transaksi_table_edit_field').DataTable({
             processing: true,
-            serverSide: true, // Ubah menjadi true untuk server-side processing
-            stateSave: true, // untuk kembali ke halaman sebelumnya
-            pageLength: 10, // Set default 10 data per halaman
-            lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]], // Opsi pagination
+            serverSide: true,
             ajax: {
-                url: '{{ route('get_edit_transaksi_data') }}',
-                type: 'GET',
-            },
-            columns: [
-                {
-                    data: null,
-                    name: 'no',
-                    orderable: false,
-                    render: (data, type, row, meta) => {
-                        // Untuk nomor urut yang sesuai dengan pagination
-                        return meta.row + meta.settings._iDisplayStart + 1;
-                }, // Nomor otomatis
+                url: '{{ route("filter_no_po") }}',
+                data: function(d) {
+                    d.startDate = $('#startDateAppTransaksi').val();
+                    d.endDate = $('#endDateAppTransaksi').val();
+                    d.searchText = $('#searchBoxAppTransaksi').val();
                 },
+                dataSrc: function(json) {
+                    console.log('Server Response:', json);
+                    return json.data;
+                }
+            },
+            columns:[
+                { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
                 { data: 'no_invoice', name: 'no_invoice' },
+                { data: 'user_kode', name: 'user_kode' },
+                { data: 'nama_cust', name: 'nama_cust' },
                 { data: 'created_at', name: 'created_at' },
                 {
                     data: 'total',
@@ -467,19 +475,41 @@ $(document).ready(function(){
                     },
                 },
             ],
-            searching: true,
+            footerCallback: function (row, data, start, end, display) {
+                let api = this.api();
+
+                // Calculate the total for current page
+                let pageTotal = api
+                    .column(5)
+                    .data()
+                    .reduce((a, b) => parseFloat(a) + parseFloat(b), 0);
+
+                // Update footer
+                $(api.column(5).footer()).html(
+                    'Rp ' + $.fn.dataTable.render.number(',', '.', 2, '').display(pageTotal)
+                );
+            },
+            searching: false,
             paging: true,
-            info: true,
+            info: false,
             scrollY: '100vh',  // Menambahkan scrolling vertikal
             scrollCollapse: true,
             scrollX: true,
+            stateSave: true, // untuk kembali ke halaman sebelumnya
             fixedHeader: {
                 header: true,
                 footer: false
             }
         });
+
+        $('#filterBtnAppTransaksi').on('click', function() {
+            table.ajax.reload();
+        });
         $('#po_table_edit_refresh').on('click', function() {
             if (table) {
+                $('#startDateAppTransaksi').val('');
+                $('#endDateAppTransaksi').val('');
+                $('#searchBoxAppTransaksi').val('');
                 table.state.clear();
                 show_table_po();
             }
@@ -570,83 +600,14 @@ $(document).ready(function(){
         });
         $('#po_table_edit_refresh').on('click', function() {
             if (table) {
+                $('#startDateAppTransaksi').val('');
+                $('#endDateAppTransaksi').val('');
+                $('#searchBoxAppTransaksi').val('');
                 table.state.clear();
                 show_table_po_admin();
             }
         });
     }
-    // function show_table_po_adminxxx(){
-    //     if ($.fn.dataTable.isDataTable('#transaksi_table_edit_field_admin')) {
-    //         $('#transaksi_table_edit_field_admin').DataTable().destroy();
-    //     }
-    //     const table = $('#transaksi_table_edit_field_admin').DataTable({
-    //         processing: true,
-    //         serverSide: true,
-    //         stateSave: true, // untuk kembali ke halaman sebelumnya
-    //         pageLength: 10, // Set default 10 data per halaman
-    //         lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]], // Opsi pagination
-    //         ajax: {
-    //             url: '{{ route('get_edit_transaksi_data_admin') }}',
-    //             type: 'GET',
-    //         },
-    //         columns: [
-    //             {
-    //                 data: null,
-    //                 name: 'no',
-    //                 orderable: false,
-    //                 render: (data, type, row, meta) => {
-    //                     // Untuk nomor urut yang sesuai dengan pagination
-    //                     return meta.row + meta.settings._iDisplayStart + 1;
-    //                 }, // Nomor otomatis
-    //             },
-    //             { data: 'no_invoice', name: 'no_invoice' },
-    //             { data: 'user_kode', name: 'user_kode' },
-    //             { data: 'nama_cust', name: 'nama_cust' },
-    //             { data: 'created_at', name: 'created_at' },
-    //             {
-    //                 data: 'total',
-    //                 name: 'total',
-    //                 render: $.fn.dataTable.render.number(',', '.', 2, 'Rp ') // Format angka jadi Rupiah
-    //             },
-    //             {
-    //                 data: 'no_invoice',
-    //                 orderable: false,
-    //                 render: (data, type, row) => {
-    //                     return `
-    //                         <div style="display: flex; justify-content: center; gap: 0.5rem;">
-    //                             <button class="btn btn-sm btn-primary edit-btn" data-no-invoice="${row.no_invoice}" style="margin-right: 0;">
-    //                                 <i class="fa fa-edit"></i>
-    //                             </button>
-    //                             <button class="btn btn-sm btn-success print-btn" id="print_edit_pdf" data-no-invoice="${row.no_invoice}">
-    //                                 <i class="fa fa-print"></i>
-    //                             </button>
-    //                             <button class="btn btn-sm btn-danger delete-btn" data-no-invoice="${row.no_invoice}">
-    //                                 <i class="fa fa-trash"></i>
-    //                             </button>
-    //                         </div>
-    //                     `;
-    //                 },
-    //             },
-    //         ],
-    //         searching: true,
-    //         paging: true,
-    //         info: true,
-    //         scrollY: '100vh',  // Menambahkan scrolling vertikal
-    //         scrollCollapse: true,
-    //         scrollX: true,
-    //         fixedHeader: {
-    //             header: true,
-    //             footer: false
-    //         }
-    //     });
-    //     $('#po_table_edit_refresh').on('click', function() {
-    //         if (table) {
-    //             table.state.clear();
-    //             show_table_po_admin();
-    //         }
-    //     });
-    // }
-// ================================= End Of Show Table PO ===========================================
 // ========================= Input PO Main Transaksi ======================================
     $(document).on('click', '#po_table_edit_input', function(e) {
         e.preventDefault();
@@ -801,7 +762,7 @@ $(document).ready(function(){
                         _token: '{{ csrf_token() }}'
                     },
                     success: function (response) {
-                        if(user_role_select == 'customer'){
+                        if(user_role_select == 'staff'){
                             $('#transaksi_table_edit_field').DataTable().row(row).remove().draw(false);
                         }else{
                             $('#transaksi_table_edit_field_admin').DataTable().row(row).remove().draw(false);
@@ -1924,3 +1885,146 @@ function get_barang_satuan_edit(kd_barang){
 // ============================== End Of Number Formating =====================================
 });
 </script>
+
+{{-- function show_table_poxxx(){
+        if ($.fn.dataTable.isDataTable('#transaksi_table_edit_field')) {
+            $('#transaksi_table_edit_field').DataTable().destroy();
+        }
+        const table = $('#transaksi_table_edit_field').DataTable({
+            processing: true,
+            serverSide: true, // Ubah menjadi true untuk server-side processing
+            stateSave: true, // untuk kembali ke halaman sebelumnya
+            pageLength: 10, // Set default 10 data per halaman
+            lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]], // Opsi pagination
+            ajax: {
+                url: '{{ route('get_edit_transaksi_data') }}',
+                type: 'GET',
+            },
+            columns: [
+                {
+                    data: null,
+                    name: 'no',
+                    orderable: false,
+                    render: (data, type, row, meta) => {
+                        // Untuk nomor urut yang sesuai dengan pagination
+                        return meta.row + meta.settings._iDisplayStart + 1;
+                }, // Nomor otomatis
+                },
+                { data: 'no_invoice', name: 'no_invoice' },
+                { data: 'created_at', name: 'created_at' },
+                {
+                    data: 'total',
+                    name: 'total',
+                    render: $.fn.dataTable.render.number(',', '.', 2, 'Rp ') // Format angka jadi Rupiah
+                },
+                {
+                    data: 'no_invoice',
+                    orderable: false,
+                    render: (data, type, row) => {
+                        return `
+                            <div style="display: flex; justify-content: center; gap: 0.5rem;">
+                                <button class="btn btn-sm btn-primary edit-btn" data-no-invoice="${row.no_invoice}" style="margin-right: 0;">
+                                    <i class="fa fa-edit"></i>
+                                </button>
+                                <button class="btn btn-sm btn-success print-btn" id="print_edit_pdf" data-no-invoice="${row.no_invoice}">
+                                    <i class="fa fa-print"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger delete-btn" data-no-invoice="${row.no_invoice}">
+                                    <i class="fa fa-trash"></i>
+                                </button>
+                            </div>
+                        `;
+                    },
+                },
+            ],
+            searching: true,
+            paging: true,
+            info: true,
+            scrollY: '100vh',  // Menambahkan scrolling vertikal
+            scrollCollapse: true,
+            scrollX: true,
+            fixedHeader: {
+                header: true,
+                footer: false
+            }
+        });
+        $('#po_table_edit_refresh').on('click', function() {
+            if (table) {
+                table.state.clear();
+                show_table_po();
+            }
+        });
+    } --}}
+
+  {{-- function show_table_po_adminxxx(){
+        if ($.fn.dataTable.isDataTable('#transaksi_table_edit_field_admin')) {
+            $('#transaksi_table_edit_field_admin').DataTable().destroy();
+        }
+        const table = $('#transaksi_table_edit_field_admin').DataTable({
+            processing: true,
+            serverSide: true,
+            stateSave: true, // untuk kembali ke halaman sebelumnya
+            pageLength: 10, // Set default 10 data per halaman
+            lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]], // Opsi pagination
+            ajax: {
+                url: '{{ route('get_edit_transaksi_data_admin') }}',
+                type: 'GET',
+            },
+            columns: [
+                {
+                    data: null,
+                    name: 'no',
+                    orderable: false,
+                    render: (data, type, row, meta) => {
+                        // Untuk nomor urut yang sesuai dengan pagination
+                        return meta.row + meta.settings._iDisplayStart + 1;
+                    }, // Nomor otomatis
+                },
+                { data: 'no_invoice', name: 'no_invoice' },
+                { data: 'user_kode', name: 'user_kode' },
+                { data: 'nama_cust', name: 'nama_cust' },
+                { data: 'created_at', name: 'created_at' },
+                {
+                    data: 'total',
+                    name: 'total',
+                    render: $.fn.dataTable.render.number(',', '.', 2, 'Rp ') // Format angka jadi Rupiah
+                },
+                {
+                    data: 'no_invoice',
+                    orderable: false,
+                    render: (data, type, row) => {
+                        return `
+                            <div style="display: flex; justify-content: center; gap: 0.5rem;">
+                                <button class="btn btn-sm btn-primary edit-btn" data-no-invoice="${row.no_invoice}" style="margin-right: 0;">
+                                    <i class="fa fa-edit"></i>
+                                </button>
+                                <button class="btn btn-sm btn-success print-btn" id="print_edit_pdf" data-no-invoice="${row.no_invoice}">
+                                    <i class="fa fa-print"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger delete-btn" data-no-invoice="${row.no_invoice}">
+                                    <i class="fa fa-trash"></i>
+                                </button>
+                            </div>
+                        `;
+                    },
+                },
+            ],
+            searching: true,
+            paging: true,
+            info: true,
+            scrollY: '100vh',  // Menambahkan scrolling vertikal
+            scrollCollapse: true,
+            scrollX: true,
+            fixedHeader: {
+                header: true,
+                footer: false
+            }
+        });
+        $('#po_table_edit_refresh').on('click', function() {
+            if (table) {
+                table.state.clear();
+                show_table_po_admin();
+            }
+        });
+    }
+================================= End Of Show Table PO =========================================== --}}
