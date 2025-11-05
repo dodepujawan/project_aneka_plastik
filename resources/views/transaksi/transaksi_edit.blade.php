@@ -532,7 +532,8 @@ $(document).ready(function(){
                     d.searchText = $('#searchBoxAppTransaksi').val();
                 },
                 dataSrc: function(json) {
-                    console.log('Server Response:', json);
+                    // simpan total ke variabel global
+                    window.totalFiltered = json.total;
                     return json.data;
                 }
             },
@@ -570,17 +571,7 @@ $(document).ready(function(){
             ],
             footerCallback: function (row, data, start, end, display) {
                 let api = this.api();
-
-                // Calculate the total for current page
-                let pageTotal = api
-                    .column(6)
-                    .data()
-                    .reduce((a, b) => parseFloat(a) + parseFloat(b), 0);
-
-                // Update footer
-                $(api.column(6).footer()).html(
-                    'Rp ' + $.fn.dataTable.render.number(',', '.', 2, '').display(pageTotal)
-                );
+                $(api.column(6).footer()).html(`<b>${formatRupiah(window.totalFiltered || 0)}</b>`);
             },
             searching: false,
             paging: true,
@@ -594,6 +585,9 @@ $(document).ready(function(){
                 footer: false
             }
         });
+        function formatRupiah(angka) {
+            return 'Rp ' + parseFloat(angka || 0).toLocaleString('id-ID');
+        }
 
         $('#filterBtnAppTransaksi').on('click', function() {
             table.ajax.reload();

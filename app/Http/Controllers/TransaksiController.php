@@ -473,22 +473,54 @@ class TransaksiController extends Controller
             return response()->json(['message' => 'Silakan login terlebih dahulu'], 401);
         }
 
-        $query = DB::table('po_userby as a')
-            ->join('po_online as b', function($join) {
+        $baseQuery = DB::table('po_userby as a')
+            ->join('po_online as b', function ($join) {
                 $join->on(DB::raw('CONVERT(a.no_invoice USING utf8mb4) COLLATE utf8mb4_general_ci'),
-                        '=',
-                        DB::raw('CONVERT(b.no_invoice USING utf8mb4) COLLATE utf8mb4_general_ci'));
+                    '=',
+                    DB::raw('CONVERT(b.no_invoice USING utf8mb4) COLLATE utf8mb4_general_ci'));
             })
-            ->leftJoin('mcustomer as c', function($join) {
+            ->leftJoin('mcustomer as c', function ($join) {
                 $join->on(DB::raw('CONVERT(a.user_kode USING latin1) COLLATE latin1_general_ci'),
-                        '=',
-                        DB::raw('CONVERT(c.CUSTOMER USING latin1) COLLATE latin1_general_ci'));
+                    '=',
+                    DB::raw('CONVERT(c.CUSTOMER USING latin1) COLLATE latin1_general_ci'));
             })
-            ->leftJoin('users as d', function($join) {
+            ->leftJoin('users as d', function ($join) {
                 $join->on(DB::raw('CONVERT(a.user_id USING utf8mb4) COLLATE utf8mb4_general_ci'),
-                        '=',
-                        DB::raw('CONVERT(d.user_id USING utf8mb4) COLLATE utf8mb4_general_ci'));
+                    '=',
+                    DB::raw('CONVERT(d.user_id USING utf8mb4) COLLATE utf8mb4_general_ci'));
             })
+            ->where('b.status_po', 0);
+
+        $user = Auth::user();
+        if ($user->roles === 'customer') {
+            $baseQuery->where('a.user_kode', $user->user_kode);
+        } elseif ($user->roles === 'staff') {
+            $baseQuery->where('a.user_id', $user->user_id);
+        }
+
+        // Terapkan filter ke base query agar data & total selaras
+        if ($request->startDate) {
+            $baseQuery->whereDate('a.created_at', '>=', $request->startDate);
+        }
+        if ($request->endDate) {
+            $baseQuery->whereDate('a.created_at', '<=', $request->endDate);
+        }
+        if ($request->searchText) {
+            $search = $request->searchText;
+            $baseQuery->where(function ($q) use ($search, $user) {
+                $q->where('a.no_invoice', 'like', "%$search%")
+                ->orWhere('b.history_inv', 'like', "%$search%");
+                if (in_array($user->roles, ['staff', 'admin'])) {
+                    $q->orWhere('a.user_kode', 'like', "%$search%")
+                    ->orWhere('a.user_id', 'like', "%$search%")
+                    ->orWhere('c.NAMACUST', 'like', "%$search%")
+                    ->orWhere('d.name', 'like', "%$search%");
+                }
+            });
+        }
+
+        // === Query utama untuk DataTables ===
+        $query = (clone $baseQuery)
             ->select(
                 'a.no_invoice',
                 DB::raw('DATE(a.created_at) as created_at'),
@@ -509,38 +541,15 @@ class TransaksiController extends Controller
                 'd.name'
             );
 
-        // Filter role sebelum DataTables
-        $user = Auth::user();
-        if ($user->roles === 'customer') {
-            $query->where('a.user_kode', $user->user_kode);
-        } elseif ($user->roles === 'staff') {
-            $query->where('a.user_id', $user->user_id);
-        }
+        // === Hitung total berdasarkan filter aktif ===
+        $totalFiltered = (clone $baseQuery)->sum('b.total');
 
-        // Kirim langsung builder ke DataTables
+        // === Kirim data ke DataTables ===
         return DataTables::of($query)
-            ->filter(function ($query) use ($request, $user) {
-                if ($request->startDate) {
-                    $query->whereDate('a.created_at', '>=', $request->startDate);
-                }
-                if ($request->endDate) {
-                    $query->whereDate('a.created_at', '<=', $request->endDate);
-                }
-                if ($request->searchText) {
-                    $search = $request->searchText;
-                    $query->where(function ($q) use ($search, $user) {
-                        $q->where('a.no_invoice', 'like', "%$search%")
-                        ->orWhere('b.history_inv', 'like', "%$search%");
-                        if (in_array($user->roles, ['staff', 'admin'])) {
-                            $q->orWhere('a.user_kode', 'like', "%$search%")
-                            ->orWhere('a.user_id', 'like', "%$search%")
-                            ->orWhere('c.NAMACUST', 'like', "%$search%")
-                            ->orWhere('d.name', 'like', "%$search%");
-                        }
-                    });
-                }
-            })
-            ->addIndexColumn() // otomatis tambahkan kolom nomor urut DT_RowIndex
+            ->addIndexColumn()
+            ->with([
+                'total' => $totalFiltered, // satu total aja, gak ada totalAll
+            ])
             ->make(true);
     }
 
